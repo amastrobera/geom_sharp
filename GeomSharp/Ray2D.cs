@@ -144,24 +144,15 @@ namespace GeomSharp {
     // special formatting
     public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", Origin.U, Origin.V) +
                                          " -> " + String.Format("{0:F9} {1:F9}", Direction.U, Direction.V) + "}";
-    public string ToWkt(int precision = Constants.NINE_DECIMALS, bool make_unit_line = false) {
-      if (make_unit_line) {
-        return string.Format("GEOMETRYCOLLECTION (" + "LINESTRING (" +
-                                 String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ", " +
-                                 String.Format("{0}2:F{1:D}{2} {0}3:F{1:D}{2}", "{", precision, "}") + ")" +
-                                 ", POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") +
-                                 ")" + ")",
-                             Origin.U,
-                             Origin.V,
-                             Origin.U + Direction.U,
-                             Origin.V + Direction.V);
-      }
-      return string.Format("RAY (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ", " +
-                               String.Format("{0}2:F{1:D}{2} {0}3:F{1:D}{2}", "{", precision, "}") + ")",
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      return string.Format("GEOMETRYCOLLECTION (" + "LINESTRING (" +
+                               String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ", " +
+                               String.Format("{0}2:F{1:D}{2} {0}3:F{1:D}{2}", "{", precision, "}") + ")" + ", POINT (" +
+                               String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")" + ")",
                            Origin.U,
                            Origin.V,
-                           Direction.U,
-                           Direction.V);
+                           Origin.U + Direction.U,
+                           Origin.V + Direction.V);
     }
   }
 

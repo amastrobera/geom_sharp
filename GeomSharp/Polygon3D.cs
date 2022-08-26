@@ -91,7 +91,7 @@ namespace GeomSharp {
                                              : "{" + string.Join(",", Vertices.Select(v => v.ToString())) +
                                                    "," + Vertices[0].ToString() + "}";
 
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) =>
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
         (Vertices.Count == 0)
             ? "POLYGON EMPTY"
             : "POLYGON ((" +

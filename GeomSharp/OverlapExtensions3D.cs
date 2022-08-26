@@ -31,16 +31,30 @@ namespace GeomSharp {
       (bool p0_in, bool p1_in, bool origin_in) =
           (ray.Contains(segment.P0), ray.Contains(segment.P1), segment.Contains(ray.Origin));
 
+      if (origin_in) {
+        if (p0_in) {
+          return ray.Origin.AlmostEquals(segment.P0)
+                     ? new IntersectionResult(segment.P0)
+                     : new IntersectionResult(LineSegment3D.FromPoints(ray.Origin, segment.P0));
+        }
+
+        if (p1_in) {
+          return ray.Origin.AlmostEquals(segment.P1)
+                     ? new IntersectionResult(segment.P1)
+                     : new IntersectionResult(LineSegment3D.FromPoints(ray.Origin, segment.P1));
+        }
+      }
+
       if (p0_in && p1_in) {
-        return new IntersectionResult();
+        return new IntersectionResult(segment);
       }
 
-      if (origin_in && p0_in) {
-        return new IntersectionResult(LineSegment3D.FromPoints(ray.Origin, segment.P0));
+      if (p0_in && !p1_in) {
+        return new IntersectionResult(segment.P0);
       }
 
-      if (origin_in && p1_in) {
-        return new IntersectionResult(LineSegment3D.FromPoints(ray.Origin, segment.P1));
+      if (!p0_in && p1_in) {
+        return new IntersectionResult(segment.P1);
       }
 
       return new IntersectionResult();
@@ -116,20 +130,20 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
       // from 3D to 2D to compute the intersection points
-      var triangle_2d = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
+      var triangle_2D = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
                                               ref_plane.ProjectInto(triangle.P1),
                                               ref_plane.ProjectInto(triangle.P2));
 
-      var line_2d = Line2D.FromTwoPoints(ref_plane.ProjectInto(line.Origin),
+      var line_2D = Line2D.FromTwoPoints(ref_plane.ProjectInto(line.Origin),
                                          ref_plane.ProjectInto(line.Origin + 2 * line.Direction));
 
       // from 2D back to 3D
-      var inter_2d = triangle_2d.Intersection(line_2d);
-      if (inter_2d.ValueType == typeof(Point2D)) {
-        var p_3d = ref_plane.Evaluate((Point2D)inter_2d.Value);
+      var inter_2D = triangle_2D.Intersection(line_2D);
+      if (inter_2D.ValueType == typeof(Point2D)) {
+        var p_3d = ref_plane.Evaluate((Point2D)inter_2D.Value);
         return new IntersectionResult(p_3d);
-      } else if (inter_2d.ValueType == typeof(LineSegment2D)) {
-        var line_inter = (LineSegment2D)inter_2d.Value;
+      } else if (inter_2D.ValueType == typeof(LineSegment2D)) {
+        var line_inter = (LineSegment2D)inter_2D.Value;
         (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
         return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
       }
@@ -152,20 +166,20 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
       // from 3D to 2D to compute the intersection points
-      var triangle_2d = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
+      var triangle_2D = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
                                               ref_plane.ProjectInto(triangle.P1),
                                               ref_plane.ProjectInto(triangle.P2));
 
-      var orig_2d = ref_plane.ProjectInto(ray.Origin);
-      var ray_2d = new Ray2D(orig_2d, (ref_plane.ProjectInto(ray.Origin + 2 * ray.Direction) - orig_2d).Normalize());
+      var orig_2D = ref_plane.ProjectInto(ray.Origin);
+      var ray_2D = new Ray2D(orig_2D, (ref_plane.ProjectInto(ray.Origin + 2 * ray.Direction) - orig_2D).Normalize());
 
       // from 2D back to 3D
-      var inter_2d = triangle_2d.Intersection(ray_2d);
-      if (inter_2d.ValueType == typeof(Point2D)) {
-        var p_3d = ref_plane.Evaluate((Point2D)inter_2d.Value);
+      var inter_2D = triangle_2D.Intersection(ray_2D);
+      if (inter_2D.ValueType == typeof(Point2D)) {
+        var p_3d = ref_plane.Evaluate((Point2D)inter_2D.Value);
         return new IntersectionResult(p_3d);
-      } else if (inter_2d.ValueType == typeof(LineSegment2D)) {
-        var line_inter = (LineSegment2D)inter_2d.Value;
+      } else if (inter_2D.ValueType == typeof(LineSegment2D)) {
+        var line_inter = (LineSegment2D)inter_2D.Value;
         (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
         return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
       }
@@ -189,19 +203,19 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
       // from 3D to 2D to compute the intersection points
-      var triangle_2d = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
+      var triangle_2D = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
                                               ref_plane.ProjectInto(triangle.P1),
                                               ref_plane.ProjectInto(triangle.P2));
 
-      var segment_2d = LineSegment2D.FromPoints(ref_plane.ProjectInto(segment.P0), ref_plane.ProjectInto(segment.P1));
+      var segment_2D = LineSegment2D.FromPoints(ref_plane.ProjectInto(segment.P0), ref_plane.ProjectInto(segment.P1));
 
       // from 2D back to 3D
-      var inter_2d = triangle_2d.Intersection(segment_2d);
-      if (inter_2d.ValueType == typeof(Point2D)) {
-        var p_3d = ref_plane.Evaluate((Point2D)inter_2d.Value);
+      var inter_2D = triangle_2D.Intersection(segment_2D);
+      if (inter_2D.ValueType == typeof(Point2D)) {
+        var p_3d = ref_plane.Evaluate((Point2D)inter_2D.Value);
         return new IntersectionResult(p_3d);
-      } else if (inter_2d.ValueType == typeof(LineSegment2D)) {
-        var line_inter = (LineSegment2D)inter_2d.Value;
+      } else if (inter_2D.ValueType == typeof(LineSegment2D)) {
+        var line_inter = (LineSegment2D)inter_2D.Value;
         (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
         return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
       }

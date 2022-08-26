@@ -28,6 +28,17 @@ namespace GeomSharpTests {
       return (null, p0, p1);
     }
 
+    public static (Line2D Line, Point2D p0, Point2D p1) MakeLine2D(int IMin = -10, int IMax = 10) {
+      var p0 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+      var p1 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+
+      try {
+        return (Line2D.FromTwoPoints(p0, p1), p0, p1);
+      } catch (Exception) {
+      }
+      return (null, p0, p1);
+    }
+
     public static (Ray2D Ray, Point2D p0, Point2D p1) MakeRay2D(int IMin = -10, int IMax = 10) {
       var p0 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
       var p1 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));

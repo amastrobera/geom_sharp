@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
     <Compile Include="IntersectionExtensions2D.cs" />
+    <Compile Include="ComparisonExtensions3D.cs" />
     <Compile Include="OverlapExtensions2D.cs" />
     <Compile Include="OverlapExtensions3D.cs" />
     <Compile Include="IntersectionExtensions3D.cs" />

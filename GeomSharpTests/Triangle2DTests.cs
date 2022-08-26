@@ -16,24 +16,23 @@ namespace GeomSharpTests {
       (var p0, var p1, var p2) = (random_triangle.p0, random_triangle.p1, random_triangle.p2);
 
       if (t is null) {
-        Assert.ThrowsException<ArithmeticException>(() => { Triangle2D.FromPoints(p0, p1, p2); });
-      } else {
-        // Console.WriteLine("t = " + t.ToWkt());
-
-        // vectors and points
-        Assert.AreEqual(t.P0, p0);
-        Assert.AreEqual(t.P1, p1);
-        Assert.AreEqual(t.P2, p2);
-
-        Assert.AreEqual(t.U, (p1 - p0).Normalize());
-        Assert.AreEqual(t.V, (p2 - p0).Normalize());
-        Assert.IsTrue(((p1 - p0).CrossProduct(p2 - p0) >= 0) ? t.Orientation == Constants.Orientation.COUNTER_CLOCKWISE
-                                                             : t.Orientation == Constants.Orientation.CLOCKWISE);
-
-        // center of mass
-        Assert.AreEqual(t.CenterOfMass(),
-                        new Point2D((t.P0.U + t.P1.U + t.P2.U) / 3.0, (t.P0.V + t.P1.V + t.P2.V) / 3.0));
+        return;
       }
+      // Console.WriteLine("t = " + t.ToWkt());
+
+      // vectors and points
+      Assert.AreEqual(t.P0, p0);
+      Assert.AreEqual(t.P1, p1);
+      Assert.AreEqual(t.P2, p2);
+
+      Assert.AreEqual(t.U, (p1 - p0).Normalize());
+      Assert.AreEqual(t.V, (p2 - p0).Normalize());
+      Assert.IsTrue(((p1 - p0).CrossProduct(p2 - p0) >= 0) ? t.Orientation == Constants.Orientation.COUNTER_CLOCKWISE
+                                                           : t.Orientation == Constants.Orientation.CLOCKWISE);
+
+      // center of mass
+      Assert.AreEqual(t.CenterOfMass(),
+                      new Point2D((t.P0.U + t.P1.U + t.P2.U) / 3.0, (t.P0.V + t.P1.V + t.P2.V) / 3.0));
     }
 
     private void TestContains(Triangle2D t) {
@@ -51,43 +50,43 @@ namespace GeomSharpTests {
       Point2D p;
 
       p = cm;
-      Assert.IsTrue(t.Contains(p), "inner (center of mass)");
+      Assert.IsTrue(t.Contains(p), "inner (center of mass), \n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = mid01;
-      Assert.IsTrue(t.Contains(p), "border 1" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsTrue(t.Contains(p), "border 1" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = mid12;
-      Assert.IsTrue(t.Contains(p), "border 2" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsTrue(t.Contains(p), "border 2" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = mid02;
-      Assert.IsTrue(t.Contains(p), "border 3" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsTrue(t.Contains(p), "border 3" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = t.P0;
-      Assert.IsTrue(t.Contains(p), "corner 1" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsTrue(t.Contains(p), "corner 1" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = t.P1;
-      Assert.IsTrue(t.Contains(p), "corner 2" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsTrue(t.Contains(p), "corner 2" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = t.P2;
-      Assert.IsTrue(t.Contains(p), "corner 3" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsTrue(t.Contains(p), "corner 3" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = mid01 + 2 * (mid01 - cm);
-      Assert.IsFalse(t.Contains(p), "outer point 1" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsFalse(t.Contains(p), "outer point 1" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = mid12 + 2 * (mid12 - cm);
-      Assert.IsFalse(t.Contains(p), "outer point 2" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsFalse(t.Contains(p), "outer point 2" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = mid02 + 2 * (mid02 - cm);
-      Assert.IsFalse(t.Contains(p), "outer point 3" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsFalse(t.Contains(p), "outer point 3" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = cm + 2 * (t.P0 - cm);
-      Assert.IsFalse(t.Contains(p), "point above" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsFalse(t.Contains(p), "point above" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
 
       p = cm - 2 * (t.P0 - cm);
-      Assert.IsFalse(t.Contains(p), "point below" + "\nt=" + t.ToWkt() + ", p=" + p.ToWkt());
+      Assert.IsFalse(t.Contains(p), "point below" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
     }
 
-    [RepeatedTestMethod(1000)]
+    [RepeatedTestMethod(100)]
     public void Contains() {
       // 2D
       TestContains(RandomGenerator.MakeTriangle2D().Triangle);

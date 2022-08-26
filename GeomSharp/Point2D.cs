@@ -92,7 +92,7 @@ namespace GeomSharp {
 
     public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
 
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) =>
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
         string.Format("POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")", U, V);
   }
 

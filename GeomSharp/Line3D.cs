@@ -56,7 +56,7 @@ namespace GeomSharp {
 
     public bool IsPerpendicular(Line3D other) => Direction.IsPerpendicular(other.Direction);
 
-    public bool Contains(Point3D p) => (p - P0).IsParallel(Direction);
+    public bool Contains(Point3D p) => p.AlmostEquals(Origin) || (p - Origin).IsParallel(Direction);
 
     /// <summary>
     /// Projects a Point onto a line
@@ -86,9 +86,11 @@ namespace GeomSharp {
     /// Finds the intersection between two 3D Lines. It solves a linear system of 3 equations with 2 unknowns.
     /// L1: Origin(1) + dir(1)   // this line
     /// L2: Origin(2) + dir(2)   // other line
-    /// If intersection, we will find (s,t) such that:
-    ///     Origin(1) + s*dir(1) = P(s|t) = Origin(2) + t*dir(2)
-    /// I formalize it in the form Ax = b, then use MathNet.Numerics to solve it
+    /// I project the two lines on the first plane onto which they aren't perpendicular. Compute the intersection over
+    /// there, in 2D, then I test whether this intersection holds in 3D, and if so, return it. I formalize it in the
+    /// Sufficient condition for 3D intersection is 2D intersection. If something does not intersect on (any of the
+    /// three) 2D planes, it doesn't intersect in 3D either. If something intersects in any 2D plane, then we must
+    /// verify the intersection point belongs to both lines involved.
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
@@ -97,33 +99,43 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
 
-      (var O1, var O2) = (Origin, other.Origin);
-      (var dir1, var dir2) = (Direction, other.Direction);
+      // pick the first plane 2D where both lines can be projected as lines and not as dots
+      // (verify that neither line is perpendicular to the projecting plane)
+      Plane plane_2d =
+          !(this.IsPerpendicular(Plane.XY) || other.IsPerpendicular(Plane.XY))
+              ? Plane.XY
+              : (!(this.IsPerpendicular(Plane.YZ) || other.IsPerpendicular(Plane.YZ)) ? Plane.YZ : Plane.ZX);
 
-      var A = Matrix<double>.Build.DenseOfRowArrays(new double[][] { new double[] { dir1.X, -dir2.X },
-                                                                     new double[] { dir1.Y, -dir2.Y },
-                                                                     new double[] { dir1.Z, -dir2.Z } });
-      var b = (O2 - O1).ToVector();
+      (var p1, var other_p1) = (plane_2d.ProjectInto(Origin), plane_2d.ProjectInto(other.Origin));
+      (var p2, var other_p2) =
+          (plane_2d.ProjectInto(Origin + 2 * Direction), plane_2d.ProjectInto(other.Origin + 2 * other.Direction));
+      (var line_2d, var other_line_2d) = (Line2D.FromTwoPoints(p1, p2), Line2D.FromTwoPoints(other_p1, other_p2));
 
-      try {
-        var x = A.Solve(b);
-        if (x is null || x.Count == 0) {
-          throw new Exception("empty solution to Intersection");
-        }
-        (double s, double t) = (x[0], x[1]);
+      var inter_res = line_2d.Intersection(other_line_2d);
+      if (inter_res.ValueType == typeof(NullValue)) {
+        // no 2D intersection, no 3D intersection either
+        return new IntersectionResult();
+      }
+      // there is a 2D intersection, let's get the respective 3D point
+      var pI_2d = (Point2D)inter_res.Value;
 
-        (var p1, var p2) = (O1 + s * dir1, O2 + t * dir2);
-        if (!p1.AlmostEquals(p2)) {
-          throw new Exception(String.Format("intersection does not match {0} to {1}", p1.ToWkt(), p2.ToWkt()));
-        }
+      // given the linear relationship between the 3D line and the projected 2D line, we can find the point on the 3D
+      // line with a length ratio
+      var A = Origin;
+      var B = Origin + 2 * Direction;
+      var a = plane_2d.ProjectInto(A);
+      var b = plane_2d.ProjectInto(B);
+      var len_ratio = (pI_2d - a).Length() / (b - a).Length();
+      Point3D pI = A + len_ratio * (B - A);
 
-        return new IntersectionResult(p1);
-
-      } catch (Exception ex) {
-        Console.WriteLine("Intersection: " + ex.Message);
+      // and verify it belongs to both lines
+      if (!(Contains(pI) && other.Contains(pI))) {
+        // this is merely a 2D intersection, 3D lines do not intersect
+        return new IntersectionResult();
       }
 
-      return new IntersectionResult();
+      // all is well, yea yea
+      return new IntersectionResult(pI);
     }
 
     /// <summary>
@@ -150,18 +162,32 @@ namespace GeomSharp {
                                                                        : new IntersectionResult();
 
     // text / deugging
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) {
-      return "LINESTRING (" +
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);
+      return "GEOMETRYCOLLECTION (" +
+
+             "POINT (" +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           P0.X,
-                           P0.Y,
-                           P0.Z) +
+                           Origin.X,
+                           Origin.Y,
+                           Origin.Z) +
+             ")"
+
+             + "," +
+
+             "LINESTRING (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                           p1.X,
+                           p1.Y,
+                           p1.Z) +
              "," +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           P1.X,
-                           P1.Y,
-                           P1.Z);
+                           p2.X,
+                           p2.Y,
+                           p2.Z) +
+             ")" +
+
+             ")";
     }
   }
-
 }

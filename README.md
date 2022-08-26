@@ -36,10 +36,10 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :x: Polygon/Point | 
 | | Intersection | |
 | | | :heavy_check_mark: :test_tube: Line/Line| 
-| | | :heavy_check_mark: Line/Ray | 
-| | | :heavy_check_mark: Line/Segment | 
+| | | :heavy_check_mark: :test_tube: Line/Ray | 
+| | | :heavy_check_mark: :test_tube:Line/Segment | 
 | | | :heavy_check_mark: :test_tube: Ray/Ray | 
-| | | :heavy_check_mark: Ray/Segment | 
+| | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
 | | | :heavy_check_mark: Triangle/Triangle | 
 | | | :heavy_check_mark: :test_tube: Triangle/Line | 
@@ -58,15 +58,15 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :x: Polygon/Triangle | 
 | | Overlap | |
 | | | :heavy_check_mark: :test_tube: Line/Line| 
-| | | :heavy_check_mark: Line/Ray | 
-| | | :heavy_check_mark: Line/Segment | 
+| | | :heavy_check_mark: :test_tube: Line/Ray | 
+| | | :heavy_check_mark: :test_tube: Line/Segment | 
 | | | :heavy_check_mark: :test_tube: Ray/Ray | 
-| | | :heavy_check_mark: Ray/Segment | 
+| | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
 | | | :heavy_check_mark: Triangle/Triangle | 
-| | | :heavy_check_mark: :test_tube: Triangle/Line | 
-| | | :heavy_check_mark: :test_tube: Triangle/Ray | 
-| | | :heavy_check_mark: :test_tube: Triangle/Segment | 
+| | | :heavy_check_mark: Triangle/Line | 
+| | | :heavy_check_mark: Triangle/Ray | 
+| | | :heavy_check_mark: Triangle/Segment | 
 | | | :x: Polyline/Line | 
 | | | :x: Polyline/Ray | 
 | | | :x: Polyline/Segment | 
@@ -84,30 +84,30 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Ray/Point | 
 | | | :heavy_check_mark: :test_tube: Segment/Point | 
 | | | :heavy_check_mark: :test_tube: Plane/Point | 
-| | | :heavy_check_mark: Plane/Segment | 
+| | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: :test_tube: Triangle/Point | 
 | | | :x: Polyline/Point | 
 | | | :x: Polygon/Point | 
 | | Projection | |
 | | | :heavy_check_mark: :test_tube: ProjectOnto (Point 3D -> 3D) | 
 | | | :heavy_check_mark: :test_tube: VerticalProjectOnto (Point 3D -> 3D) | 
-| | | :heavy_check_mark: ProjectOnto (Point 3D -> 3D along an axis) | 
-| | | :heavy_check_mark: ProjectInto (Point 3D -> 2D) | 
+| | | :heavy_check_mark: :test_tube: Evaluate (Point 3D -> 3D along an axis) | 
+| | | :heavy_check_mark: :test_tube: ProjectInto (Point 3D -> 2D) | 
 | | Intersection | |
 | | | :heavy_check_mark: :test_tube: Line/Line| 
-| | | :heavy_check_mark: Line/Ray | 
-| | | :heavy_check_mark: Line/Segment | 
+| | | :heavy_check_mark: :test_tube: Line/Ray | 
+| | | :heavy_check_mark: :test_tube: Line/Segment | 
 | | | :heavy_check_mark: :test_tube: Ray/Ray | 
-| | | :heavy_check_mark: Ray/Segment | 
+| | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
 | | | :heavy_check_mark: :test_tube: Plane/Plane | 
 | | | :heavy_check_mark: :test_tube: Plane/Line | 
 | | | :heavy_check_mark: :test_tube: Plane/Ray | 
 | | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: Triangle/Triangle | 
-| | | :heavy_check_mark: :test_tube: Triangle/Line | 
-| | | :heavy_check_mark: :test_tube: Triangle/Ray | 
-| | | :heavy_check_mark: :test_tube: Triangle/Segment | 
+| | | :heavy_check_mark: Triangle/Line | 
+| | | :heavy_check_mark: Triangle/Ray | 
+| | | :heavy_check_mark: Triangle/Segment | 
 | | | :x: Polyline/Line | 
 | | | :x: Polyline/Ray | 
 | | | :x: Polyline/Segment | 
@@ -121,19 +121,19 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :x: Polygon/Triangle | 
 | | Overlap | |
 | | | :heavy_check_mark: :test_tube: Line/Line| 
-| | | :heavy_check_mark: Line/Ray | 
-| | | :heavy_check_mark: Line/Segment | 
+| | | :heavy_check_mark: :test_tube: Line/Ray | 
+| | | :heavy_check_mark: :test_tube: Line/Segment | 
 | | | :heavy_check_mark: :test_tube: Ray/Ray | 
-| | | :heavy_check_mark: Ray/Segment | 
+| | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
 | | | :heavy_check_mark: :test_tube: Plane/Plane | 
 | | | :heavy_check_mark: :test_tube: Plane/Line | 
 | | | :heavy_check_mark: :test_tube: Plane/Ray | 
 | | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: Triangle/Triangle | 
-| | | :heavy_check_mark: :test_tube: Triangle/Line | 
-| | | :heavy_check_mark: :test_tube: Triangle/Ray | 
-| | | :heavy_check_mark: :test_tube: Triangle/Segment | 
+| | | :heavy_check_mark: Triangle/Line | 
+| | | :heavy_check_mark: Triangle/Ray | 
+| | | :heavy_check_mark: Triangle/Segment | 
 | | | :x: Polyline/Line | 
 | | | :x: Polyline/Ray | 
 | | | :x: Polyline/Segment | 

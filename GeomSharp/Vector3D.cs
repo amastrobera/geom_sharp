@@ -150,9 +150,9 @@ namespace GeomSharp {
 
     // special formatting functions
 
-    public override string ToString() => "{" + String.Format("{0:F9} {1:F9} {2:F9}", X, Y, Z) + "}";
+    public override string ToString() => "{" + String.Format("{0:F3} {1:F3} {2:F3}", X, Y, Z) + "}";
 
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) {
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       return string.Format(
           "VECTOR (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")",
           X,

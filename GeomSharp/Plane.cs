@@ -17,6 +17,10 @@ namespace GeomSharp {
 
     public UnitVector3D AxisV { get; }
 
+    public static Plane XY => FromPointAndNormal(Point3D.Zero, Vector3D.AxisZ);
+    public static Plane YZ => FromPointAndNormal(Point3D.Zero, Vector3D.AxisX);
+    public static Plane ZX => FromPointAndNormal(Point3D.Zero, Vector3D.AxisY);
+
     private Plane(Point3D origin,
                   UnitVector3D normal,
                   UnitVector3D u_axis,
@@ -25,14 +29,18 @@ namespace GeomSharp {
     public static Plane FromPoints(Point3D p0, Point3D p1, Point3D p2) {
       var U = p1 - p0;
       var V = p2 - p0;
-      if (Math.Round(U.Length(), Constants.NINE_DECIMALS) == 0 ||
-          Math.Round(V.Length(), Constants.NINE_DECIMALS) == 0) {
+      if (Math.Round(U.Length(), Constants.THREE_DECIMALS) == 0 ||
+          Math.Round(V.Length(), Constants.THREE_DECIMALS) == 0) {
         throw new ArithmeticException("tried to create a plane from two repeated points and another");
       }
       if (U.IsParallel(V)) {
         throw new ArithmeticException("tried to create a plane from collinear points");
       }
-      return new Plane(p0, U.CrossProduct(V).Normalize(), U.Normalize(), V.Normalize());
+      // make U and V perpendicular by using the normal
+      var n = U.CrossProduct(V).Normalize();
+      var u = U.Normalize();
+      var v = n.CrossProduct(u).Normalize();
+      return new Plane(p0, n, u, v);
     }
 
     public static Plane FromPointAndLine(Point3D p, Line3D line) {
@@ -45,10 +53,12 @@ namespace GeomSharp {
         throw new ArithmeticException("cannot build a plane from two lines non-intersecting");
       }
       var origin = (Point3D)result.Value;
-      return new Plane(origin,
-                       line1.Direction.CrossProduct(line2.Direction).Normalize(),
-                       line1.Direction,
-                       line2.Direction);
+      // make U and V perpendicular by using the normal
+      var n = line1.Direction.CrossProduct(line2.Direction).Normalize();
+      var u = line1.Direction;
+      var v = n.CrossProduct(u).Normalize();
+
+      return new Plane(origin, n, u, v);
     }
 
     public static Plane FromPointAndNormal(Point3D origin, UnitVector3D normal) {
@@ -125,7 +135,7 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool Contains(Point3D p) => Math.Round(SignedDistance(p), Constants.NINE_DECIMALS) == 0;
+    public bool Contains(Point3D p) => Math.Round(SignedDistance(p), Constants.THREE_DECIMALS) == 0;
 
     public bool Contains(Line3D line) => Normal.IsPerpendicular(line.Direction) && Contains(line.Origin);
 
@@ -201,26 +211,54 @@ namespace GeomSharp {
     /// returning the UV coordinates of the result
     /// in the local 2D plane coordinate system.
     /// Author: Jeremy Tammik
+    /// It's based on the formula of cosine. Given vectors A, B and theta = angle(A,B)
+    /// cos(theta) = A*B / |A|*|B|
+    /// The projection of a vector B onto another A is then
+    /// |B|*cos(theta) = A*B / |A|
+    /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of the
+    /// plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
     /// </summary>
     public Point2D ProjectInto(Point3D p) {
       var q = ProjectOnto(p);
-      var d = q - Origin;
-      double u = d.DotProduct(AxisU);
-      double v = d.DotProduct(AxisV);
-      return new Point2D(u, v);
+      var B = q - Origin;
+      double B_len = B.Length();
+      double B_cos = B.DotProduct(AxisU);
+      double B_sin = B.DotProduct(AxisV);
+      return new Point2D(B_cos, B_sin);
+
+      // var U_int = Line3D.FromDirection(q, AxisV).Intersection(Line3D.FromDirection(Origin, AxisU));
+      // if (U_int.ValueType == typeof(NullValue)) {
+      //   throw new Exception("failed to project the 3D point on the AxisU");
+      // }
+      // double u = ((Point3D)U_int.Value - Origin).Length();
+
+      // var V_int = Line3D.FromDirection(q, AxisU).Intersection(Line3D.FromDirection(Origin, AxisV));
+      // if (V_int.ValueType == typeof(NullValue)) {
+      //   throw new Exception("failed to project the 3D point on the AxisV");
+      // }
+      // double v = ((Point3D)V_int.Value - Origin).Length();
+
+      // return new Point2D(u, v);
     }
 
     /// <summary>
     /// Project (vertically) given 3D XYZ point into plane,
     /// returning the UV coordinates of the result
     /// in the local 2D plane coordinate system.
+    /// It's based on the formula of cosine. Given vectors A, B and theta = angle(A,B)
+    /// cos(theta) = A*B / |A|*|B|
+    /// The projection of a vector B onto another A is then
+    /// |B|*cos(theta) = A*B / |A|
+    /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of the
+    /// plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
     /// </summary>
     public Point2D VerticalProjectInto(Point3D p) {
       var q = VerticalProjectOnto(p);
-      var d = q - Origin;
-      double u = d.DotProduct(AxisU);
-      double v = d.DotProduct(AxisV);
-      return new Point2D(u, v);
+      var B = q - Origin;
+      double B_len = B.Length();
+      double B_cos = B.DotProduct(AxisU);
+      double B_sin = B.DotProduct(AxisV);
+      return new Point2D(B_cos, B_sin);
     }
 
     /// <summary>
@@ -263,21 +301,41 @@ namespace GeomSharp {
 
     // special formatting
     public override string ToString() {
-      return "PLANE {orig=" + Origin.ToString() + ", normal=" + Normal.ToString() + "}";
+      return "PLANE {orig=" + Origin.ToString() + ", normal=" + Normal.ToString() + ", AxisU=" + AxisU.ToString() +
+             ", AxisV=" + AxisV.ToString() + "}";
     }
 
-    public string ToWkt(int precision = Constants.NINE_DECIMALS, bool make_unit_line = false) {
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       return string.Format(
-          "GEOMETRYCOLLECTION (" + "POINT (" +
-              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" + "," +
+          "GEOMETRYCOLLECTION (" +
+
+              "POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" +
+              "," +
+
               "LINESTRING (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") +
-              ", " + String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")" + ")",
+              ", " + String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")",
+
+          "LINESTRING (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
+              String.Format("{0}6:F{1:D}{2} {0}7:F{1:D}{2} {0}8:F{1:D}{2}", "{", precision, "}") + ")" + ")",
+
+          "LINESTRING (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
+              String.Format("{0}9:F{1:D}{2} {0}10:F{1:D}{2} {0}11:F{1:D}{2}", "{", precision, "}") + ")" + ")"
+
+              + ")"
+
+          ,
           Origin.X,
           Origin.Y,
           Origin.Z,
           Normal.X,
           Normal.Y,
-          Normal.Z);
+          Normal.Z,
+          AxisU.X,
+          AxisU.Y,
+          AxisU.Z,
+          AxisV.X,
+          AxisV.Y,
+          AxisV.Z);
     }
   }
 }

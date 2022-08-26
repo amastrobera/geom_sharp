@@ -76,6 +76,13 @@ namespace GeomSharp {
                                                                             typeof(NullValue);
 
     public static IntersectionResult Intersection(this Triangle2D triangle, Line2D line) {
+      // case 1: two points connect, but it's merely an overlap (the line contains one of the edges)
+      if (line.Overlaps(LineSegment2D.FromPoints(triangle.P0, triangle.P1)) ||
+          line.Overlaps(LineSegment2D.FromPoints(triangle.P1, triangle.P2)) ||
+          line.Overlaps(LineSegment2D.FromPoints(triangle.P2, triangle.P0))) {
+        return new IntersectionResult();
+      }
+
       (Point2D pi1, Point2D pi2) = (null, null);
       IntersectionResult edge_inter = null;
 
@@ -113,17 +120,17 @@ namespace GeomSharp {
         }
       }
 
-      // case 1: no intersection
+      // case 2: no intersection
       if (pi1 is null && pi2 is null) {
         return new IntersectionResult();
       }
 
-      // case 2: one point intersection
+      // case 3: one point intersection
       if (!(pi1 is null) && pi2 is null) {
         return new IntersectionResult(pi1);
       }
 
-      // case 3: line segment intersection (return it in the same direction as the line)
+      // case 4: line segment intersection (return it in the same direction as the line)
       return new IntersectionResult((pi2 - pi1).SameDirectionAs(line.Direction) ? LineSegment2D.FromPoints(pi1, pi2)
                                                                                 : LineSegment2D.FromPoints(pi2, pi1));
     }
