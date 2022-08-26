@@ -1,0 +1,21 @@
+---
+#Language:      CSharp
+
+BasedOnStyle: Google
+
+# Order headers in alphabetical order only within block
+# It is default under Google style, but CLion does not pick it up
+IncludeBlocks: Preserve
+
+DerivePointerAlignment: 'false'
+IndentWidth:     2
+TabWidth:        2
+UseTab:          Never
+ColumnLimit:     120
+
+
+# these don't seem to do anything, why ?
+AlignAfterOpenBracket:  Align
+AllowAllArgumentsOnNextLine:    false
+BinPackArguments:   false
+BinPackParameters:  false
