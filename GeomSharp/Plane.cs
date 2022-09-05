@@ -226,6 +226,7 @@ namespace GeomSharp {
       double B_sin = B.DotProduct(AxisV);
       return new Point2D(B_cos, B_sin);
 
+      // // this below yields the same result as the above
       // var U_int = Line3D.FromDirection(q, AxisV).Intersection(Line3D.FromDirection(Origin, AxisU));
       // if (U_int.ValueType == typeof(NullValue)) {
       //   throw new Exception("failed to project the 3D point on the AxisU");

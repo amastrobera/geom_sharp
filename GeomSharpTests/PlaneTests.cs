@@ -138,6 +138,28 @@ namespace GeomSharpTests {
           Line2D.FromDirection(Point2D.Zero, Vector2D.AxisV).Contains(plane.ProjectInto(plane.Origin + plane.AxisV)),
           "AxisV");
 
+      //// compare ProjectInto with Intersection. they should yield the same result
+      // var P = RandomGenerator.MakePoint3D();
+      // var PP = plane.ProjectOnto(P);
+      // var ppv = Line3D.FromDirection(PP, plane.AxisV);
+      // var ou = Line3D.FromDirection(plane.Origin, plane.AxisU);
+      // var U_int = ppv.Intersection(ou);
+      // if (U_int.ValueType == typeof(NullValue)) {
+      //   throw new Exception("failed to project the 3D point on the AxisU");
+      // }
+      // double u = ((Point3D)U_int.Value - plane.Origin).Length();
+
+      // var ppu = Line3D.FromDirection(PP, plane.AxisU);
+      // var ov = Line3D.FromDirection(plane.Origin, plane.AxisV);
+      // var V_int = ppu.Intersection(ov);
+      // if (V_int.ValueType == typeof(NullValue)) {
+      //   throw new Exception("failed to project the 3D point on the AxisV");
+      // }
+      // double v = ((Point3D)V_int.Value - plane.Origin).Length();
+
+      // var PPP = new Point2D(u, v);
+      // Assert.IsTrue(PPP.AlmostEquals(plane.ProjectInto(P)), "compare ProjectInto to Intersection");
+
       //// origin
       // Assert.IsTrue(plane.ProjectInto(plane.Origin).AlmostEquals(Point2D.Zero), "origin");
       //// point on the AxisU
@@ -292,42 +314,42 @@ namespace GeomSharpTests {
             return true;
           };
 
-            //plane = Plane.FromPoints(new Point3D(0, 0, 5), new Point3D(5, 2, 5), new Point3D(-1, 4, 5));
+      // plane = Plane.FromPoints(new Point3D(0, 0, 5), new Point3D(5, 2, 5), new Point3D(-1, 4, 5));
 
-            //Console.WriteLine("plane=" + plane.ToString());
+      // Console.WriteLine("plane=" + plane.ToString());
 
-            //var P = plane.Origin + plane.AxisU;
-            //var U = plane.AxisU;
-            //var O = plane.Origin;
-            //var OP = P - O;
+      // var P = plane.Origin + plane.AxisU;
+      // var U = plane.AxisU;
+      // var O = plane.Origin;
+      // var OP = P - O;
 
-            //Console.WriteLine("OP=" + OP.ToWkt());
-            //Console.WriteLine("|OP|=" + OP.Length().ToString());
-            //Console.WriteLine("U=" + U.ToWkt());
-            //Console.WriteLine("|U|=" + U.Length().ToString());
-            //Console.WriteLine("OP*U=" + OP.DotProduct(U).ToString());
-            //Console.WriteLine("O*U=" + O.DotProduct(U).ToString());
-            //Console.WriteLine("P*U=" + P.DotProduct(U).ToString());
-            //Console.WriteLine("U2=" + U.DotProduct(U).ToString());
+      // Console.WriteLine("OP=" + OP.ToWkt());
+      // Console.WriteLine("|OP|=" + OP.Length().ToString());
+      // Console.WriteLine("U=" + U.ToWkt());
+      // Console.WriteLine("|U|=" + U.Length().ToString());
+      // Console.WriteLine("OP*U=" + OP.DotProduct(U).ToString());
+      // Console.WriteLine("O*U=" + O.DotProduct(U).ToString());
+      // Console.WriteLine("P*U=" + P.DotProduct(U).ToString());
+      // Console.WriteLine("U2=" + U.DotProduct(U).ToString());
 
-            //var proj_point_onto = plane.ProjectOnto(P);
-            //var proj_point_into = plane.ProjectInto(P);
-            //var eval_point_to = plane.Evaluate(proj_point_into);
+      // var proj_point_onto = plane.ProjectOnto(P);
+      // var proj_point_into = plane.ProjectInto(P);
+      // var eval_point_to = plane.Evaluate(proj_point_into);
 
-            //Console.WriteLine(
+      // Console.WriteLine(
 
-            //    "\n\torigin=" + O.ToWkt() +
+      //    "\n\torigin=" + O.ToWkt() +
 
-            //    "\n\tproj_point_onto=" + proj_point_onto.ToWkt() + ", d=" + (proj_point_onto - O).Length().ToString() +
+      //    "\n\tproj_point_onto=" + proj_point_onto.ToWkt() + ", d=" + (proj_point_onto - O).Length().ToString() +
 
-            //    "\n\tproj_point_into=" + proj_point_into.ToWkt() +
-            //    ", d=" + (proj_point_into - Point2D.Zero).Length().ToString() +
+      //    "\n\tproj_point_into=" + proj_point_into.ToWkt() +
+      //    ", d=" + (proj_point_into - Point2D.Zero).Length().ToString() +
 
-            //    "\n\toriginal_point=" + P.ToWkt() + ", d=" + (P - O).Length().ToString() +
+      //    "\n\toriginal_point=" + P.ToWkt() + ", d=" + (P - O).Length().ToString() +
 
-            //    "\n\teval_point=" + eval_point_to.ToWkt() + ", d=" + (eval_point_to - O).Length().ToString()
+      //    "\n\teval_point=" + eval_point_to.ToWkt() + ", d=" + (eval_point_to - O).Length().ToString()
 
-            //);
+      //);
 
       // case 1: the generating points - projected, then evaluated - are equal to themselves
       //          p -> p_proj -> p_eval = p
@@ -341,5 +363,5 @@ namespace GeomSharpTests {
                       a * p0.Z + b * p1.Z + c * p2.Z);  // linear combo
       AssertEvaluate(plane, p, "linear combination of p0,p1,p2");
     }
-    }
+  }
 }
