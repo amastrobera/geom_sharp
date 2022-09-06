@@ -102,7 +102,7 @@ namespace GeomSharpTests {
       TestContains(Triangle3D.FromPoints(new Point3D(0, 0, 0), new Point3D(0, 0, 1), new Point3D(1, 0, 0)));
     }
 
-    [RepeatedTestMethod(1000)]
+    [RepeatedTestMethod(100)]
     public void Contains() {
       // 3D
       TestContains(RandomGenerator.MakeTriangle3D().Triangle);

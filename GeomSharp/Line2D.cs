@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MathNet.Numerics.RootFinding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -94,7 +95,7 @@ namespace GeomSharp {
     /// <param name="p"></param>
     /// <returns></returns>
     public Constants.Location Location(Point2D p) {
-      var perp_prod = Math.Round(Direction.PerpProduct(p - Origin), Constants.NINE_DECIMALS);
+      var perp_prod = Math.Round(Direction.PerpProduct(p - Origin), Constants.THREE_DECIMALS);
       if (perp_prod == 0) {
         return Constants.Location.ON_LINE;
       }
@@ -160,6 +161,23 @@ namespace GeomSharp {
     /// <returns></returns>
     public IntersectionResult Overlap(Line2D other) => Overlaps(other) ? new IntersectionResult(this)
                                                                        : new IntersectionResult();
+
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);
+      return "GEOMETRYCOLLECTION (" +
+
+             "POINT (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), Origin.U, Origin.V) +
+             ")"
+
+             + "," +
+
+             "LINESTRING (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), p1.U, p1.V) + "," +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), p2.U, p2.V) + ")" +
+
+             ")";
+    }
   }
 
 }

@@ -59,7 +59,7 @@ namespace GeomSharpTests {
 
       var orig_list = new List<Point3D>() { p1, p2, p3, p4 };
 
-      Console.WriteLine(orig_list.ToWkt());
+      // Console.WriteLine(orig_list.ToWkt());
 
       var new_list = orig_list.RemoveCollinearPoints();
 

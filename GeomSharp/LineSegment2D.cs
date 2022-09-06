@@ -46,7 +46,7 @@ namespace GeomSharp {
       double line_d = ToLine().SignedDistanceTo(p);
       double p0_d = P0.DistanceTo(p);
       double p1_d = P1.DistanceTo(p);
-      return Math.Round(Math.Min(Math.Abs(line_d), Math.Min(p0_d, p1_d)) * Math.Sign(line_d), Constants.NINE_DECIMALS);
+      return Math.Min(Math.Abs(line_d), Math.Min(p0_d, p1_d)) * Math.Sign(line_d);
     }
 
     /// <summary>
@@ -58,10 +58,17 @@ namespace GeomSharp {
     /// <returns></returns>
     public Constants.Location Location(Point2D p) {
       var line_location = ToLine().Location(p);
+
       if (line_location == Constants.Location.ON_LINE) {
-        double t = Math.Round(P0.DistanceTo(p) / Length(), Constants.NINE_DECIMALS);
-        if (t >= 0 && t <= 1) {
-          return Constants.Location.ON_SEGMENT;
+        if (p.AlmostEquals(P0)) {  // this check avoids throwing on .SameDirection() call.
+          line_location = Constants.Location.ON_SEGMENT;
+        } else {
+          if ((p - P0).SameDirectionAs(P1 - P0)) {
+            double t = Math.Round(P0.DistanceTo(p) / Length(), Constants.THREE_DECIMALS);
+            if (t >= 0 && t <= 1) {
+              line_location = Constants.Location.ON_SEGMENT;
+            }
+          }
         }
       }
       return line_location;
@@ -174,7 +181,7 @@ namespace GeomSharp {
       if (!IsParallel(other)) {
         return false;
       }
-      if (Contains(other.P0) || Contains(other.P1)) {
+      if (Contains(other.P0) || Contains(other.P1) || other.Contains(P0) || other.Contains(P1)) {
         return true;
       }
       return false;
@@ -215,7 +222,7 @@ namespace GeomSharp {
     }
 
     // text / deugging
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) {
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       return "LINESTRING (" +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P0.U, P0.V) + "," +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P1.U, P1.V) + ")";

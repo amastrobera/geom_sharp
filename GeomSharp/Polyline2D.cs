@@ -123,7 +123,7 @@ namespace GeomSharp {
     // special formatting
     public override string ToString() => "{" + string.Join(",", Nodes.Select(v => v.ToString())) + "}";
 
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) =>
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
         (Nodes.Count == 0)
             ? "LINESTRING EMPTY"
             : "LINESTRING (" +

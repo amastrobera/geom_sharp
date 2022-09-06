@@ -48,37 +48,31 @@ namespace GeomSharp {
     public Point2D CenterOfMass() => Point2D.FromVector((P0.ToVector() + P1.ToVector() + P2.ToVector()) / 3);
 
     /// <summary>
-    /// Tells whether a point is inside a triangle T. This includes points on the borders, dT.
-    /// Uses baricentric coordinate test
-    /// Computes the solution with Ruffini's rule
-    /// P = M * x
-    /// | xp | = | x_p0 x_p1 x_p2 |   | a |
-    /// | yp | = | y_p0 y_p1 y_p2 | * | b |
-    /// | zp | = | z_p0 z_p1 z_p2 |   | c |
-    /// Find (a,b,c)
-    /// If all of (a,b,c) is in the range [0,1] the point belongs to the triangle
+    /// Tells whether a point is inside a triangle T. It uses a geometry-only (no linear-algebra) method.
+    /// A series of three calls to the notorious IsLeft function to verify that the point is on the left of each edge.
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
     public bool Contains(Point2D point) {
-      var mtx = Matrix<double>.Build.DenseOfColumnArrays(new double[][] { new double[] { P0.U, P0.V, 1 },
-                                                                          new double[] { P1.U, P1.V, 1 },
-                                                                          new double[] { P2.U, P2.V, 1 } });
+      var loc_01 = LineSegment2D.FromPoints(P0, P1).Location(point);
+      var loc_12 = LineSegment2D.FromPoints(P1, P2).Location(point);
+      var loc_20 = LineSegment2D.FromPoints(P2, P0).Location(point);
 
-      double d = mtx.Determinant();
-
-      if (Math.Round(d, Constants.NINE_DECIMALS) == 0) {
-        return false;
+      // this is really impossible
+      if (Orientation == Constants.Orientation.UNKNOWN) {
+        throw new Exception(
+            "cannot use the Contains (geometrical solution) function for a triangle which point orientation is unknown");
       }
 
-      var abc = mtx.Solve(Vector<double>.Build.Dense(
-          new double[] { point.U, point.V, 1 }));  // Factorization based solution from Math.Net
-      (double a, double b, double c) =
-          (Math.Round(abc[0], Constants.NINE_DECIMALS),
-           Math.Round(abc[1], Constants.NINE_DECIMALS),
-           Math.Round(abc[2], Constants.NINE_DECIMALS));  // rounding issue will kill you if not checked
+      if (Orientation == Constants.Orientation.COUNTER_CLOCKWISE) {
+        return (loc_01 == Constants.Location.LEFT || loc_01 == Constants.Location.ON_SEGMENT) &&
+               (loc_12 == Constants.Location.LEFT || loc_12 == Constants.Location.ON_SEGMENT) &&
+               (loc_20 == Constants.Location.LEFT || loc_20 == Constants.Location.ON_SEGMENT);
+      }
 
-      return a >= 0 && a <= 1 && b >= 0 && b <= 1 && c >= 0 && c <= 1;
+      return (loc_01 == Constants.Location.RIGHT || loc_01 == Constants.Location.ON_SEGMENT) &&
+             (loc_12 == Constants.Location.RIGHT || loc_12 == Constants.Location.ON_SEGMENT) &&
+             (loc_20 == Constants.Location.RIGHT || loc_20 == Constants.Location.ON_SEGMENT);
     }
 
     public bool Equals(Triangle2D other) {

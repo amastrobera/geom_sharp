@@ -144,30 +144,18 @@ namespace GeomSharp {
     public override string ToString() =>
         "{" + String.Format("{0:F9} {1:F9} {2:F9}", Origin.X, Origin.Y, Origin.Z) +
         " -> " + String.Format("{0:F9} {1:F9} {2:F9}", Direction.X, Direction.Y, Direction.Z) + "}";
-    public string ToWkt(int precision = Constants.NINE_DECIMALS, bool make_unit_line = false) {
-      if (make_unit_line) {
-        return string.Format(
-            "GEOMETRYCOLLECTION (" + "LINESTRING (" +
-                String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
-                String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")" + ", POINT (" +
-                String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" + ")",
-            Origin.X,
-            Origin.Y,
-            Origin.Z,
-            Origin.X + Direction.X,
-            Origin.Y + Direction.Y,
-            Origin.Z + Direction.Z);
-      }
-
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       return string.Format(
-          "RAY (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
-              String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")",
+          "GEOMETRYCOLLECTION (" + "LINESTRING (" +
+              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
+              String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")" + ", POINT (" +
+              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" + ")",
           Origin.X,
           Origin.Y,
           Origin.Z,
-          Direction.X,
-          Direction.Y,
-          Direction.Z);
+          Origin.X + Direction.X,
+          Origin.Y + Direction.Y,
+          Origin.Z + Direction.Z);
     }
   }
 

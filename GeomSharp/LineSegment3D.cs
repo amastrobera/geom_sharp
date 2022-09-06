@@ -57,9 +57,14 @@ namespace GeomSharp {
       }
 
       // check if the point is within the boundaries of the segment
-      double t = Math.Round(P0.DistanceTo(p) / Length(), Constants.THREE_DECIMALS);
-      if (t >= 0 && t <= 1) {
+      if (p.AlmostEquals(P0)) {  // this check avoids throwing on .SameDirection() call.
         return true;
+      }
+      if ((p - P0).SameDirectionAs(P1 - P0)) {
+        double t = Math.Round(P0.DistanceTo(p) / Length(), Constants.THREE_DECIMALS);
+        if (t >= 0 && t <= 1) {
+          return true;
+        }
       }
       return false;
     }
@@ -143,7 +148,7 @@ namespace GeomSharp {
     }
 
     // special formatting
-    public string ToWkt(int precision = Constants.NINE_DECIMALS) {
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       return "LINESTRING (" +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
                            P0.X,

@@ -69,8 +69,9 @@ namespace GeomSharp {
     public static List<Point3D> RemoveCollinearPoints(this List<Point3D> polyline,
                                                       int decimal_precision = Constants.NINE_DECIMALS) {
       int n = polyline.Count;
-      if (n < 2) {
-        throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
+      if (n < 3) {
+        return polyline;
+        // throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
       }
 
       var new_polyline = new List<Point3D>(polyline);
@@ -80,7 +81,7 @@ namespace GeomSharp {
         int i1 = i % n;
         int i2 = (i1 + 1) % n;
         int i3 = (i2 + 1) % n;
-        if (n < 2) {
+        if (n < 3) {
           break;
         }
 
@@ -114,8 +115,9 @@ namespace GeomSharp {
     public static List<Point2D> RemoveCollinearPoints(this List<Point2D> polyline,
                                                       int decimal_precision = Constants.NINE_DECIMALS) {
       int n = polyline.Count;
-      if (n < 2) {
-        throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
+      if (n < 3) {
+        return polyline;
+        // throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
       }
 
       var new_polyline = new List<Point2D>(polyline);
@@ -124,7 +126,7 @@ namespace GeomSharp {
         int i1 = i % n;
         int i2 = (i1 + 1) % n;
         int i3 = (i2 + 1) % n;
-        if (n < 2) {
+        if (n < 3) {
           break;
         }
 
@@ -221,7 +223,7 @@ namespace GeomSharp {
     public static string ToString(this List<Point2D> plist) => "{" + string.Join(",", plist.Select(v => v.ToString())) +
                                                                "}";
 
-    public static string ToWkt(this List<Point2D> plist, int precision = Constants.NINE_DECIMALS) =>
+    public static string ToWkt(this List<Point2D> plist, int precision = Constants.THREE_DECIMALS) =>
         (plist.Count == 0)
             ? "LINESTRING EMPTY"
             : "LINESTRING (" +
@@ -235,7 +237,7 @@ namespace GeomSharp {
     public static string ToString(this List<Point3D> plist) => "{" + string.Join(",", plist.Select(v => v.ToString())) +
                                                                "}";
 
-    public static string ToWkt(this List<Point3D> plist, int precision = Constants.NINE_DECIMALS) =>
+    public static string ToWkt(this List<Point3D> plist, int precision = Constants.THREE_DECIMALS) =>
         (plist.Count == 0)
             ? "LINESTRING EMPTY"
             : "LINESTRING (" +
