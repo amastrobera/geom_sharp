@@ -17,29 +17,27 @@ namespace GeomSharpTests {
       (var p0, var p1, var p2) = (random_plane.p0, random_plane.p1, random_plane.p2);
 
       if (plane is null) {
-        Assert.ThrowsException<ArithmeticException>(() => { Plane.FromPoints(p0, p1, p2); });
-
-      } else {
-        // vectors and points
-        Assert.AreEqual(plane.Origin, p0);
-        Assert.AreEqual(plane.AxisU,
-                        (p1 - p0).Normalize());  // AxisU is built by points, AxisV is recalculated to be perpendicular
-                                                 // to both AxisU and Normal, therefore cannot be tested with points
-        Assert.AreEqual(plane.Normal, (p1 - p0).CrossProduct(p2 - p0).Normalize());
-
-        // perpendicular relationships
-        Assert.IsTrue(plane.Normal.IsPerpendicular(plane));
-        Assert.IsTrue(plane.AxisV.IsPerpendicular(plane.Normal),
-                      "AxisV not perpendicular to normal " + "\n\tAxisV=" + plane.AxisV.ToWkt() +
-                          "\n\tNormal=" + plane.Normal.ToWkt());
-        Assert.IsTrue(plane.AxisU.IsPerpendicular(plane.Normal),
-                      "AxisU not perpendicular to normal " + "\n\tAxisU=" + plane.AxisU.ToWkt() +
-                          "\n\tNormal=" + plane.Normal.ToWkt());
-
-        Assert.IsTrue(plane.AxisU.IsPerpendicular(plane.AxisV),
-                      "AxisV not perpendicular to AxisU " + "\n\tAxisV=" + plane.AxisV.ToWkt() +
-                          "\n\tAxisU=" + plane.AxisU.ToWkt());
+        return;
       }
+      // vectors and points
+      Assert.AreEqual(plane.Origin, p0);
+      Assert.AreEqual(plane.AxisU,
+                      (p1 - p0).Normalize());  // AxisU is built by points, AxisV is recalculated to be perpendicular
+                                               // to both AxisU and Normal, therefore cannot be tested with points
+      Assert.AreEqual(plane.Normal, (p1 - p0).CrossProduct(p2 - p0).Normalize());
+
+      // perpendicular relationships
+      Assert.IsTrue(plane.Normal.IsPerpendicular(plane));
+      Assert.IsTrue(plane.AxisV.IsPerpendicular(plane.Normal),
+                    "AxisV not perpendicular to normal " + "\n\tAxisV=" + plane.AxisV.ToWkt() +
+                        "\n\tNormal=" + plane.Normal.ToWkt());
+      Assert.IsTrue(plane.AxisU.IsPerpendicular(plane.Normal),
+                    "AxisU not perpendicular to normal " + "\n\tAxisU=" + plane.AxisU.ToWkt() +
+                        "\n\tNormal=" + plane.Normal.ToWkt());
+
+      Assert.IsTrue(plane.AxisU.IsPerpendicular(plane.AxisV),
+                    "AxisV not perpendicular to AxisU " + "\n\tAxisV=" + plane.AxisV.ToWkt() +
+                        "\n\tAxisU=" + plane.AxisU.ToWkt());
     }
 
     [RepeatedTestMethod(100)]
@@ -49,20 +47,17 @@ namespace GeomSharpTests {
       (var p0, var p1, var p2) = (random_plane.p0, random_plane.p1, random_plane.p2);
 
       if (plane is null) {
-        Assert.ThrowsException<ArithmeticException>(() => { Plane.FromPoints(p0, p1, p2); });
-
-      } else {
-        // generating points
-        Assert.IsTrue(plane.Contains(p0));
-        Assert.IsTrue(plane.Contains(p1));
-        Assert.IsTrue(plane.Contains(p2));
-
-        // linear combination
-        (double a, double b, double c) = RandomGenerator.MakeLinearCombo3SumTo1();
-        Assert.IsTrue(plane.Contains(new Point3D(a * p0.X + b * p1.X + c * p2.X,
-                                                 a * p0.Y + b * p1.Y + c * p2.Y,
-                                                 a * p0.Z + b * p1.Z + c * p2.Z)));
+        return;
       }
+      // generating points
+      Assert.IsTrue(plane.Contains(p0));
+      Assert.IsTrue(plane.Contains(p1));
+      Assert.IsTrue(plane.Contains(p2));
+
+      // linear combination
+      (double a, double b, double c) = RandomGenerator.MakeLinearCombo3SumTo1();
+      Assert.IsTrue(plane.Contains(
+          new Point3D(a * p0.X + b * p1.X + c * p2.X, a * p0.Y + b * p1.Y + c * p2.Y, a * p0.Z + b * p1.Z + c * p2.Z)));
     }
 
     [RepeatedTestMethod(100)]

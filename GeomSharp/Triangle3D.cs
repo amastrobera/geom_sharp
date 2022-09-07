@@ -30,6 +30,10 @@ namespace GeomSharp {
     }
 
     public static Triangle3D FromPoints(Point3D p0, Point3D p1, Point3D p2) {
+      if (p1.AlmostEquals(p0) || p1.AlmostEquals(p2) || p2.AlmostEquals(p0)) {
+        throw new ArithmeticException("tried to construct a Triangle with equal points");
+      }
+
       if ((p1 - p0).IsParallel(p2 - p0)) {
         throw new ArithmeticException("tried to construct a Triangle with collinear points");
       }
