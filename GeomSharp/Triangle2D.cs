@@ -110,16 +110,124 @@ namespace GeomSharp {
       return !a.Equals(b);
     }
 
-    public bool Intersects(Triangle2D other) => false;
-
-    public IntersectionResult Intersection(Triangle2D other) {
-      return new IntersectionResult();
-    }
-
+    /// <summary>
+    /// Two triangles overlap if they are on the same plane, and share the same area (or a portion of the same area)
+    /// This includes: triangles adjacent by one edge, triangles with one point in common, triangles intersecting
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public bool Overlaps(Triangle2D other) => Overlap(other).ValueType != typeof(NullValue);
 
     public IntersectionResult Overlap(Triangle2D other) {
-      return new IntersectionResult();
+      var output_points = new List<Point2D>();
+
+      var s1 = LineSegment2D.FromPoints(P0, P1);
+      var s2 = LineSegment2D.FromPoints(P1, P2);
+      var s3 = LineSegment2D.FromPoints(P2, P0);
+      var other_s1 = LineSegment2D.FromPoints(other.P0, other.P1);
+      var other_s2 = LineSegment2D.FromPoints(other.P1, other.P2);
+      var other_s3 = LineSegment2D.FromPoints(other.P2, other.P0);
+
+      Func<IntersectionResult, bool> AddResultIfAny = (IntersectionResult _res) => {
+        if (_res.ValueType == typeof(Point2D)) {
+          output_points.Add((Point2D)_res.Value);
+          return true;
+        }
+        if (_res.ValueType == typeof(LineSegment2D)) {
+          var seg = (LineSegment2D)_res.Value;
+          output_points.Add(seg.P0);
+          output_points.Add(seg.P1);
+          return true;
+        }
+
+        return false;
+      };
+
+      // any lines overlap
+      AddResultIfAny(s1.Overlap(other_s1));
+      AddResultIfAny(s1.Overlap(other_s2));
+      AddResultIfAny(s1.Overlap(other_s3));
+      AddResultIfAny(s2.Overlap(other_s1));
+      AddResultIfAny(s2.Overlap(other_s2));
+      AddResultIfAny(s2.Overlap(other_s3));
+      AddResultIfAny(s3.Overlap(other_s1));
+      AddResultIfAny(s3.Overlap(other_s2));
+      AddResultIfAny(s3.Overlap(other_s3));
+      AddResultIfAny(other_s1.Overlap(s1));
+      AddResultIfAny(other_s1.Overlap(s2));
+      AddResultIfAny(other_s1.Overlap(s3));
+      AddResultIfAny(other_s2.Overlap(s1));
+      AddResultIfAny(other_s2.Overlap(s2));
+      AddResultIfAny(other_s2.Overlap(s3));
+      AddResultIfAny(other_s3.Overlap(s1));
+      AddResultIfAny(other_s3.Overlap(s2));
+      AddResultIfAny(other_s3.Overlap(s3));
+
+      // any point contained in
+      if (Contains(other.P0)) {
+        output_points.Add(other.P0);
+      }
+
+      if (Contains(other.P1)) {
+        output_points.Add(other.P1);
+      }
+
+      if (Contains(other.P2)) {
+        output_points.Add(other.P2);
+      }
+
+      if (other.Contains(P0)) {
+        output_points.Add(P0);
+      }
+
+      if (other.Contains(P1)) {
+        output_points.Add(P1);
+      }
+
+      if (other.Contains(P2)) {
+        output_points.Add(P2);
+      }
+
+      // any intersection
+      AddResultIfAny(s1.Intersection(other_s1));
+      AddResultIfAny(s1.Intersection(other_s2));
+      AddResultIfAny(s1.Intersection(other_s3));
+      AddResultIfAny(s2.Intersection(other_s1));
+      AddResultIfAny(s2.Intersection(other_s2));
+      AddResultIfAny(s2.Intersection(other_s3));
+      AddResultIfAny(s3.Intersection(other_s1));
+      AddResultIfAny(s3.Intersection(other_s2));
+      AddResultIfAny(s3.Intersection(other_s3));
+      AddResultIfAny(other_s1.Intersection(s1));
+      AddResultIfAny(other_s1.Intersection(s2));
+      AddResultIfAny(other_s1.Intersection(s3));
+      AddResultIfAny(other_s2.Intersection(s1));
+      AddResultIfAny(other_s2.Intersection(s2));
+      AddResultIfAny(other_s2.Intersection(s3));
+      AddResultIfAny(other_s3.Intersection(s1));
+      AddResultIfAny(other_s3.Intersection(s2));
+      AddResultIfAny(other_s3.Intersection(s3));
+
+      if (output_points.Count == 0) {
+        return new IntersectionResult();
+      }
+
+      if (output_points.Count == 1) {
+        return new IntersectionResult(output_points[0]);
+      }
+
+      if (output_points.Count == 2) {
+        return new IntersectionResult(LineSegment2D.FromPoints(output_points[0], output_points[1]));
+      }
+
+      // triangle or polygon
+      output_points.SortCCW();
+
+      if (output_points.Count == 3) {
+        return new IntersectionResult(Triangle2D.FromPoints(output_points[0], output_points[1], output_points[2]));
+      }
+
+      return new IntersectionResult(new Polygon2D(output_points));
     }
 
     public bool IsAdjacent(Triangle2D other) => AdjacentSide(other).ValueType != typeof(NullValue);

@@ -117,28 +117,20 @@ namespace GeomSharp {
     }
 
     /// <summary>
-    /// Sorts a list of points in CCW order
-    /// </summary>
-    /// <param name="points">list of DB.XYZ</param>
-    /// <returns></returns>
-    private static List<Point2D> SortCCW(List<Point2D> points) {
-      var centroid = points.Average();
-      var u_axis = Vector2D.AxisU;
-      var v_axis = Vector2D.AxisV;
-      points.Sort((p1, p2) =>
-                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) < u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
-      return points;
-    }
-
-    /// <summary>
     /// Sorts a list of points in CCW order and creates a polygon out of it
     /// </summary>
     /// <param name="points">list of DB.XYZ</param>
     /// <returns></returns>
-    public static Polygon2D ConcaveHull(List<Point2D> points) => new Polygon2D(SortCCW(points));
+    public static Polygon2D ConcaveHull(List<Point2D> points) {
+      var sorted_points = new List<Point2D>(points);
+      sorted_points.SortCCW();
+
+      return new Polygon2D(sorted_points);
+    }
 
     public static Polygon2D ConvexHull(List<Point2D> points) {
-      var sorted_points = SortCCW(points);
+      var sorted_points = new List<Point2D>(points);
+      sorted_points.SortCCW();
 
       // pick the lowest point
       int n = points.Count;

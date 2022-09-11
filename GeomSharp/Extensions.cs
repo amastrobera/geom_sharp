@@ -219,6 +219,34 @@ namespace GeomSharp {
       }
     }
 
+    // special sorting
+
+    /// <summary>
+    /// Sorts a list of points in counter clockwise order
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static void SortCCW(this List<Point2D> points) {
+      var centroid = points.Average();
+      var u_axis = Vector2D.AxisU;
+      var v_axis = Vector2D.AxisV;
+      points.Sort((p1, p2) =>
+                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) < u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
+    }
+
+    /// <summary>
+    /// Sorts a list of points in  clockwise order
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static void SortCW(this List<Point2D> points) {
+      var centroid = points.Average();
+      var u_axis = Vector2D.AxisU;
+      var v_axis = Vector2D.AxisV;
+      points.Sort((p1, p2) =>
+                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) > u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
+    }
+
     // special formatting
     public static string ToString(this List<Point2D> plist) => "{" + string.Join(",", plist.Select(v => v.ToString())) +
                                                                "}";
