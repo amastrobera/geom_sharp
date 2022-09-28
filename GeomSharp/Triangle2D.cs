@@ -143,27 +143,20 @@ namespace GeomSharp {
         return false;
       };
 
-      // any lines overlap
+      // does any lines overlap with any other ?
       AddResultIfAny(s1.Overlap(other_s1));
       AddResultIfAny(s1.Overlap(other_s2));
       AddResultIfAny(s1.Overlap(other_s3));
+
       AddResultIfAny(s2.Overlap(other_s1));
       AddResultIfAny(s2.Overlap(other_s2));
       AddResultIfAny(s2.Overlap(other_s3));
+
       AddResultIfAny(s3.Overlap(other_s1));
       AddResultIfAny(s3.Overlap(other_s2));
       AddResultIfAny(s3.Overlap(other_s3));
-      AddResultIfAny(other_s1.Overlap(s1));
-      AddResultIfAny(other_s1.Overlap(s2));
-      AddResultIfAny(other_s1.Overlap(s3));
-      AddResultIfAny(other_s2.Overlap(s1));
-      AddResultIfAny(other_s2.Overlap(s2));
-      AddResultIfAny(other_s2.Overlap(s3));
-      AddResultIfAny(other_s3.Overlap(s1));
-      AddResultIfAny(other_s3.Overlap(s2));
-      AddResultIfAny(other_s3.Overlap(s3));
 
-      // any point contained in
+      // is any point contained in any triangle ?
       if (Contains(other.P0)) {
         output_points.Add(other.P0);
       }
@@ -188,26 +181,20 @@ namespace GeomSharp {
         output_points.Add(P2);
       }
 
-      // any intersection
+      // does any line intersects with any other ?
       AddResultIfAny(s1.Intersection(other_s1));
       AddResultIfAny(s1.Intersection(other_s2));
       AddResultIfAny(s1.Intersection(other_s3));
+
       AddResultIfAny(s2.Intersection(other_s1));
       AddResultIfAny(s2.Intersection(other_s2));
       AddResultIfAny(s2.Intersection(other_s3));
+
       AddResultIfAny(s3.Intersection(other_s1));
       AddResultIfAny(s3.Intersection(other_s2));
       AddResultIfAny(s3.Intersection(other_s3));
-      AddResultIfAny(other_s1.Intersection(s1));
-      AddResultIfAny(other_s1.Intersection(s2));
-      AddResultIfAny(other_s1.Intersection(s3));
-      AddResultIfAny(other_s2.Intersection(s1));
-      AddResultIfAny(other_s2.Intersection(s2));
-      AddResultIfAny(other_s2.Intersection(s3));
-      AddResultIfAny(other_s3.Intersection(s1));
-      AddResultIfAny(other_s3.Intersection(s2));
-      AddResultIfAny(other_s3.Intersection(s3));
 
+      // final output point count
       if (output_points.Count == 0) {
         return new IntersectionResult();
       }

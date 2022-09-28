@@ -2,6 +2,13 @@
 
 GeomSharp is a 2D (and 3D) geometry library for C#, based on .Net Framework 4.8
 
+
+TODO: complete primitive tests, 
+	  add build script and github action to build and test before PR merge, 
+	  add build statys tags on the README, 
+	  add deployment action and its tag
+
+
 Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :test_tube: tested
 
 
@@ -64,9 +71,9 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
 | | | :heavy_check_mark: Triangle/Triangle | 
-| | | :heavy_check_mark: Triangle/Line | 
-| | | :heavy_check_mark: Triangle/Ray | 
-| | | :heavy_check_mark: Triangle/Segment | 
+| | | :heavy_check_mark: :test_tube: Triangle/Line | 
+| | | :heavy_check_mark: :test_tube: Triangle/Ray | 
+| | | :heavy_check_mark: :test_tube: Triangle/Segment | 
 | | | :x: Polyline/Line | 
 | | | :x: Polyline/Ray | 
 | | | :x: Polyline/Segment | 

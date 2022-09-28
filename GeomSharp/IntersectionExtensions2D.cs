@@ -167,7 +167,7 @@ namespace GeomSharp {
           return inter_res;
         } else if (p0_in && !p1_in) {
           return new IntersectionResult(inter_seg.P0);
-        } else if (p0_in && !p1_in) {
+        } else if (!p0_in && p1_in) {
           return new IntersectionResult(inter_seg.P1);
         }
       }
@@ -188,7 +188,6 @@ namespace GeomSharp {
 
     public static IntersectionResult Intersection(this Triangle2D triangle, LineSegment2D segment) {
       var inter_res = segment.ToLine().Intersection(triangle);
-
       if (inter_res.ValueType == typeof(NullValue)) {
         // case 1: no intersection
         return new IntersectionResult();
@@ -197,6 +196,7 @@ namespace GeomSharp {
         // case 2: intersection is a point. return if inside the ray
         if (segment.Contains((Point2D)inter_res.Value)) {
           return inter_res;
+        } else {
         }
 
       } else if (inter_res.ValueType == typeof(LineSegment2D)) {

@@ -103,7 +103,6 @@ namespace GeomSharp {
       if (Contains(pI) && other.Contains(pI)) {
         return new IntersectionResult(pI);
       }
-
       return new IntersectionResult();
     }
 

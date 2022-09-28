@@ -57,12 +57,20 @@ namespace GeomSharp {
     }
 
     public bool SameDirectionAs(Vector3D other) =>
-        IsParallel(other) && Math.Sign(X) == Math.Sign(other.X) && Math.Sign(Y) == Math.Sign(other.Y) &&
-        Math.Sign(Z) == Math.Sign(other.Z);
+        IsParallel(other) &&
+        Math.Sign(Math.Round(X, Constants.THREE_DECIMALS)) == Math.Sign(Math.Round(other.X,
+                                                                                   Constants.THREE_DECIMALS)) &&
+        Math.Sign(Math.Round(Y, Constants.THREE_DECIMALS)) == Math.Sign(Math.Round(other.Y,
+                                                                                   Constants.THREE_DECIMALS)) &&
+        Math.Sign(Math.Round(Z, Constants.THREE_DECIMALS)) == Math.Sign(Math.Round(other.Z, Constants.THREE_DECIMALS));
 
     public bool OppositeDirectionAs(Vector3D other) =>
-        IsParallel(other) && Math.Sign(X) != Math.Sign(other.X) && Math.Sign(Y) != Math.Sign(other.Y) &&
-        Math.Sign(Z) != Math.Sign(other.Z);
+        IsParallel(other) &&
+        Math.Sign(Math.Round(X, Constants.THREE_DECIMALS)) != Math.Sign(Math.Round(other.X,
+                                                                                   Constants.THREE_DECIMALS)) &&
+        Math.Sign(Math.Round(Y, Constants.THREE_DECIMALS)) != Math.Sign(Math.Round(other.Y,
+                                                                                   Constants.THREE_DECIMALS)) &&
+        Math.Sign(Math.Round(Z, Constants.THREE_DECIMALS)) != Math.Sign(Math.Round(other.Z, Constants.THREE_DECIMALS));
 
     /// <summary>
     /// Equality check with custom tolerance adjustment
