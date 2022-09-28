@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
-  /// A Geometrical Vector of two coordinates (U,V) on an arbitrary 2D plane
+  /// A Mathematical Vector containing any number of double
   /// </summary>
   public class Vector : IEquatable<Vector> {
     private double[] _values;
@@ -29,48 +28,34 @@ namespace GeomSharp {
       }
     }
 
-    public Vector(Vector copy) => (U, V) = (copy.U, copy.V);
+    // public Vector(Vector copy) => (U, V) = (copy.U, copy.V);
 
-    protected Vector(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 2) {
-        throw new ArgumentException(
-            String.Format("tried to initialize a Vector with an {0:D}-dimention vector", copy_raw.Count()));
-      }
-      U = copy_raw[0];  // U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
-      V = copy_raw[1];  // V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
-    }
+    // protected Vector(Vector<double> copy_raw) {
+    //   if (copy_raw.Count() != 2) {
+    //     throw new ArgumentException(
+    //         String.Format("tried to initialize a Vector with an {0:D}-dimention vector", copy_raw.Count()));
+    //   }
+    //   U = copy_raw[0];  // U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
+    //   V = copy_raw[1];  // V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
+    // }
 
-    // unary operations
-    public static Vector FromVector(Vector<double> v) {
-      return new Vector(v);
-    }
-    public double[] ToArray() => new double[] { U, V };
+    //// unary operations
+    // public static Vector FromVector(Vector<double> v) {
+    //   return new Vector(v);
+    // }
+    // public double[] ToArray() => new double[] { U, V };
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
+    // public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
 
     // unary methods
 
-    public double Length() => ToVector().L1Norm();  // weird rounding errors
-    // public double Length() => Math.Sqrt(U * U + V * V);
-
-    public UnitVector Normalize() {
-      double norm = Length();
-
-      if (norm == 0) {
-        throw new Exception("cannot normalize a zero length vector");
+    public double Length() {
+      double ssq = 0;
+      for (int i = 0; i < Size; i++) {
+        ssq += Math.Pow(_values[i], 2);
       }
-
-      // Console.WriteLine(String.Format("this={0}, norm={1:F4}", this.ToWkt(), norm));
-
-      // return UnitVector.FromVector(this / norm);
-      return UnitVector.FromDoubles(this.U / norm, this.V / norm);
+      return Math.Sqrt(ssq);
     }
-
-    public bool SameDirectionAs(Vector other) =>
-        IsParallel(other) && Math.Sign(U) == Math.Sign(other.U) && Math.Sign(V) == Math.Sign(other.V);
-
-    public bool OppositeDirectionAs(Vector other) =>
-        IsParallel(other) && Math.Sign(U) != Math.Sign(other.U) && Math.Sign(V) != Math.Sign(other.V);
 
     /// <summary>
     /// Equality check with custom tolerance adjustment
@@ -78,12 +63,20 @@ namespace GeomSharp {
     /// <param name="other"></param>
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public bool AlmostEquals(Vector other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Math.Round(this.U - other.U, decimal_precision) == 0 && Math.Round(this.V - other.V, decimal_precision) == 0;
+    public bool AlmostEquals(Vector other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Size != other.Size) {
+        return false;
+      }
 
-    public bool Equals(Vector other) =>
-        Math.Round(this.U - other.U, Constants.NINE_DECIMALS) == 0 && Math.Round(this.V - other.V,
-                                                                                 Constants.NINE_DECIMALS) == 0;
+      for (int i = 0; i < Size; ++i) {
+        if (Math.Round(_values[i] - other._values[i], decimal_precision) != 0) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    public bool Equals(Vector other) => AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Vector && this.Equals((Vector)other);
 
@@ -119,66 +112,13 @@ namespace GeomSharp {
 
     public double DotProduct(Vector other) => ToVector().DotProduct(other.ToVector());
 
-    /// <summary>
-    /// Returns the perpendicular vector 2D to this one
-    /// </summary>
-    /// <returns></returns>
-    public Vector Perp() {
-      return new Vector(-V, U);
-    }
-
-    /// <summary>
-    /// The perpendicular product 2D (aka 2D outer product)
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public double PerpProduct(Vector other) => Perp().DotProduct(other);
-
-    public double CrossProduct(Vector other) => PerpProduct(other);
-
-    public bool IsPerpendicular(Vector b) => Math.Round(DotProduct(b), Constants.THREE_DECIMALS) == 0;
-
-    public bool IsParallel(Vector b) => Math.Round(PerpProduct(b), Constants.THREE_DECIMALS) == 0;
-
-    /// <summary>
-    /// Angle spanned between two vectors
-    /// cos(theta) = V * W / (|V|*|W|) = v*w (unit vectors)
-    /// </summary>
-    /// <param name="b"></param>
-    /// <returns></returns>
-    public Angle AngleTo(Vector b) => Angle.FromRadians(Math.Acos(DotProduct(b) / (Length() * b.Length())));
-
-    // special formatting
-    public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return string.Format("VECTOR (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")",
-                           U,
-                           V);
-    }
+    //// special formatting
+    // public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
+    // public string ToWkt(int precision = Constants.THREE_DECIMALS) {
+    //   return string.Format("VECTOR (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")",
+    //                        U,
+    //                        V);
+    // }
   }
 
-  /// <summary>
-  /// A Vector of two coordinates (U,V) on an arbitrary 2D plane, which norm is 1
-  /// </summary>
-  public class UnitVector : Vector {
-    private UnitVector(double u, double v) : base(u, v) {}
-
-    private UnitVector(Vector v) : base(v) {}
-
-    public static UnitVector FromDoubles(double u, double v) {
-      if (Math.Round(new Vector(u, v).Length(), Constants.NINE_DECIMALS) != 1) {
-        throw new ArgumentException(
-            String.Format("initialized UnitVector with non unit coordinates ({0:F9}, {1:F9}", u, v));
-      }
-      return new UnitVector(u, v);
-    }
-
-    public static UnitVector FromVector(Vector v) =>
-        (Math.Round(v.Length(), Constants.NINE_DECIMALS) != 1)
-            ? throw new ArgumentException(String.Format("initialized UnitVector3D with non unit coordinates ({0})",
-                                                        v.ToWkt()))
-            : new UnitVector(v);
-
-    public static UnitVector operator -(UnitVector a) => FromDoubles(-a.U, -a.V);
-  }
 }
