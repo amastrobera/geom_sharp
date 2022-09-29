@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
@@ -21,10 +19,10 @@ namespace GeomSharp {
 
     public Vector3D(Vector3D copy) => (X, Y, Z) = (copy.X, copy.Y, copy.Z);
 
-    private Vector3D(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 3) {
+    private Vector3D(Vector copy_raw) {
+      if (copy_raw.Size != 3) {
         throw new ArgumentException(
-            String.Format("tried to initialize a Point3D with an {0:D}-dimention vector", copy_raw.Count()));
+            String.Format("tried to initialize a Point3D with an {0:D}-dimention vector", copy_raw.Size));
       }
       X = copy_raw[0];  // X = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
       Y = copy_raw[1];  // Y = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
@@ -33,16 +31,15 @@ namespace GeomSharp {
 
     // unary operations
 
-    public static Vector3D FromVector(Vector<double> v) {
+    public static Vector3D FromVector(Vector v) {
       return new Vector3D(v);
     }
 
-    public double[] ToArray() => new double[] { X, Y, Z };
+    public double[] ToArray() => ToVector().ToArray();
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { X, Y, Z });
+    public Vector ToVector() => Vector.FromArray(new double[] { X, Y, Z });
 
-    public double Length() => ToVector().L1Norm();
-    // public double Length() => Math.Sqrt(X * X + Y * Y + Z * Z);
+    public double Length() => ToVector().Length();
 
     public UnitVector3D Normalize() {
       double norm = Length();

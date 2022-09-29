@@ -246,7 +246,7 @@ namespace GeomSharpTests {
       // temp data
       Point2D cm = t.CenterOfMass();
       Line2D line;
-      Point2D lp0, lp1;
+      Point2D lp0;
       UnitVector2D u;
       UnitVector2D u_perp;
 
@@ -295,7 +295,7 @@ namespace GeomSharpTests {
       // temp data
       Point2D cm = t.CenterOfMass();
       Ray2D ray;
-      Point2D lp0, lp1;
+      Point2D lp0;
       UnitVector2D u;
       UnitVector2D u_perp;
 

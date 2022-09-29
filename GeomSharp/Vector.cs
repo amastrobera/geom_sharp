@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace GeomSharp {
   /// <summary>
@@ -20,32 +21,43 @@ namespace GeomSharp {
       }
     }
 
-    private Vector(uint size) {
+    public Vector Clone() => new Vector(this);
+
+    public static Vector FromArray(double[] arr) => FromEnumerable(arr);
+
+    public static Vector FromList(List<double> ldoubles) => FromEnumerable(ldoubles);
+
+    public double[] ToArray() => _values;
+
+    public List<double> ToList() => _values.ToList();
+
+    private Vector(int size) {
+      if (size <= 0) {
+        throw new ArgumentException("init vector with size <= 0");
+      }
       _values = new double[size];
-      Size = (int)size;
+      Size = size;
       for (int i = 0; i < Size; i++) {
         _values[i] = 0;
       }
     }
 
-    // public Vector(Vector copy) => (U, V) = (copy.U, copy.V);
+    private Vector(Vector cp) {
+      Size = cp.Size;
+      for (int i = 0; i < Size; i++) {
+        _values[i] = cp._values[i];
+      }
+    }
 
-    // protected Vector(Vector<double> copy_raw) {
-    //   if (copy_raw.Count() != 2) {
-    //     throw new ArgumentException(
-    //         String.Format("tried to initialize a Vector with an {0:D}-dimention vector", copy_raw.Count()));
-    //   }
-    //   U = copy_raw[0];  // U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
-    //   V = copy_raw[1];  // V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
-    // }
-
-    //// unary operations
-    // public static Vector FromVector(Vector<double> v) {
-    //   return new Vector(v);
-    // }
-    // public double[] ToArray() => new double[] { U, V };
-
-    // public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
+    private static Vector FromEnumerable(IEnumerable<double> enumd) {
+      var v = new Vector(enumd.Count());
+      int i = 0;
+      foreach (var val in enumd) {
+        v._values[i] = val;
+        ++i;
+      }
+      return v;
+    }
 
     // unary methods
 
@@ -93,32 +105,115 @@ namespace GeomSharp {
     // binary operations
 
     // arithmetics with Vectors
-    public static Point2D operator +(Vector vec, Point2D a) =>
-        Point2D.FromVector(a.ToVector() + vec.ToVector());  // same operation, commutative to the other I wrote
+    public static Vector operator +(Vector a, Vector b) {
+      if (a.Size != b.Size) {
+        throw new ArgumentException("operator+ on vectors of different size");
+      }
 
-    public static Vector operator +(Vector a, Vector b) => FromVector(a.ToVector() + b.ToVector());
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = a._values[i] + b._values[i];
+      }
+      return v;
+    }
 
-    public static Vector operator -(Vector a, Vector b) => FromVector(a.ToVector() - b.ToVector());
+    public static Vector operator +(Vector a, double k) {
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = a._values[i] + k;
+      }
+      return v;
+    }
 
-    public static Vector operator -(Vector a) => FromVector(-(a.ToVector()));
+    public static Vector operator +(double k, Vector b) => b + k;
 
-    public static double operator*(Vector a, Vector b) => a.DotProduct(b);
+    public static Vector operator -(Vector a, double k) {
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = a._values[i] - k;
+      }
+      return v;
+    }
 
-    public static Vector operator*(Vector b, double k) => FromVector(b.ToVector() * k);
+    public static Vector operator -(double k, Vector b) => b - k;
 
-    public static Vector operator*(double k, Vector b) => FromVector(k * b.ToVector());
+    public static Vector operator -(Vector a, Vector b) {
+      if (a.Size != b.Size) {
+        throw new ArgumentException("operator- on vectors of different size");
+      }
 
-    public static Vector operator /(Vector b, double k) => FromVector(b.ToVector() / k);
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = a._values[i] - b._values[i];
+      }
+      return v;
+    }
 
-    public double DotProduct(Vector other) => ToVector().DotProduct(other.ToVector());
+    public static Vector operator -(Vector a) {
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = -a._values[i];
+      }
+      return v;
+    }
 
-    //// special formatting
-    // public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
-    // public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-    //   return string.Format("VECTOR (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")",
-    //                        U,
-    //                        V);
-    // }
+    public static Vector operator*(Vector a, Vector b) {
+      if (a.Size != b.Size) {
+        throw new ArgumentException("operator* on vectors of different size");
+      }
+
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = a._values[i] * b._values[i];
+      }
+      return v;
+    }
+
+    public static Vector operator*(Vector a, double k) {
+      var v = new Vector(a.Size);
+      for (int i = 0; i < v.Size; ++i) {
+        v._values[i] = a._values[i] * k;
+      }
+      return v;
+    }
+
+    public static Vector operator*(double k, Vector b) => b * k;
+
+    public static Vector operator /(Vector a, double k) {
+      var v = new Vector(a.Size);
+      int i = 0;
+      try {
+        for (; i < v.Size; ++i) {
+          v._values[i] = a._values[i] / k;
+        }
+      } catch (DivideByZeroException) {
+        throw new ArithmeticException("operator/ division by zero on index " + i.ToString());
+      } catch (OverflowException) {
+        throw new ArithmeticException("operator/ overflow on index " + i.ToString());
+      }
+      return v;
+    }
+
+    public double DotProduct(Vector other) {
+      if (Size != other.Size) {
+        throw new ArgumentException("DotProduct on vectors of different size");
+      }
+
+      double d = 0;
+      for (int i = 0; i < other.Size; ++i) {
+        d = _values[i] * other._values[i];
+      }
+      return d;
+    }
+
+    // special formatting
+    public override string ToString() => ToWkt();
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      return "VECTOR (" +
+             string.Join(",",
+                         _values.Select(v => string.Format(String.Format("{0}0:F{1:D}{2}", "{", precision, "}"), v))) +
+             ")";
+    }
   }
 
 }
