@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
@@ -19,27 +17,26 @@ namespace GeomSharp {
 
     public Vector2D(Vector2D copy) => (U, V) = (copy.U, copy.V);
 
-    protected Vector2D(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 2) {
+    protected Vector2D(Vector copy_raw) {
+      if (copy_raw.Size != 2) {
         throw new ArgumentException(
-            String.Format("tried to initialize a Vector2D with an {0:D}-dimention vector", copy_raw.Count()));
+            String.Format("tried to initialize a Vector2D with an {0:D}-dimention vector", copy_raw.Size));
       }
       U = copy_raw[0];  // U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
       V = copy_raw[1];  // V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
     }
 
     // unary operations
-    public static Vector2D FromVector(Vector<double> v) {
+    public static Vector2D FromVector(Vector v) {
       return new Vector2D(v);
     }
-    public double[] ToArray() => new double[] { U, V };
+    public double[] ToArray() => ToVector().ToArray();
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
+    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
 
     // unary methods
 
-    public double Length() => ToVector().L1Norm();  // weird rounding errors
-    // public double Length() => Math.Sqrt(U * U + V * V);
+    public double Length() => ToVector().Length();
 
     public UnitVector2D Normalize() {
       double norm = Length();

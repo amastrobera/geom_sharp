@@ -1,9 +1,4 @@
-﻿using MathNet.Numerics.RootFinding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace GeomSharp {
+﻿namespace GeomSharp {
 
   public static class IntersectionExtensions2D {
     // intersection functions among different objects

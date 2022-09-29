@@ -31,9 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.5.0.0\lib\net48\MathNet.Numerics.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,35 +41,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Exceptions.cs" />
-    <Compile Include="IntersectionExtensions2D.cs" />
+    <Compile Include="Angle.cs" />
     <Compile Include="ComparisonExtensions3D.cs" />
-    <Compile Include="OverlapExtensions2D.cs" />
-    <Compile Include="OverlapExtensions3D.cs" />
-    <Compile Include="IntersectionExtensions3D.cs" />
-    <Compile Include="ProjectionResult.cs" />
-    <Compile Include="IntersectionResult.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="NullValue.cs" />
-    <Compile Include="Polyline2D.cs" />
-    <Compile Include="Polyline3D.cs" />
-    <Compile Include="Polygon3D.cs" />
-    <Compile Include="Ray2D.cs" />
-    <Compile Include="Ray3D.cs" />
+    <Compile Include="IntersectionExtensions2D.cs" />
+    <Compile Include="IntersectionExtensions3D.cs" />
+    <Compile Include="IntersectionResult.cs" />
+    <Compile Include="Line2D.cs" />
+    <Compile Include="Line3D.cs" />
     <Compile Include="LineSegment2D.cs" />
     <Compile Include="LineSegment3D.cs" />
-    <Compile Include="Line3D.cs" />
-    <Compile Include="Line2D.cs" />
-    <Compile Include="Angle.cs" />
+    <Compile Include="NullValue.cs" />
+    <Compile Include="OverlapExtensions2D.cs" />
+    <Compile Include="OverlapExtensions3D.cs" />
     <Compile Include="Plane.cs" />
-    <Compile Include="Triangle2D.cs" />
     <Compile Include="Point2D.cs" />
-    <Compile Include="Vector2D.cs" />
     <Compile Include="Point3D.cs" />
-    <Compile Include="Vector3D.cs" />
-    <Compile Include="Triangle3D.cs" />
     <Compile Include="Polygon2D.cs" />
+    <Compile Include="Polygon3D.cs" />
+    <Compile Include="Polyline2D.cs" />
+    <Compile Include="Polyline3D.cs" />
+    <Compile Include="ProjectionResult.cs" />
+    <Compile Include="Ray2D.cs" />
+    <Compile Include="Ray3D.cs" />
+    <Compile Include="Triangle2D.cs" />
+    <Compile Include="Triangle3D.cs" />
+    <Compile Include="Vector.cs" />
+    <Compile Include="Vector2D.cs" />
+    <Compile Include="Vector3D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

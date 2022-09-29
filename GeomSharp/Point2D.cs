@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
@@ -17,23 +15,23 @@ namespace GeomSharp {
 
     public Point2D(Point2D copy) => (U, V) = (copy.U, copy.V);
 
-    public Point2D(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 2) {
+    public Point2D(Vector copy_raw) {
+      if (copy_raw.Size != 2) {
         throw new ArgumentException(
-            String.Format("tried to initialize a Point2D with an {0:D}-dimention vector", copy_raw.Count()));
+            String.Format("tried to initialize a Point2D with an {0:D}-dimention vector", copy_raw.Size));
       }
       U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
       V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
     }
 
     // unary operations
-    public static Point2D FromVector(Vector<double> v) {
+    public static Point2D FromVector(Vector v) {
       return new Point2D(v);
     }
 
     public double[] ToArray() => new double[] { U, V };
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
+    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
 
     public Vector2D ToVector2D() {
       return new Vector2D(U, V);
