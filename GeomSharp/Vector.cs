@@ -201,7 +201,7 @@ namespace GeomSharp {
 
       double d = 0;
       for (int i = 0; i < other.Size; ++i) {
-        d = _values[i] * other._values[i];
+        d += _values[i] * other._values[i];
       }
       return d;
     }
