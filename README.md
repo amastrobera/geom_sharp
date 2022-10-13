@@ -112,9 +112,9 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Plane/Ray | 
 | | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: Triangle/Triangle | 
-| | | :heavy_check_mark: Triangle/Line | 
+| | | :heavy_check_mark: :test_tube: Triangle/Line | 
 | | | :heavy_check_mark: Triangle/Ray | 
-| | | :heavy_check_mark: Triangle/Segment | 
+| | | :heavy_check_mark: :test_tube: Triangle/Segment | 
 | | | :x: Polyline/Line | 
 | | | :x: Polyline/Ray | 
 | | | :x: Polyline/Segment | 

@@ -46,11 +46,15 @@ namespace GeomSharp {
       return !a.Equals(b);
     }
 
-    public bool IsParallel(Line3D other) => Direction.IsParallel(other.Direction);
+    public bool IsParallel(Line3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
+                                                                                                     decimal_precision);
 
-    public bool IsPerpendicular(Line3D other) => Direction.IsPerpendicular(other.Direction);
+    public bool IsPerpendicular(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.IsPerpendicular(other.Direction, decimal_precision);
 
-    public bool Contains(Point3D p) => p.AlmostEquals(Origin) || (p - Origin).IsParallel(Direction);
+    public bool Contains(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        p.AlmostEquals(Origin, decimal_precision) || (p - Origin).IsParallel(Direction, decimal_precision);
 
     /// <summary>
     /// Projects a Point onto a line
@@ -74,7 +78,7 @@ namespace GeomSharp {
     public double DistanceTo(Point3D p) => Math.Round(Direction.CrossProduct(p - Origin).Length(),
                                                       Constants.NINE_DECIMALS);
 
-    public bool Intersects(Line3D other) => Intersection(other).ValueType != typeof(NullValue);
+    public bool Intersects(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) => Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// Finds the intersection between two 3D Lines. It solves a linear system of 3 equations with 2 unknowns.
@@ -88,15 +92,15 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Intersection(Line3D other) {
-      if (IsParallel(other)) {
+    public IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (IsParallel(other, decimal_precision)) {
         return new IntersectionResult();
       }
 
       // pick the first plane 2D where both lines can be projected as lines and not as dots
       // (verify that neither line is perpendicular to the projecting plane)
       Plane plane_2d =
-          !(this.IsPerpendicular(Plane.XY) || other.IsPerpendicular(Plane.XY))
+          !(this.IsPerpendicular(Plane.XY, decimal_precision) || other.IsPerpendicular(Plane.XY, decimal_precision))
               ? Plane.XY
               : (!(this.IsPerpendicular(Plane.YZ) || other.IsPerpendicular(Plane.YZ)) ? Plane.YZ : Plane.ZX);
 

@@ -39,9 +39,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool IsAhead(Point2D p) => (Math.Round((p - Origin).DotProduct(Direction), Constants.THREE_DECIMALS) >= 0)
-                                          ? true
-                                          : false;
+    public bool IsAhead(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (Math.Round((p - Origin).DotProduct(Direction), decimal_precision) >= 0) ? true : false;
 
     /// <summary>
     /// Tells if a point is a behind of the ray. It uses a property of the DotProduct (being positive in the angle
@@ -49,17 +48,19 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool IsBehind(Point2D p) => (Math.Round((p - Origin).DotProduct(Direction), Constants.THREE_DECIMALS) < 0)
-                                           ? true
-                                           : false;
+    public bool IsBehind(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (Math.Round((p - Origin).DotProduct(Direction), decimal_precision) < 0) ? true : false;
 
-    public bool IsParallel(Ray2D other) => Direction.IsParallel(other.Direction);
+    public bool IsParallel(Ray2D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
+                                                                                                     decimal_precision);
 
-    public bool IsPerpendicular(Ray2D other) => Direction.IsPerpendicular(other.Direction);
+    public bool IsPerpendicular(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.IsPerpendicular(other.Direction, decimal_precision);
 
-    public bool Contains(Point2D p) {
+    public bool Contains(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {
       // check if the point is on the same line
-      if (Math.Round(Direction.PerpProduct(p - Origin), Constants.THREE_DECIMALS) != 0) {
+      if (Math.Round(Direction.PerpProduct(p - Origin), decimal_precision) != 0) {
         return false;
       }
 
@@ -80,21 +81,22 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Intersects(Ray2D other) => Intersection(other).ValueType != typeof(NullValue);
+    public bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// If two rays intersect, this return the point in which one of the is stroke through
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Intersection(Ray2D other) {
-      var line_int = ToLine().Intersection(other.ToLine());
+    public IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
       if (line_int.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var Ps = (Point2D)line_int.Value;
-      if (!(Contains(Ps) && other.Contains(Ps))) {
+      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
         return new IntersectionResult();
       }
 
@@ -106,7 +108,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Ray2D other) => Overlap(other).ValueType != typeof(NullValue);
+    public bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// If two lines overlap, this function returns the shared section between them
@@ -114,13 +117,13 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(Ray2D other) {
-      if (!IsParallel(other)) {
+    public IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
         return new IntersectionResult();
       }
 
-      bool origin_in = other.Contains(Origin);
-      bool other_origin_in = Contains(other.Origin);
+      bool origin_in = other.Contains(Origin, decimal_precision);
+      bool other_origin_in = Contains(other.Origin, decimal_precision);
 
       if (!other_origin_in && !origin_in) {
         return new IntersectionResult();

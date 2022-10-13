@@ -50,18 +50,18 @@ namespace GeomSharp {
 
     public bool IsPerpendicular(Line3D other) => (P1 - P0).IsPerpendicular(other.P1 - other.P0);
 
-    public bool Contains(Point3D p) {
+    public bool Contains(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
       // check if the point is on the same line
-      if (!(P1 - P0).CrossProduct(p - P0).AlmostEquals(Vector3D.Zero)) {
+      if (!(P1 - P0).CrossProduct(p - P0).AlmostEquals(Vector3D.Zero, decimal_precision)) {
         return false;
       }
 
       // check if the point is within the boundaries of the segment
-      if (p.AlmostEquals(P0)) {  // this check avoids throwing on .SameDirection() call.
+      if (p.AlmostEquals(P0, decimal_precision)) {  // this check avoids throwing on .SameDirection() call.
         return true;
       }
       if ((p - P0).SameDirectionAs(P1 - P0)) {
-        double t = Math.Round(P0.DistanceTo(p) / Length(), Constants.THREE_DECIMALS);
+        double t = Math.Round(P0.DistanceTo(p) / Length(), decimal_precision);
         if (t >= 0 && t <= 1) {
           return true;
         }
@@ -72,7 +72,7 @@ namespace GeomSharp {
     public Point3D ProjectOnto(Point3D p) {
       var pp = ToLine().ProjectOnto(p);
       if (!Contains(pp)) {
-        if (Math.Round(P0.DistanceTo(pp) - P1.DistanceTo(pp), Constants.NINE_DECIMALS) < 0) {
+        if (Math.Round(P0.DistanceTo(pp) - P1.DistanceTo(pp), Constants.THREE_DECIMALS) < 0) {
           return P0;
         }
         return P1;

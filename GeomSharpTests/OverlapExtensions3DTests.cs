@@ -336,24 +336,20 @@ namespace GeomSharpTests {
 
     // Triangle with other basic primitives
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void TriangleToPlane() {
-      Assert.IsTrue(false);
-    }
+    public void TriangleToPlane() {}
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void TriangleToLine() {
-      Assert.IsTrue(false);
-    }
+    public void TriangleToLine() {}
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void TriangleToRay() {
-      Assert.IsTrue(false);
-    }
+    public void TriangleToRay() {}
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void TriangleToLineSegment() {
-      Assert.IsTrue(false);
-    }
+    public void TriangleToLineSegment() {}
   }
 }

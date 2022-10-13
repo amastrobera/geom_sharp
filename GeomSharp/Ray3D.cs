@@ -39,9 +39,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool IsAhead(Point3D p) => (Math.Round((p - Origin).DotProduct(Direction), Constants.THREE_DECIMALS) >= 0)
-                                          ? true
-                                          : false;
+    public bool IsAhead(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (Math.Round((p - Origin).DotProduct(Direction), decimal_precision) >= 0) ? true : false;
 
     /// <summary>
     /// Tells if a point is a behind of the ray. It uses a property of the DotProduct (being positive in the angle
@@ -49,22 +48,24 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool IsBehind(Point3D p) => (Math.Round((p - Origin).DotProduct(Direction), Constants.THREE_DECIMALS) < 0)
-                                           ? true
-                                           : false;
+    public bool IsBehind(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (Math.Round((p - Origin).DotProduct(Direction), decimal_precision) < 0) ? true : false;
 
-    public bool IsParallel(Ray3D other) => Direction.IsParallel(other.Direction);
+    public bool IsParallel(Ray3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
+                                                                                                     decimal_precision);
 
-    public bool IsPerpendicular(Ray3D other) => Direction.IsPerpendicular(other.Direction);
+    public bool IsPerpendicular(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.IsPerpendicular(other.Direction, decimal_precision);
 
-    public bool Contains(Point3D p) {
+    public bool Contains(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
       // check if the point is on the same line
-      if (!Direction.CrossProduct(p - Origin).AlmostEquals(Vector3D.Zero)) {
+      if (!Direction.CrossProduct(p - Origin).AlmostEquals(Vector3D.Zero, decimal_precision)) {
         return false;
       }
 
       // check if the point is within the boundaries of the segment
-      return IsAhead(p);
+      return IsAhead(p, decimal_precision);
     }
 
     public double DistanceTo(Point3D p) {
@@ -80,15 +81,16 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Intersects(Ray3D other) => Intersection(other).ValueType != typeof(NullValue);
+    public bool Intersects(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// If two rays intersect, this return the point in which one of the is stroke through
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Intersection(Ray3D other) {
-      var line_int = ToLine().Intersection(other.ToLine());
+    public IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
       if (line_int.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }

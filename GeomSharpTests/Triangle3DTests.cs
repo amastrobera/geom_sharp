@@ -108,14 +108,12 @@ namespace GeomSharpTests {
       TestContains(RandomGenerator.MakeTriangle3D().Triangle);
     }
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void Intersection() {
-      Assert.IsTrue(false);
-    }
+    public void Intersection() {}
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void Overlap() {
-      Assert.IsTrue(false);
-    }
+    public void Overlap() {}
   }
 }

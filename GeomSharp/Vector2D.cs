@@ -51,11 +51,13 @@ namespace GeomSharp {
       return UnitVector2D.FromDoubles(this.U / norm, this.V / norm);
     }
 
-    public bool SameDirectionAs(Vector2D other) =>
-        IsParallel(other) && Math.Sign(U) == Math.Sign(other.U) && Math.Sign(V) == Math.Sign(other.V);
+    public bool SameDirectionAs(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) && Math.Sign(U) == Math.Sign(other.U) &&
+        Math.Sign(V) == Math.Sign(other.V);
 
-    public bool OppositeDirectionAs(Vector2D other) =>
-        IsParallel(other) && Math.Sign(U) != Math.Sign(other.U) && Math.Sign(V) != Math.Sign(other.V);
+    public bool OppositeDirectionAs(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) && Math.Sign(U) != Math.Sign(other.U) &&
+        Math.Sign(V) != Math.Sign(other.V);
 
     /// <summary>
     /// Equality check with custom tolerance adjustment
@@ -121,9 +123,13 @@ namespace GeomSharp {
 
     public double CrossProduct(Vector2D other) => PerpProduct(other);
 
-    public bool IsPerpendicular(Vector2D b) => Math.Round(DotProduct(b), Constants.THREE_DECIMALS) == 0;
+    public bool IsPerpendicular(Vector2D b,
+                                int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(DotProduct(b),
+                                                                                                decimal_precision) == 0;
 
-    public bool IsParallel(Vector2D b) => Math.Round(PerpProduct(b), Constants.THREE_DECIMALS) == 0;
+    public bool IsParallel(Vector2D b,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(PerpProduct(b),
+                                                                                           decimal_precision) == 0;
 
     /// <summary>
     /// Angle spanned between two vectors

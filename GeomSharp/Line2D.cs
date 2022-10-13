@@ -46,11 +46,15 @@ namespace GeomSharp {
       return !a.Equals(b);
     }
 
-    public bool IsParallel(Line2D other) => Direction.IsParallel(other.Direction);
+    public bool IsParallel(Line2D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
+                                                                                                     decimal_precision);
 
-    public bool IsPerpendicular(Line2D other) => Direction.IsPerpendicular(other.Direction);
+    public bool IsPerpendicular(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.IsPerpendicular(other.Direction, decimal_precision);
 
-    public bool Contains(Point2D p) => Location(p) == Constants.Location.ON_LINE;
+    public bool Contains(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Location(p, decimal_precision) == Constants.Location.ON_LINE;
 
     /// <summary>
     /// Projects a Point onto a line
@@ -89,8 +93,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public Constants.Location Location(Point2D p) {
-      var perp_prod = Math.Round(Direction.PerpProduct(p - Origin), Constants.THREE_DECIMALS);
+    public Constants.Location Location(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {
+      var perp_prod = Math.Round(Direction.PerpProduct(p - Origin), decimal_precision);
       if (perp_prod == 0) {
         return Constants.Location.ON_LINE;
       }
@@ -105,8 +109,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Intersects(Line2D other) {
-      return !IsParallel(other);  // in 2D you only have two chances: parallel or intersecting
+    public bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      return !IsParallel(other, decimal_precision);  // in 2D you only have two chances: parallel or intersecting
     }
 
     /// <summary>
@@ -114,8 +118,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Intersection(Line2D other) {
-      if (!Intersects(other)) {
+    public IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!Intersects(other, decimal_precision)) {
         return new IntersectionResult();
       }
 
@@ -127,7 +131,7 @@ namespace GeomSharp {
       double sI = -V.PerpProduct(W) / V.PerpProduct(U);  // guaranteed non-zero if non-parallel
 
       var Ps = Origin + sI * Direction;
-      if (!(Contains(Ps) && other.Contains(Ps))) {
+      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
         throw new Exception(String.Format("Intersection({0}) miscalculated Ps", GetType().ToString().ToString()));
       }
 
@@ -139,11 +143,11 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Line2D other) {
-      if (!IsParallel(other)) {
+    public bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
         return false;
       }
-      if (Contains(other.Origin)) {
+      if (Contains(other.Origin, decimal_precision)) {
         return true;
       }
       return false;
@@ -154,8 +158,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(Line2D other) => Overlaps(other) ? new IntersectionResult(this)
-                                                                       : new IntersectionResult();
+    public IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
 
     public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);

@@ -57,10 +57,10 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    public bool Contains(Point3D point) {
+    public bool Contains(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) {
       // first test: is it on the same plane ?
       var plane = RefPlane();
-      if (!Plane.FromPoints(P0, P1, P2).Contains(point)) {
+      if (!Plane.FromPoints(P0, P1, P2).Contains(point, decimal_precision)) {
         return false;
       }
 
@@ -68,7 +68,7 @@ namespace GeomSharp {
       var triangle_2d = Triangle2D.FromPoints(plane.ProjectInto(P0), plane.ProjectInto(P1), plane.ProjectInto(P2));
       var point_2d = plane.ProjectInto(point);
 
-      return triangle_2d.Contains(point_2d);
+      return triangle_2d.Contains(point_2d, decimal_precision);
     }
 
     public bool Equals(Triangle3D other) {
@@ -106,10 +106,11 @@ namespace GeomSharp {
       return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
     }
 
-    public bool Intersects(Triangle3D other) => Intersection(other).ValueType != typeof(NullValue);
+    public bool Intersects(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
-    public IntersectionResult Intersection(Triangle3D other) {
-      var plane_inter = RefPlane().Intersection(other.RefPlane());
+    public IntersectionResult Intersection(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var plane_inter = RefPlane().Intersection(other.RefPlane(), decimal_precision);
       if (plane_inter.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }

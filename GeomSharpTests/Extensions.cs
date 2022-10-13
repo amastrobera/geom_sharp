@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace Microsoft.VisualStudio.TestTools.UnitTesting {
 
@@ -38,4 +39,16 @@ namespace Microsoft.VisualStudio.TestTools.UnitTesting {
       result = testMethod.Invoke(null);
     }
   }
+
+  public class NonImplementedAttribute : TestMethodAttribute {
+    public NonImplementedAttribute() : base() {}
+
+    private void Invoke(ITestMethod testMethod, out TestResult result) {
+      result = new TestResult();
+      Console.WriteLine("Test " + DisplayName + " Not Implemented");
+      result.Outcome = UnitTestOutcome.NotRunnable;
+      result.ReturnValue = false;
+    }
+  }
+
 }

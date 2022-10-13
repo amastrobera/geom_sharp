@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
 
 namespace GeomSharpTests {
   /// <summary>
@@ -514,15 +515,13 @@ namespace GeomSharpTests {
 
     // Triangle with other basic primitives
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void TriangleToPlane() {
-      Assert.IsTrue(false);
-    }
+    public void TriangleToPlane() {}
 
+    [NonImplemented]
     [RepeatedTestMethod(1)]
-    public void TriangleToLine() {
-      Assert.IsTrue(false);
-    }
+    public void TriangleToLine() {}
 
     [RepeatedTestMethod(100)]
     public void TriangleToRay() {
@@ -633,7 +632,7 @@ namespace GeomSharpTests {
       Assert.IsFalse(t.Intersects(ray), "failed p2-shift down no intersects");
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void TriangleToLineSegment() {
       var random_triangle = RandomGenerator.MakeTriangle3D();
       var t = random_triangle.Triangle;
@@ -648,63 +647,78 @@ namespace GeomSharpTests {
       LineSegment3D segment;
       Point3D lp0, lp1;
       Vector3D U;
+      UnitVector3D tnorm = t.RefPlane().Normal;
 
       // case 1: intersect
+
+      //      perpendicular to the CM
+      segment = LineSegment3D.FromPoints(cm - tnorm * 2, cm + tnorm * 2);
+      Assert.IsTrue(segment.Intersects(t));
+
       //    perpendicular to an edge
       lp0 = Point3D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
-      segment = LineSegment3D.FromPoints(lp0 + (lp0 - cm), cm);
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
                     "segment through perp on p0-p1 edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
       lp0 = Point3D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
-      segment = LineSegment3D.FromPoints(lp0 + (lp0 - cm), cm);
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
                     "segment through perp on p1-p2 edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
       lp0 = Point3D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
-      segment = LineSegment3D.FromPoints(lp0 + (lp0 - cm), cm);
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
                     "segment through perp on p2-p0 edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
-      //    strike through two edges
-      lp0 = Point3D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
-      lp1 = Point3D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
-      segment = LineSegment3D.FromPoints(lp0, lp1);
+      // perpendicular to a vertex
+      lp0 = t.P0;
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
-                    "segment through mid points of edges t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+                    "segment through perp on p0 vert t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
-      lp0 = Point3D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
-      lp1 = Point3D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
-      segment = LineSegment3D.FromPoints(lp0, lp1);
+      lp0 = t.P1;
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
-                    "segment through mid points of edges t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+                    "segment through perp on p1 vert t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
-      lp0 = Point3D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
-      lp1 = Point3D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
-      segment = LineSegment3D.FromPoints(lp0, lp1);
+      lp0 = t.P2;
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
-                    "segment through mid points of edges t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+                    "segment through perp on p2 vert t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
-      //    strike through one point
-      U = (t.P2 - t.P1);
-      lp0 = t.P0 + U * 2;
-      lp1 = t.P0 - U * 2;
+      // case 2: line intersects but segment outside the scope of the triangle (no intersect)
+      //        perpendicular
+      lp0 = cm;
+      segment = LineSegment3D.FromPoints(lp0 + tnorm * 2, lp0 + tnorm * 4);
+      Assert.IsFalse(segment.Intersects(t));
+
+      lp0 = t.P0;
+      segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 - tnorm * 4);
+      Assert.IsFalse(segment.Intersects(t));
+
+      //      skewed
+      lp0 = cm + tnorm * 4;
+      lp1 = t.P0 + tnorm * 2;
       segment = LineSegment3D.FromPoints(lp0, lp1);
-      Assert.IsTrue(segment.Intersects(t), "segment through a vertex t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+      Assert.IsFalse(segment.Intersects(t));
 
-      U = (t.P0 - t.P2);
-      lp0 = t.P1 + U * 2;
-      lp1 = t.P1 - U * 2;
+      lp0 = cm - tnorm * 2;
+      lp1 = t.P0 - tnorm * 4;
       segment = LineSegment3D.FromPoints(lp0, lp1);
-      Assert.IsTrue(segment.Intersects(t), "segment through a vertex t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+      Assert.IsFalse(segment.Intersects(t));
 
-      U = (t.P1 - t.P0);
-      lp0 = t.P2 + U * 2;
-      lp1 = t.P2 - U * 2;
+      // case 3: parallel (no intersect)
+      lp0 = cm - tnorm * 2;
+      lp1 = t.P0 - tnorm * 2;
       segment = LineSegment3D.FromPoints(lp0, lp1);
-      Assert.IsTrue(segment.Intersects(t), "segment through a vertex t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+      Assert.IsFalse(segment.Intersects(t));
 
-      // case 2: parallel (no intersect)
+      lp0 = cm + tnorm * 2;
+      lp1 = t.P0 + tnorm * 2;
+      segment = LineSegment3D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Intersects(t));
+
       U = (t.P1 - t.P0);
       lp0 = t.P2 + (cm - t.P2) + U * 2;
       lp1 = t.P2 + (cm - t.P2) - U * 2;
@@ -726,7 +740,7 @@ namespace GeomSharpTests {
       Assert.IsFalse(segment.Intersects(t),
                      "external segment parallel to an edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
-      // case 3: overlap (no intersect)
+      // case 4: overlap (no intersect)
       lp0 = t.P0;
       lp1 = Point3D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
       segment = LineSegment3D.FromPoints(lp0, lp1);

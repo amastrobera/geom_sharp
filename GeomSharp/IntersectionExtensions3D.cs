@@ -8,70 +8,96 @@ namespace GeomSharp {
     // intersection functions among different objects
 
     // LineSegment and Line 3D
-    public static bool Intersects(this LineSegment3D segment, Line3D line) => segment.Intersection(line).ValueType !=
-                                                                              typeof(NullValue);
+    public static bool Intersects(this LineSegment3D segment,
+                                  Line3D line,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this LineSegment3D segment, Line3D line) {
-      var line_inter = segment.ToLine().Intersection(line);
+    public static IntersectionResult Intersection(this LineSegment3D segment,
+                                                  Line3D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_inter = segment.ToLine().Intersection(line, decimal_precision);
       if (line_inter.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)line_inter.Value;
-      if (segment.Contains(pI)) {
+      if (segment.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
       return new IntersectionResult();
     }
 
-    public static bool Intersects(this Line3D line, LineSegment3D segment) => segment.Intersects(line);
+    public static bool Intersects(this Line3D line,
+                                  LineSegment3D segment,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.Intersects(line, decimal_precision);
 
     public static IntersectionResult Intersection(this Line3D line,
-                                                  LineSegment3D segment) => segment.Intersection(line);
+                                                  LineSegment3D segment,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.Intersection(line, decimal_precision);
 
     // LineSegment and Ray 3D
-    public static bool Intersects(this LineSegment3D segment, Ray3D ray) => segment.Intersection(ray).ValueType !=
-                                                                            typeof(NullValue);
+    public static bool Intersects(this LineSegment3D segment,
+                                  Ray3D ray,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this LineSegment3D segment, Ray3D ray) {
-      var line_inter = segment.ToLine().Intersection(ray.ToLine());
+    public static IntersectionResult Intersection(this LineSegment3D segment,
+                                                  Ray3D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_inter = segment.ToLine().Intersection(ray.ToLine(), decimal_precision);
       if (line_inter.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)line_inter.Value;
-      if (segment.Contains(pI) && ray.Contains(pI)) {
+      if (segment.Contains(pI, decimal_precision) && ray.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
       return new IntersectionResult();
     }
 
-    public static bool Intersects(this Ray3D ray, LineSegment3D segment) => segment.Intersects(ray);
+    public static bool Intersects(this Ray3D ray,
+                                  LineSegment3D segment,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.Intersects(ray, decimal_precision);
 
-    public static IntersectionResult Intersection(this Ray3D ray, LineSegment3D segment) => segment.Intersection(ray);
+    public static IntersectionResult Intersection(this Ray3D ray,
+                                                  LineSegment3D segment,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.Intersection(ray, decimal_precision);
 
     // Line and Ray 3D
-    public static bool Intersects(this Line3D line, Ray3D ray) => line.Intersection(ray).ValueType != typeof(NullValue);
+    public static bool Intersects(this Line3D line, Ray3D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this Line3D line, Ray3D ray) {
-      var line_inter = line.Intersection(ray.ToLine());
+    public static IntersectionResult Intersection(this Line3D line,
+                                                  Ray3D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_inter = line.Intersection(ray.ToLine(), decimal_precision);
       if (line_inter.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)line_inter.Value;
-      if (ray.Contains(pI)) {
+      if (ray.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
       return new IntersectionResult();
     }
 
-    public static bool Intersects(this Ray3D ray, Line3D line) => line.Intersects(line);
+    public static bool Intersects(this Ray3D ray, Line3D line, int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersects(line, decimal_precision);
 
-    public static IntersectionResult Intersection(this Ray3D ray, Line3D line) => line.Intersection(line);
+    public static IntersectionResult Intersection(this Ray3D ray,
+                                                  Line3D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersection(line, decimal_precision);
 
     // Plane and LineSegment 3D
 
@@ -84,37 +110,48 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="segment"></param>
     /// <returns></returns>
-    public static bool Intersects(this Plane plane, LineSegment3D segment) {
-      if (plane.Contains(
-              segment)) {  // calling 4 times the same distance function instead of 2: only for code readability
+    public static bool Intersects(this Plane plane,
+                                  LineSegment3D segment,
+                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      if (plane.Contains(segment, decimal_precision)) {  // calling 4 times the same distance function instead of 2:
+                                                         // only for code readability
         return false;
       }
 
       // I examine all cases to avoid the overflow problem caused by the (more simple) DistanceTo(P0)*DistanceTo(P1) < 0
       (double d_this_other_p0, double d_this_other_p1) =
-          (Math.Round(plane.SignedDistance(segment.P0), Constants.THREE_DECIMALS),
-           Math.Round(plane.SignedDistance(segment.P1), Constants.THREE_DECIMALS));
+          (Math.Round(plane.SignedDistance(segment.P0), decimal_precision),
+           Math.Round(plane.SignedDistance(segment.P1), decimal_precision));
 
       return (d_this_other_p0 >= 0 && d_this_other_p1 <= 0) || (d_this_other_p0 <= 0 && d_this_other_p1 >= 0);
     }
 
-    public static IntersectionResult Intersection(this Plane plane, LineSegment3D segment) =>
-        !plane.Intersects(segment)
+    public static IntersectionResult Intersection(this Plane plane,
+                                                  LineSegment3D segment,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        !plane.Intersects(segment, decimal_precision)
             ? new IntersectionResult()
             : new IntersectionResult(plane.ProjectOnto(segment.P0, (segment.P1 - segment.P0).Normalize()));
 
-    public static bool Intersects(this LineSegment3D segment, Plane plane) => plane.Intersects(segment);
+    public static bool Intersects(this LineSegment3D segment,
+                                  Plane plane,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersects(segment, decimal_precision);
 
     public static IntersectionResult Intersection(this LineSegment3D segment,
-                                                  Plane plane) => plane.Intersection(segment);
+                                                  Plane plane,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(segment, decimal_precision);
 
     // Plane and Line 3D
 
-    public static bool Intersects(this Plane plane, Line3D line) => plane.Intersection(line).ValueType !=
-                                                                    typeof(NullValue);
+    public static bool Intersects(this Plane plane, Line3D line, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this Plane plane, Line3D line) {
-      if (plane.Contains(line)) {
+    public static IntersectionResult Intersection(this Plane plane,
+                                                  Line3D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      if (plane.Contains(line, decimal_precision)) {
         return new IntersectionResult();
       }
       // Daniel Sunday's magic
@@ -126,23 +163,29 @@ namespace GeomSharp {
 
       Point3D q = line.Origin + sI * U;
 
-      if (!plane.Contains(q)) {
+      if (!plane.Contains(q, decimal_precision)) {
         throw new Exception("plane.Intersection(Line3D) failed");
       }
 
       return new IntersectionResult(q);
     }
 
-    public static bool Intersects(this Line3D line, Plane plane) => plane.Intersects(line);
+    public static bool Intersects(this Line3D line, Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersects(line, decimal_precision);
 
-    public static IntersectionResult Intersection(this Line3D line, Plane plane) => plane.Intersection(line);
+    public static IntersectionResult Intersection(this Line3D line,
+                                                  Plane plane,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(line, decimal_precision);
 
     // Plane and Ray 3D
-    public static bool Intersects(this Plane plane, Ray3D ray) => plane.Intersection(ray).ValueType !=
-                                                                  typeof(NullValue);
+    public static bool Intersects(this Plane plane, Ray3D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this Plane plane, Ray3D ray) {
-      if (plane.Contains(ray)) {
+    public static IntersectionResult Intersection(this Plane plane,
+                                                  Ray3D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      if (plane.Contains(ray, decimal_precision)) {
         return new IntersectionResult();
       }
       // Daniel Sunday's magic
@@ -152,94 +195,126 @@ namespace GeomSharp {
 
       double sI = -n.DotProduct(W) / n.DotProduct(U);
 
-      if (Math.Round(sI, Constants.NINE_DECIMALS) < 0) {
+      if (Math.Round(sI, decimal_precision) < 0) {
         return new IntersectionResult();
       }
 
       Point3D q = ray.Origin + sI * U;
 
-      if (!plane.Contains(q)) {
+      if (!plane.Contains(q, decimal_precision)) {
         throw new Exception("plane.Intersection(Line3D) failed");
       }
 
       return new IntersectionResult(q);
     }
 
-    public static bool Intersects(this Ray3D ray, Plane plane) => plane.Intersects(ray);
+    public static bool Intersects(this Ray3D ray, Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersects(ray, decimal_precision);
 
-    public static IntersectionResult Intersection(this Ray3D ray, Plane plane) => plane.Intersection(ray);
+    public static IntersectionResult Intersection(this Ray3D ray,
+                                                  Plane plane,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(ray, decimal_precision);
 
     // Triangle and Line 3D
-    public static bool Intersects(this Triangle3D triangle, Line3D line) => triangle.Intersection(line).ValueType !=
-                                                                            typeof(NullValue);
+    public static bool Intersects(this Triangle3D triangle,
+                                  Line3D line,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this Triangle3D triangle, Line3D line) {
-      var res = triangle.RefPlane().Intersection(line);
+    public static IntersectionResult Intersection(this Triangle3D triangle,
+                                                  Line3D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var res = triangle.RefPlane().Intersection(line, decimal_precision);
       if (res.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)res.Value;
 
-      if (triangle.Contains(pI)) {
+      if (triangle.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
       return new IntersectionResult();
     }
 
-    public static bool Intersects(this Line3D line, Triangle3D triangle) => triangle.Intersects(line);
+    public static bool Intersects(this Line3D line,
+                                  Triangle3D triangle,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersects(line, decimal_precision);
 
-    public static IntersectionResult Intersection(this Line3D line, Triangle3D triangle) => triangle.Intersection(line);
+    public static IntersectionResult Intersection(this Line3D line,
+                                                  Triangle3D triangle,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(line, decimal_precision);
 
     // Triangle and ray 3D
-    public static bool Intersects(this Triangle3D triangle, Ray3D ray) => triangle.Intersection(ray).ValueType !=
-                                                                          typeof(NullValue);
+    public static bool Intersects(this Triangle3D triangle,
+                                  Ray3D ray,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this Triangle3D triangle, Ray3D ray) {
-      var res = triangle.RefPlane().Intersection(ray);
+    public static IntersectionResult Intersection(this Triangle3D triangle,
+                                                  Ray3D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var res = triangle.RefPlane().Intersection(ray, decimal_precision);
       if (res.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)res.Value;
 
-      if (triangle.Contains(pI) && ray.Contains(pI)) {
+      if (triangle.Contains(pI, decimal_precision) && ray.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
       return new IntersectionResult();
     }
 
-    public static bool Intersects(this Ray3D ray, Triangle3D triangle) => triangle.Intersects(ray);
+    public static bool Intersects(this Ray3D ray,
+                                  Triangle3D triangle,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersects(ray, decimal_precision);
 
-    public static IntersectionResult Intersection(this Ray3D ray, Triangle3D triangle) => triangle.Intersection(ray);
+    public static IntersectionResult Intersection(this Ray3D ray,
+                                                  Triangle3D triangle,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(ray, decimal_precision);
 
     // Triangle and LineSegment 3D
 
     public static bool Intersects(this Triangle3D triangle,
-                                  LineSegment3D segment) => triangle.Intersection(segment).ValueType !=
-                                                            typeof(NullValue);
+                                  LineSegment3D segment,
+                                  int decimal_precision = Constants.NINE_DECIMALS) =>
+        triangle.Intersection(segment, decimal_precision).ValueType != typeof(NullValue);
 
-    public static IntersectionResult Intersection(this Triangle3D triangle, LineSegment3D segment) {
-      var res = triangle.RefPlane().Intersection(segment);
+    public static IntersectionResult Intersection(this Triangle3D triangle,
+                                                  LineSegment3D segment,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var res = triangle.RefPlane().Intersection(segment, decimal_precision);
       if (res.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)res.Value;
 
-      if (triangle.Contains(pI) && segment.Contains(pI)) {
+      if (triangle.Contains(pI, decimal_precision) && segment.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
       return new IntersectionResult();
     }
 
-    public static bool Intersects(this LineSegment3D segment, Triangle3D triangle) => triangle.Intersects(segment);
+    public static bool Intersects(this LineSegment3D segment,
+                                  Triangle3D triangle,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersects(segment, decimal_precision);
 
     public static IntersectionResult Intersection(this LineSegment3D segment,
-                                                  Triangle3D triangle) => triangle.Intersection(segment);
+                                                  Triangle3D triangle,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(segment, decimal_precision);
   }
 
 }

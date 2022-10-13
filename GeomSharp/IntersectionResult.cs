@@ -53,7 +53,7 @@ namespace GeomSharp {
     }
 
     public override string ToString() {
-      return ValueType.ToString() + ": " + Value.ToString();
+      return ValueType.ToString() + ((Value is null) ? "" : ": " + Value.ToString());
     }
   }
 }

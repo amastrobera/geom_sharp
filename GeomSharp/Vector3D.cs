@@ -53,21 +53,17 @@ namespace GeomSharp {
       return UnitVector3D.FromDoubles(this.X / norm, this.Y / norm, this.Z / norm);
     }
 
-    public bool SameDirectionAs(Vector3D other) =>
-        IsParallel(other) &&
-        Math.Sign(Math.Round(X, Constants.THREE_DECIMALS)) == Math.Sign(Math.Round(other.X,
-                                                                                   Constants.THREE_DECIMALS)) &&
-        Math.Sign(Math.Round(Y, Constants.THREE_DECIMALS)) == Math.Sign(Math.Round(other.Y,
-                                                                                   Constants.THREE_DECIMALS)) &&
-        Math.Sign(Math.Round(Z, Constants.THREE_DECIMALS)) == Math.Sign(Math.Round(other.Z, Constants.THREE_DECIMALS));
+    public bool SameDirectionAs(Vector3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(X, decimal_precision)) == Math.Sign(Math.Round(other.X, decimal_precision)) &&
+        Math.Sign(Math.Round(Y, decimal_precision)) == Math.Sign(Math.Round(other.Y, decimal_precision)) &&
+        Math.Sign(Math.Round(Z, decimal_precision)) == Math.Sign(Math.Round(other.Z, decimal_precision));
 
-    public bool OppositeDirectionAs(Vector3D other) =>
-        IsParallel(other) &&
-        Math.Sign(Math.Round(X, Constants.THREE_DECIMALS)) != Math.Sign(Math.Round(other.X,
-                                                                                   Constants.THREE_DECIMALS)) &&
-        Math.Sign(Math.Round(Y, Constants.THREE_DECIMALS)) != Math.Sign(Math.Round(other.Y,
-                                                                                   Constants.THREE_DECIMALS)) &&
-        Math.Sign(Math.Round(Z, Constants.THREE_DECIMALS)) != Math.Sign(Math.Round(other.Z, Constants.THREE_DECIMALS));
+    public bool OppositeDirectionAs(Vector3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(X, decimal_precision)) != Math.Sign(Math.Round(other.X, decimal_precision)) &&
+        Math.Sign(Math.Round(Y, decimal_precision)) != Math.Sign(Math.Round(other.Y, decimal_precision)) &&
+        Math.Sign(Math.Round(Z, decimal_precision)) != Math.Sign(Math.Round(other.Z, decimal_precision));
 
     /// <summary>
     /// Equality check with custom tolerance adjustment
@@ -134,12 +130,14 @@ namespace GeomSharp {
                                                                       ? plane_normal.CrossProduct(this).Normalize()
                                                                       : null;
 
-    public bool IsPerpendicular(Vector3D b) => Math.Round(DotProduct(b), Constants.NINE_DECIMALS) == 0;
+    public bool IsPerpendicular(Vector3D b,
+                                int decimal_precision = Constants.NINE_DECIMALS) => Math.Round(DotProduct(b),
+                                                                                               decimal_precision) == 0;
 
-    public bool IsParallel(Vector3D b) {
+    public bool IsParallel(Vector3D b, int decimal_precision = Constants.THREE_DECIMALS) {
       var u = Normalize();
       var v = b.Normalize();
-      if (u.AlmostEquals(v) || u.AlmostEquals(-v)) {
+      if (u.AlmostEquals(v, decimal_precision) || u.AlmostEquals(-v, decimal_precision)) {
         return true;
       }
       return false;

@@ -54,7 +54,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    public bool Contains(Point2D point) {
+    public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: add decimal_precision to Location function
       var loc_01 = LineSegment2D.FromPoints(P0, P1).Location(point);
       var loc_12 = LineSegment2D.FromPoints(P1, P2).Location(point);
       var loc_20 = LineSegment2D.FromPoints(P2, P0).Location(point);
@@ -113,9 +114,10 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Triangle2D other) => Overlap(other).ValueType != typeof(NullValue);
+    public bool Overlaps(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
 
-    public IntersectionResult Overlap(Triangle2D other) {
+    public IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var output_points = new List<Point2D>();
 
       var s1 = LineSegment2D.FromPoints(P0, P1);
@@ -141,55 +143,55 @@ namespace GeomSharp {
       };
 
       // does any lines overlap with any other ?
-      AddResultIfAny(s1.Overlap(other_s1));
-      AddResultIfAny(s1.Overlap(other_s2));
-      AddResultIfAny(s1.Overlap(other_s3));
+      AddResultIfAny(s1.Overlap(other_s1, decimal_precision));
+      AddResultIfAny(s1.Overlap(other_s2, decimal_precision));
+      AddResultIfAny(s1.Overlap(other_s3, decimal_precision));
 
-      AddResultIfAny(s2.Overlap(other_s1));
-      AddResultIfAny(s2.Overlap(other_s2));
-      AddResultIfAny(s2.Overlap(other_s3));
+      AddResultIfAny(s2.Overlap(other_s1, decimal_precision));
+      AddResultIfAny(s2.Overlap(other_s2, decimal_precision));
+      AddResultIfAny(s2.Overlap(other_s3, decimal_precision));
 
-      AddResultIfAny(s3.Overlap(other_s1));
-      AddResultIfAny(s3.Overlap(other_s2));
-      AddResultIfAny(s3.Overlap(other_s3));
+      AddResultIfAny(s3.Overlap(other_s1, decimal_precision));
+      AddResultIfAny(s3.Overlap(other_s2, decimal_precision));
+      AddResultIfAny(s3.Overlap(other_s3, decimal_precision));
 
       // is any point contained in any triangle ?
-      if (Contains(other.P0)) {
+      if (Contains(other.P0, decimal_precision)) {
         output_points.Add(other.P0);
       }
 
-      if (Contains(other.P1)) {
+      if (Contains(other.P1, decimal_precision)) {
         output_points.Add(other.P1);
       }
 
-      if (Contains(other.P2)) {
+      if (Contains(other.P2, decimal_precision)) {
         output_points.Add(other.P2);
       }
 
-      if (other.Contains(P0)) {
+      if (other.Contains(P0, decimal_precision)) {
         output_points.Add(P0);
       }
 
-      if (other.Contains(P1)) {
+      if (other.Contains(P1, decimal_precision)) {
         output_points.Add(P1);
       }
 
-      if (other.Contains(P2)) {
+      if (other.Contains(P2, decimal_precision)) {
         output_points.Add(P2);
       }
 
       // does any line intersects with any other ?
-      AddResultIfAny(s1.Intersection(other_s1));
-      AddResultIfAny(s1.Intersection(other_s2));
-      AddResultIfAny(s1.Intersection(other_s3));
+      AddResultIfAny(s1.Intersection(other_s1, decimal_precision));
+      AddResultIfAny(s1.Intersection(other_s2, decimal_precision));
+      AddResultIfAny(s1.Intersection(other_s3, decimal_precision));
 
-      AddResultIfAny(s2.Intersection(other_s1));
-      AddResultIfAny(s2.Intersection(other_s2));
-      AddResultIfAny(s2.Intersection(other_s3));
+      AddResultIfAny(s2.Intersection(other_s1, decimal_precision));
+      AddResultIfAny(s2.Intersection(other_s2, decimal_precision));
+      AddResultIfAny(s2.Intersection(other_s3, decimal_precision));
 
-      AddResultIfAny(s3.Intersection(other_s1));
-      AddResultIfAny(s3.Intersection(other_s2));
-      AddResultIfAny(s3.Intersection(other_s3));
+      AddResultIfAny(s3.Intersection(other_s1, decimal_precision));
+      AddResultIfAny(s3.Intersection(other_s2, decimal_precision));
+      AddResultIfAny(s3.Intersection(other_s3, decimal_precision));
 
       // final output point count
       if (output_points.Count == 0) {
@@ -214,9 +216,10 @@ namespace GeomSharp {
       return new IntersectionResult(new Polygon2D(output_points));
     }
 
-    public bool IsAdjacent(Triangle2D other) => AdjacentSide(other).ValueType != typeof(NullValue);
+    public bool IsAdjacent(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        AdjacentSide(other, decimal_precision).ValueType != typeof(NullValue);
 
-    public IntersectionResult AdjacentSide(Triangle2D other) {
+    public IntersectionResult AdjacentSide(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       return new IntersectionResult();
     }
 
