@@ -14,14 +14,16 @@ namespace GeomSharp {
 
     private LineSegment2D(Point2D p0, Point2D p1) => (P0, P1) = (p0, p1);
 
-    public static LineSegment2D FromPoints(Point2D p0, Point2D p1) {
-      if (p0 == p1) {
+    public static LineSegment2D FromPoints(Point2D p0, Point2D p1, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (p0.AlmostEquals(p1, decimal_precision)) {
         throw new ArgumentException("trying to initialize a line-segment with two identical points");
       }
       return new LineSegment2D(p0, p1);
     }
 
-    public bool Equals(LineSegment2D other) => P0.Equals(other.P0) && P1.Equals(other.P1);
+    public bool AlmostEquals(LineSegment2D other) => P0.AlmostEquals(other.P0) && P1.AlmostEquals(other.P1);
+
+    public bool Equals(LineSegment2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is LineSegment2D &&
                                                  this.Equals((LineSegment2D)other);
@@ -29,11 +31,11 @@ namespace GeomSharp {
     public override int GetHashCode() => ToWkt().GetHashCode();
 
     public static bool operator ==(LineSegment2D a, LineSegment2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(LineSegment2D a, LineSegment2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public Line2D ToLine() => Line2D.FromTwoPoints(P0, P1);
@@ -101,10 +103,10 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    public double LocationPct(Point2D point) =>
-        !Contains(point, Constants.THREE_DECIMALS)
+    public double LocationPct(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) =>
+        !Contains(point, decimal_precision)
             ? throw new Exception("LocationPct called with Point2D that does not belong to the line")
-            : Math.Round(P0.DistanceTo(point) / Length(), Constants.THREE_DECIMALS);
+            : Math.Round(P0.DistanceTo(point) / Length(), decimal_precision);
 
     /// <summary>
     /// Tells whether two line segments intersect.
@@ -126,11 +128,11 @@ namespace GeomSharp {
 
       // I examine all cases to avoid the overflow problem caused by the (more simple) DistanceTo(P0)*DistanceTo(P1) < 0
       (double d_this_other_p0, double d_this_other_p1, double d_other_this_p0, double d_other_this_p1) =
-          (Math.Round(SignedDistanceTo(other.P0), Constants.THREE_DECIMALS),
-           Math.Round(SignedDistanceTo(other.P1), Constants.THREE_DECIMALS),
-           Math.Round(other.SignedDistanceTo(P0), Constants.THREE_DECIMALS),
+          (Math.Round(SignedDistanceTo(other.P0), decimal_precision),
+           Math.Round(SignedDistanceTo(other.P1), decimal_precision),
+           Math.Round(other.SignedDistanceTo(P0), decimal_precision),
            Math.Round(other.SignedDistanceTo(P1),
-                      Constants.THREE_DECIMALS));  // rounding issues will kill you if unmanaged
+                      decimal_precision));  // rounding issues will kill you if unmanaged
 
       return ((d_this_other_p0 >= 0 && d_this_other_p1 <= 0) || (d_this_other_p0 <= 0 && d_this_other_p1 >= 0)) &&
              ((d_other_this_p0 >= 0 && d_other_this_p1 <= 0) || (d_other_this_p0 <= 0 && d_other_this_p1 >= 0));

@@ -17,18 +17,22 @@ namespace GeomSharp {
       Direction = direction;
     }
 
-    public bool Equals(Ray3D other) => Origin.Equals(other.Origin) && Direction.Equals(other.Direction);
+    public bool AlmostEquals(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Origin.AlmostEquals(other.Origin, decimal_precision) && Direction.AlmostEquals(other.Direction,
+                                                                                       decimal_precision);
+
+    public bool Equals(Ray3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Point3D && this.Equals((Point3D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Ray3D a, Ray3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Ray3D a, Ray3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public Line3D ToLine() => Line3D.FromDirection(Origin, Direction);
@@ -108,7 +112,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Ray3D other) => Overlap(other).ValueType != typeof(NullValue);
+    public bool Overlaps(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// If two lines overlap, this function returns the shared section between them
@@ -116,13 +121,13 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(Ray3D other) {
-      if (!IsParallel(other)) {
+    public IntersectionResult Overlap(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
         return new IntersectionResult();
       }
 
-      bool origin_in = other.Contains(Origin);
-      bool other_origin_in = Contains(other.Origin);
+      bool origin_in = other.Contains(Origin, decimal_precision);
+      bool other_origin_in = Contains(other.Origin, decimal_precision);
 
       if (!other_origin_in && !origin_in) {
         return new IntersectionResult();

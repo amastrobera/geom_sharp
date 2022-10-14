@@ -55,10 +55,9 @@ namespace GeomSharp {
     /// <param name="point"></param>
     /// <returns></returns>
     public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: add decimal_precision to Location function
-      var loc_01 = LineSegment2D.FromPoints(P0, P1).Location(point);
-      var loc_12 = LineSegment2D.FromPoints(P1, P2).Location(point);
-      var loc_20 = LineSegment2D.FromPoints(P2, P0).Location(point);
+      var loc_01 = LineSegment2D.FromPoints(P0, P1).Location(point, decimal_precision);
+      var loc_12 = LineSegment2D.FromPoints(P1, P2).Location(point, decimal_precision);
+      var loc_20 = LineSegment2D.FromPoints(P2, P0).Location(point, decimal_precision);
 
       // this is really impossible
       if (Orientation == Constants.Orientation.UNKNOWN) {
@@ -77,35 +76,44 @@ namespace GeomSharp {
              (loc_20 == Constants.Location.RIGHT || loc_20 == Constants.Location.ON_SEGMENT);
     }
 
-    public bool Equals(Triangle2D other) {
-      if (!Orientation.Equals(other.Orientation)) {
+    public bool AlmostEquals(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Orientation != other.Orientation) {
         return false;
       }
-      var point_list = new List<Point2D>() { P0, P1, P2 };
-      if (!point_list.Contains(other.P0)) {
+
+      Func<Triangle2D, Point2D, bool> TriangleContainsPoint = (Triangle2D t, Point2D p) => {
+        return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
+               t.P2.AlmostEquals(p, decimal_precision);
+      };
+
+      if (!TriangleContainsPoint(this, other.P0)) {
         return false;
       }
-      if (!point_list.Contains(other.P1)) {
+
+      if (!TriangleContainsPoint(this, other.P1)) {
         return false;
       }
-      if (!point_list.Contains(other.P2)) {
+
+      if (!TriangleContainsPoint(this, other.P2)) {
         return false;
       }
-      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Facing to be contructed
+
+      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
       // by points, and therefore incorporates this information
       return true;
     }
+    public bool Equals(Triangle2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Triangle2D && this.Equals((Triangle2D)other);
 
     public override int GetHashCode() => new { P0, P1, P2, Orientation }.GetHashCode();
 
     public static bool operator ==(Triangle2D a, Triangle2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Triangle2D a, Triangle2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     /// <summary>

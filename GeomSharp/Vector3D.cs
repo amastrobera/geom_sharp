@@ -75,20 +75,18 @@ namespace GeomSharp {
         Math.Round(this.X - other.X, decimal_precision) == 0 && Math.Round(this.Y - other.Y, decimal_precision) == 0 &&
         Math.Round(this.Z - other.Z, decimal_precision) == 0;
 
-    public bool Equals(Vector3D other) => Math.Round(this.X - other.X, Constants.NINE_DECIMALS) == 0 &&
-                                          Math.Round(this.Y - other.Y, Constants.NINE_DECIMALS) == 0 &&
-                                          Math.Round(this.Z - other.Z, Constants.NINE_DECIMALS) == 0;
+    public bool Equals(Vector3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Vector3D && this.Equals((Vector3D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Vector3D a, Vector3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Vector3D a, Vector3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // arithmetics with Vectors

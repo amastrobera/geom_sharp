@@ -67,7 +67,7 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns>true if at least one point has been removed </returns>
     public static List<Point3D> RemoveCollinearPoints(this List<Point3D> polyline,
-                                                      int decimal_precision = Constants.NINE_DECIMALS) {
+                                                      int decimal_precision = Constants.THREE_DECIMALS) {
       int n = polyline.Count;
       if (n < 3) {
         return polyline;
@@ -113,7 +113,7 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns>true if at least one point has been removed </returns>
     public static List<Point2D> RemoveCollinearPoints(this List<Point2D> polyline,
-                                                      int decimal_precision = Constants.NINE_DECIMALS) {
+                                                      int decimal_precision = Constants.THREE_DECIMALS) {
       int n = polyline.Count;
       if (n < 3) {
         return polyline;

@@ -12,9 +12,10 @@ namespace GeomSharp {
     public Point2D Origin { get; }
     public UnitVector2D Direction { get; }
 
-    public static Line2D FromTwoPoints(Point2D p0, Point2D p1) =>
-        p0.Equals(p1) ? throw new NullLengthException("trying to initialize a line with two identical points")
-                      : new Line2D(p0, p1);
+    public static Line2D FromTwoPoints(Point2D p0, Point2D p1, int decimal_precision = Constants.THREE_DECIMALS) =>
+        p0.AlmostEquals(p1, decimal_precision)
+            ? throw new NullLengthException("trying to initialize a line with two identical points")
+            : new Line2D(p0, p1);
 
     public static Line2D FromDirection(Point2D origin, UnitVector2D direction) => new Line2D(origin, direction);
 
@@ -32,18 +33,21 @@ namespace GeomSharp {
       P1 = Origin + 1 * Direction;
     }
 
-    public bool Equals(Line2D other) => Direction.Equals(other.Direction);
+    public bool AlmostEquals(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.AlmostEquals(other.Direction, decimal_precision);
+
+    public bool Equals(Line2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Line2D && this.Equals((Line2D)other);
 
     public override int GetHashCode() => Direction.ToWkt().GetHashCode();
 
     public static bool operator ==(Line2D a, Line2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Line2D a, Line2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public bool IsParallel(Line2D other,
@@ -84,7 +88,7 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public double SignedDistanceTo(Point2D p) => Math.Round(Direction.PerpProduct(p - Origin), Constants.NINE_DECIMALS);
+    public double SignedDistanceTo(Point2D p) => Direction.PerpProduct(p - Origin);
 
     /// <summary>
     /// Tells what the location is for a Point relative to the Line, on the 2D plane

@@ -14,14 +14,17 @@ namespace GeomSharp {
 
     private LineSegment3D(Point3D p0, Point3D p1) => (P0, P1) = (p0, p1);
 
-    public static LineSegment3D FromPoints(Point3D p0, Point3D p1) {
-      if (p0 == p1) {
+    public static LineSegment3D FromPoints(Point3D p0, Point3D p1, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (p0.AlmostEquals(p1, decimal_precision)) {
         throw new ArgumentException("trying to initialize a line-segment with two identical points");
       }
       return new LineSegment3D(p0, p1);
     }
 
-    public bool Equals(LineSegment3D other) => P0.Equals(other.P0) && P1.Equals(other.P1);
+    public bool AlmostEquals(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        P0.AlmostEquals(other.P0, decimal_precision) && P1.AlmostEquals(other.P1, decimal_precision);
+
+    public bool Equals(LineSegment3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is LineSegment3D &&
                                                  this.Equals((LineSegment3D)other);
@@ -29,11 +32,11 @@ namespace GeomSharp {
     public override int GetHashCode() => ToWkt().GetHashCode();
 
     public static bool operator ==(LineSegment3D a, LineSegment3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(LineSegment3D a, LineSegment3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public Line3D ToLine() => Line3D.FromPoints(P0, P1);
@@ -43,12 +46,14 @@ namespace GeomSharp {
       double line_d = ToLine().DistanceTo(p);
       double p0_d = P0.DistanceTo(p);
       double p1_d = P1.DistanceTo(p);
-      return Math.Round(Math.Min(line_d, Math.Min(p0_d, p1_d)), Constants.NINE_DECIMALS);
+      return Math.Min(line_d, Math.Min(p0_d, p1_d));
     }
 
-    public bool IsParallel(LineSegment3D other) => (P1 - P0).IsParallel(other.P1 - other.P0);
+    public bool IsParallel(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (P1 - P0).IsParallel(other.P1 - other.P0, decimal_precision);
 
-    public bool IsPerpendicular(Line3D other) => (P1 - P0).IsPerpendicular(other.P1 - other.P0);
+    public bool IsPerpendicular(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (P1 - P0).IsPerpendicular(other.P1 - other.P0, decimal_precision);
 
     public bool Contains(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
       // check if the point is on the same line
@@ -60,7 +65,7 @@ namespace GeomSharp {
       if (p.AlmostEquals(P0, decimal_precision)) {  // this check avoids throwing on .SameDirection() call.
         return true;
       }
-      if ((p - P0).SameDirectionAs(P1 - P0)) {
+      if ((p - P0).SameDirectionAs(P1 - P0, decimal_precision)) {
         double t = Math.Round(P0.DistanceTo(p) / Length(), decimal_precision);
         if (t >= 0 && t <= 1) {
           return true;
@@ -111,7 +116,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(LineSegment3D other) => Overlap(other).ValueType != typeof(NullValue);
+    public bool Overlaps(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// If two lines overlap, this function returns the shared section between them
@@ -119,12 +125,13 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(LineSegment3D other) {
-      if (!IsParallel(other)) {
+    public IntersectionResult Overlap(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
         return new IntersectionResult();
       }
-      (bool other_p0_in, bool other_p1_in) = (Contains(other.P0), Contains(other.P1));
-      (bool p0_in, bool p1_in) = (other.Contains(P0), other.Contains(P1));
+      (bool other_p0_in, bool other_p1_in) =
+          (Contains(other.P0, decimal_precision), Contains(other.P1, decimal_precision));
+      (bool p0_in, bool p1_in) = (other.Contains(P0, decimal_precision), other.Contains(P1, decimal_precision));
 
       var direction = (P1 - P0).Normalize();
 

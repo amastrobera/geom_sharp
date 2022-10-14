@@ -12,9 +12,10 @@ namespace GeomSharp {
     public Point3D Origin { get; }
     public UnitVector3D Direction { get; }
 
-    public static Line3D FromPoints(Point3D p0, Point3D p1) =>
-        (p0 == p1) ? throw new NullLengthException("trying to initialize a line with two identical points")
-                   : new Line3D(p0, p1);
+    public static Line3D FromPoints(Point3D p0, Point3D p1, int decimal_precision = Constants.THREE_DECIMALS) =>
+        (p0.AlmostEquals(p1, decimal_precision))
+            ? throw new NullLengthException("trying to initialize a line with two identical points")
+            : new Line3D(p0, p1);
 
     public static Line3D FromDirection(Point3D orig, UnitVector3D dir) => new Line3D(orig, dir);
 
@@ -32,18 +33,20 @@ namespace GeomSharp {
       P1 = Origin + 1 * Direction;  // simbolic
     }
 
-    public bool Equals(Line3D other) => Direction.Equals(other.Direction);
+    public bool AlmostEquals(Line3D other) => Direction.AlmostEquals(other.Direction);
+
+    public bool Equals(Line3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Line3D && this.Equals((Line3D)other);
 
     public override int GetHashCode() => Direction.ToWkt().GetHashCode();
 
     public static bool operator ==(Line3D a, Line3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Line3D a, Line3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public bool IsParallel(Line3D other,
@@ -75,10 +78,10 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public double DistanceTo(Point3D p) => Math.Round(Direction.CrossProduct(p - Origin).Length(),
-                                                      Constants.NINE_DECIMALS);
+    public double DistanceTo(Point3D p) => Direction.CrossProduct(p - Origin).Length();
 
-    public bool Intersects(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) => Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public bool Intersects(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// Finds the intersection between two 3D Lines. It solves a linear system of 3 equations with 2 unknowns.
@@ -102,14 +105,18 @@ namespace GeomSharp {
       Plane plane_2d =
           !(this.IsPerpendicular(Plane.XY, decimal_precision) || other.IsPerpendicular(Plane.XY, decimal_precision))
               ? Plane.XY
-              : (!(this.IsPerpendicular(Plane.YZ) || other.IsPerpendicular(Plane.YZ)) ? Plane.YZ : Plane.ZX);
+              : (!(this.IsPerpendicular(Plane.YZ, decimal_precision) ||
+                   other.IsPerpendicular(Plane.YZ, decimal_precision))
+                     ? Plane.YZ
+                     : Plane.ZX);
 
       (var p1, var other_p1) = (plane_2d.ProjectInto(Origin), plane_2d.ProjectInto(other.Origin));
       (var p2, var other_p2) =
           (plane_2d.ProjectInto(Origin + 2 * Direction), plane_2d.ProjectInto(other.Origin + 2 * other.Direction));
-      (var line_2d, var other_line_2d) = (Line2D.FromTwoPoints(p1, p2), Line2D.FromTwoPoints(other_p1, other_p2));
+      (var line_2d, var other_line_2d) = (Line2D.FromTwoPoints(p1, p2, decimal_precision),
+                                          Line2D.FromTwoPoints(other_p1, other_p2, decimal_precision));
 
-      var inter_res = line_2d.Intersection(other_line_2d);
+      var inter_res = line_2d.Intersection(other_line_2d, decimal_precision);
       if (inter_res.ValueType == typeof(NullValue)) {
         // no 2D intersection, no 3D intersection either
         return new IntersectionResult();
@@ -127,7 +134,7 @@ namespace GeomSharp {
       Point3D pI = A + len_ratio * (B - A);
 
       // and verify it belongs to both lines
-      if (!(Contains(pI) && other.Contains(pI))) {
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
         // this is merely a 2D intersection, 3D lines do not intersect
         return new IntersectionResult();
       }
@@ -141,11 +148,11 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Line3D other) {
-      if (!IsParallel(other)) {
+    public bool Overlaps(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
         return false;
       }
-      if (Contains(other.P0) || Contains(other.P1)) {
+      if (Contains(other.P0, decimal_precision) || Contains(other.P1, decimal_precision)) {
         return true;
       }
       return false;
@@ -156,8 +163,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(Line3D other) => Overlaps(other) ? new IntersectionResult(this)
-                                                                       : new IntersectionResult();
+    public IntersectionResult Overlap(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
 
     // text / deugging
     public string ToWkt(int precision = Constants.THREE_DECIMALS) {

@@ -17,18 +17,21 @@ namespace GeomSharp {
       Direction = direction;
     }
 
-    public bool Equals(Ray2D other) => Origin.Equals(other.Origin) && Direction.Equals(other.Direction);
+    public bool AlmostEquals(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Origin.AlmostEquals(other.Origin, decimal_precision) && Direction.AlmostEquals(other.Direction,
+                                                                                       decimal_precision);
 
+    public bool Equals(Ray2D other) => this.AlmostEquals(other);
     public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Ray2D a, Ray2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Ray2D a, Ray2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public Line2D ToLine() => Line2D.FromDirection(Origin, Direction);
@@ -65,7 +68,7 @@ namespace GeomSharp {
       }
 
       // check if the point is within the boundaries of the segment
-      return IsAhead(p);
+      return IsAhead(p, decimal_precision);
     }
 
     public double DistanceTo(Point2D p) {

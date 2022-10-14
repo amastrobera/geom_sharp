@@ -46,20 +46,18 @@ namespace GeomSharp {
     public bool AlmostEquals(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Math.Round(this.U - other.U, decimal_precision) == 0 && Math.Round(this.V - other.V, decimal_precision) == 0;
 
-    public bool Equals(Point2D other) =>
-        Math.Round(this.U - other.U, Constants.NINE_DECIMALS) == 0 && Math.Round(this.V - other.V,
-                                                                                 Constants.NINE_DECIMALS) == 0;
+    public bool Equals(Point2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
 
     public override int GetHashCode() => ToWkt().GetHashCode();
 
     public static bool operator ==(Point2D a, Point2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Point2D a, Point2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // arithmetics with Points

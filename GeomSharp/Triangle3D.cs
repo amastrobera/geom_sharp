@@ -44,7 +44,7 @@ namespace GeomSharp {
       return t;
     }
 
-    public double Area() => Math.Round((P1 - P0).CrossProduct(P2 - P0).Length() / 2, Constants.NINE_DECIMALS);
+    public double Area() => (P1 - P0).CrossProduct(P2 - P0).Length() / 2;
 
     public Point3D CenterOfMass() => Point3D.FromVector((P0.ToVector() + P1.ToVector() + P2.ToVector()) / 3);
 
@@ -52,7 +52,7 @@ namespace GeomSharp {
 
     /// <summary>
     /// Tells whether a point is inside a triangle T.
-    /// First tests if a point is on the same plaane of the triangle. The projects everything in 2D and tests for
+    /// First tests if a point is on the same plane of the triangle. The projects everything in 2D and tests for
     /// containment over there.
     /// </summary>
     /// <param name="point"></param>
@@ -71,35 +71,45 @@ namespace GeomSharp {
       return triangle_2d.Contains(point_2d, decimal_precision);
     }
 
-    public bool Equals(Triangle3D other) {
-      if (!Normal.Equals(other.Normal)) {
+    public bool AlmostEquals(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!Normal.AlmostEquals(other.Normal, decimal_precision)) {
         return false;
       }
-      var point_list = new List<Point3D>() { P0, P1, P2 };
-      if (!point_list.Contains(other.P0)) {
+
+      Func<Triangle3D, Point3D, bool> TriangleContainsPoint = (Triangle3D t, Point3D p) => {
+        return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
+               t.P2.AlmostEquals(p, decimal_precision);
+      };
+
+      if (!TriangleContainsPoint(this, other.P0)) {
         return false;
       }
-      if (!point_list.Contains(other.P1)) {
+
+      if (!TriangleContainsPoint(this, other.P1)) {
         return false;
       }
-      if (!point_list.Contains(other.P2)) {
+
+      if (!TriangleContainsPoint(this, other.P2)) {
         return false;
       }
+
       // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
       // by points, and therefore incorporates this information
       return true;
     }
+
+    public bool Equals(Triangle3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Triangle3D && this.Equals((Triangle3D)other);
 
     public override int GetHashCode() => new { P0, P1, P2, Normal }.GetHashCode();
 
     public static bool operator ==(Triangle3D a, Triangle3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Triangle3D a, Triangle3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public override string ToString() {
@@ -130,12 +140,13 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Triangle3D other) {
-      if (!RefPlane().AlmostEquals(other.RefPlane())) {
+    public bool Overlaps(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!RefPlane().AlmostEquals(other.RefPlane(), decimal_precision)) {
         return false;
       }
-      return (Contains(other.P0) || Contains(other.P1) || Contains(other.P2) || other.Contains(P0) ||
-              other.Contains(P1) || other.Contains(P2));
+      return (Contains(other.P0, decimal_precision) || Contains(other.P1, decimal_precision) ||
+              Contains(other.P2, decimal_precision) || other.Contains(P0) || other.Contains(P1, decimal_precision) ||
+              other.Contains(P2));
     }
 
     /// <summary>
@@ -146,17 +157,18 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(Triangle3D other) {
-      if (!RefPlane().AlmostEquals(other.RefPlane())) {
+    public IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!RefPlane().AlmostEquals(other.RefPlane(), decimal_precision)) {
         return new IntersectionResult();
       }
 
-      (bool p0_in, bool p1_in, bool p2_in, bool other_p0_in, bool other_p1_in, bool other_p2_in) = (Contains(other.P0),
-                                                                                                    Contains(other.P1),
-                                                                                                    Contains(other.P2),
-                                                                                                    other.Contains(P0),
-                                                                                                    other.Contains(P1),
-                                                                                                    other.Contains(P2));
+      (bool p0_in, bool p1_in, bool p2_in, bool other_p0_in, bool other_p1_in, bool other_p2_in) =
+          (Contains(other.P0, decimal_precision),
+           Contains(other.P1, decimal_precision),
+           Contains(other.P2, decimal_precision),
+           other.Contains(P0, decimal_precision),
+           other.Contains(P1, decimal_precision),
+           other.Contains(P2, decimal_precision));
 
       // the two triangles match or t1 is contained in t2
       if (p0_in && p1_in && p2_in) {

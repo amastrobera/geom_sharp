@@ -527,109 +527,84 @@ namespace GeomSharpTests {
     public void TriangleToRay() {
       var random_triangle = RandomGenerator.MakeTriangle3D();
       var t = random_triangle.Triangle;
-      (var p0, var p1, var p2) = (random_triangle.p0, random_triangle.p1, random_triangle.p2);
 
       if (t is null) {
         return;
       }
       // cache varibles
+      Point3D cm = t.CenterOfMass();
+      Point3D p1, p2;  //  points to use for further calculation
       var plane = t.RefPlane();
       var normal = plane.Normal;
-      var shift_vector = normal.IsPerpendicular(Vector3D.AxisZ) ? normal : Vector3D.AxisZ;
-      var parallel_vector1 = plane.AxisU;
-      var parallel_vector2 = plane.AxisV;
-      var shift = 2 * shift_vector;
-      (double a, double b, double c) = (0, 0, 0);
-      (Point3D pp1, Point3D pp2, Point3D pp3, Point3D pp4) = (null, null, null, null);
+      var vertical_shift_vector = normal.IsPerpendicular(Vector3D.AxisZ) ? normal : Vector3D.AxisZ;
+      var parallel_vector_u = plane.AxisU;
+      var parallel_vector_v = plane.AxisV;
       Ray3D ray = null;
 
-      // linear combination
-      (a, b, c) = RandomGenerator.MakeLinearCombo3SumTo1();
-      pp1 = new Point3D(a * p0.X + b * p1.X + c * p2.X,
-                        a * p0.Y + b * p1.Y + c * p2.Y,
-                        a * p0.Z + b * p1.Z + c * p2.Z);  // belongs to plane
-      (int i, int max_inter) = (0, 100);
-      while ((pp2 is null || pp2.AlmostEquals(pp1)) && i < max_inter) {
-        (a, b, c) = RandomGenerator.MakeLinearCombo3SumTo1();
-        pp2 = new Point3D(a * p0.X + b * p1.X + c * p2.X,
-                          a * p0.Y + b * p1.Y + c * p2.Y,
-                          a * p0.Z + b * p1.Z + c * p2.Z);  // belongs to plane
-        ++i;
-      }
-      if (i == max_inter) {
-        throw new Exception("failed to generate pp2 != pp1, test abandoned");
-      }
-
       // crosses
-      ray = new Ray3D(pp1 + shift, -shift_vector);
+      ray = new Ray3D(cm + 2 * vertical_shift_vector, -vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(ray), "failed cm+shift down intersects");
+
+      ray = new Ray3D(cm - 2 * vertical_shift_vector, vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(ray), "failed cm-shift up intersects");
+
+      // crosses with one point in one of the vertices
+      ray = new Ray3D(t.P0 + 2 * vertical_shift_vector, -vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(ray), "failed p0+shift down intersects");
+
+      ray = new Ray3D(t.P0 - 2 * vertical_shift_vector, vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(ray), "failed p0-shift up intersects");
+
+      ray = new Ray3D(t.P1 + 2 * vertical_shift_vector, -vertical_shift_vector);
       Assert.IsTrue(t.Intersects(ray), "failed p1+shift down intersects");
 
-      ray = new Ray3D(pp1 - shift, shift_vector);
+      ray = new Ray3D(t.P1 - 2 * vertical_shift_vector, vertical_shift_vector);
       Assert.IsTrue(t.Intersects(ray), "failed p1-shift up intersects");
 
-      ray = new Ray3D(pp2 + shift, -shift_vector);
+      ray = new Ray3D(t.P2 + 2 * vertical_shift_vector, -vertical_shift_vector);
       Assert.IsTrue(t.Intersects(ray), "failed p2+shift down intersects");
 
-      ray = new Ray3D(pp2 - shift, shift_vector);
+      ray = new Ray3D(t.P2 - 2 * vertical_shift_vector, vertical_shift_vector);
       Assert.IsTrue(t.Intersects(ray), "failed p2-shift up intersects");
 
-      // crosses with one point in
-      ray = new Ray3D(pp1, -shift_vector);
-      Assert.IsTrue(t.Intersects(ray), "failed p1-shift intersects one point in");
+      // crosses with one point on the triangle edges
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = Point3D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
+      ray = new Ray3D(p1, (p2 - p1).Normalize());
+      Assert.IsTrue(t.Intersects(ray), "failed cm -> p0-p1 intersects");
 
-      ray = new Ray3D(pp1, shift_vector);
-      Assert.IsTrue(t.Intersects(ray), "failed p1+shift intersects one point in");
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = Point3D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
+      ray = new Ray3D(p1, (p2 - p1).Normalize());
+      Assert.IsTrue(t.Intersects(ray), "failed cm -> p1-p2 intersects");
+
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = Point3D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
+      ray = new Ray3D(p1, (p2 - p1).Normalize());
+      Assert.IsTrue(t.Intersects(ray), "failed cm -> p2-p0 intersects");
+
+      // overlap (crosses in 2D, no intersection in 3D)
+      ray = new Ray3D(cm, parallel_vector_u);
+      Assert.IsFalse(t.Intersects(ray), "failed cm to parallel U overlaps (intersection 2D, no intersect in 3D)");
+
+      ray = new Ray3D(cm, parallel_vector_v);
+      Assert.IsFalse(t.Intersects(ray), "failed cm to parallel V overlaps (intersection 2D, no intersect in 3D)");
 
       // crosses the plane but not the triangle
-      pp3 = pp1 + shift;
-      pp4 = p1 + 2 * (p1 - p0);
-      shift_vector = (pp4 - pp3).Normalize();
-      ray = new Ray3D(pp3, shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p1+shift down intersects plane but not triangle");
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = t.P1 + parallel_vector_u * 2;
+      ray = new Ray3D(p1, (p2 - p1).Normalize());
+      Assert.IsFalse(t.Intersects(ray), "failed cm -> p1 intersects plane but not triangle");
 
-      pp3 = pp1 - shift;
-      pp4 = p1 + 2 * (p1 - p0);
-      shift_vector = (pp3 - pp4).Normalize();
-      ray = new Ray3D(pp3, shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p1-shift up intersects plane but not triangle");
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = t.P2 + parallel_vector_v * 2;
+      ray = new Ray3D(p1, (p2 - p1).Normalize());
+      Assert.IsFalse(t.Intersects(ray), "failed cm -> p2 intersects plane but not triangle");
 
-      pp3 = pp1 + shift;
-      pp4 = p2 + 2 * (p2 - p0);
-      shift_vector = (pp4 - pp3).Normalize();
-      ray = new Ray3D(pp3, shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p2+shift down intersects plane but not triangle");
-
-      pp3 = pp1 - shift;
-      pp4 = p2 + 2 * (p2 - p0);
-      shift_vector = (pp4 - pp3).Normalize();
-      ray = new Ray3D(pp3, shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p2-shift up intersects plane but not triangle");
-
-      // parallel
-      ray = new Ray3D(pp1, parallel_vector1);
-      Assert.IsFalse(t.Intersects(ray), "failed p1 parallel1");
-
-      ray = new Ray3D(pp1, parallel_vector2);
-      Assert.IsFalse(t.Intersects(ray), "failed p1 parallel2");
-
-      ray = new Ray3D(pp2, parallel_vector1);
-      Assert.IsFalse(t.Intersects(ray), "failed p2 parallel1");
-
-      ray = new Ray3D(pp2, parallel_vector2);
-      Assert.IsFalse(t.Intersects(ray), "failed p2 parallel2");
-
-      // non-parallel non crossing
-      ray = new Ray3D(pp1 + shift, shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p1+shift up no intersects");
-
-      ray = new Ray3D(pp1 - shift, -shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p1-shift down no intersects");
-
-      ray = new Ray3D(pp2 + shift, shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p2+shift up no intersects");
-
-      ray = new Ray3D(pp2 - shift, -shift_vector);
-      Assert.IsFalse(t.Intersects(ray), "failed p2-shift down no intersects");
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = t.P0 - parallel_vector_v * 2;
+      ray = new Ray3D(p1, (p2 - p1).Normalize());
+      Assert.IsFalse(t.Intersects(ray), "failed cm -> p0 intersects plane but not triangle");
     }
 
     [RepeatedTestMethod(100)]

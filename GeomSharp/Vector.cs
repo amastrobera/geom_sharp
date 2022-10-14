@@ -88,18 +88,18 @@ namespace GeomSharp {
       return true;
     }
 
-    public bool Equals(Vector other) => AlmostEquals(other);
+    public bool Equals(Vector other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Vector && this.Equals((Vector)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Vector a, Vector b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Vector a, Vector b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // binary operations

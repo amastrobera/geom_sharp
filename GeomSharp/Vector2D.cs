@@ -68,20 +68,18 @@ namespace GeomSharp {
     public bool AlmostEquals(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Math.Round(this.U - other.U, decimal_precision) == 0 && Math.Round(this.V - other.V, decimal_precision) == 0;
 
-    public bool Equals(Vector2D other) =>
-        Math.Round(this.U - other.U, Constants.NINE_DECIMALS) == 0 && Math.Round(this.V - other.V,
-                                                                                 Constants.NINE_DECIMALS) == 0;
+    public bool Equals(Vector2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Vector2D && this.Equals((Vector2D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Vector2D a, Vector2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Vector2D a, Vector2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // binary operations
