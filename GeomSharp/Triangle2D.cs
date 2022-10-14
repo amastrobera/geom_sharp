@@ -116,9 +116,45 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
+    // TODO: remove, once Intersection is implemented
+    public bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      (var edge01, var edge12, var edge20) = (LineSegment2D.FromPoints(P0, P1, decimal_precision),
+                                              LineSegment2D.FromPoints(P1, P2, decimal_precision),
+                                              LineSegment2D.FromPoints(P2, P0, decimal_precision));
+
+      (var other01, var other12, var other20) = (LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision),
+                                                 LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision),
+                                                 LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision));
+
+      return edge01.Intersects(other01) || edge01.Intersects(other12) || edge01.Intersects(other20) ||
+             edge12.Intersects(other01) || edge12.Intersects(other12) || edge12.Intersects(other20) ||
+             edge20.Intersects(other01) || edge20.Intersects(other12) || edge20.Intersects(other20);
+    }
+
+    // TODO: add, once Intersection is implemented
+    // public bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+    //    Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
+    public IntersectionResult Intersection(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      (var edge01, var edge12, var edge20) = (LineSegment2D.FromPoints(P0, P1, decimal_precision),
+                                              LineSegment2D.FromPoints(P1, P2, decimal_precision),
+                                              LineSegment2D.FromPoints(P2, P0, decimal_precision));
+
+      (var other01, var other12, var other20) = (LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision),
+                                                 LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision),
+                                                 LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision));
+
+      // TODO: implement and return the resulting Polygon2D
+
+      return new IntersectionResult();
+    }
+
     /// <summary>
-    /// Two triangles overlap if they are on the same plane, and share the same area (or a portion of the same area)
-    /// This includes: triangles adjacent by one edge, triangles with one point in common, triangles intersecting
+    /// Two triangles 2D overlap if they share
+    /// - a point
+    /// - an edge
+    /// - the whole surface
+    /// In all other cases of shared surface, the triangles (2D) intersect
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>

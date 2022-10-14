@@ -92,6 +92,10 @@ namespace GeomSharpTests {
 
     [NonImplemented]
     [RepeatedTestMethod(1)]
+    public void Intersection() {}
+
+    [NonImplemented]
+    [RepeatedTestMethod(1)]
     public void Overlap() {
       // 2D
       // var t = RandomGenerator.MakeTriangle2D().Triangle;

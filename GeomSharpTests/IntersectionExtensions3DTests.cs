@@ -519,9 +519,77 @@ namespace GeomSharpTests {
     [RepeatedTestMethod(1)]
     public void TriangleToPlane() {}
 
-    [NonImplemented]
-    [RepeatedTestMethod(1)]
-    public void TriangleToLine() {}
+    [RepeatedTestMethod(100)]
+    public void TriangleToLine() {
+      var random_triangle = RandomGenerator.MakeTriangle3D();
+      var t = random_triangle.Triangle;
+
+      if (t is null) {
+        return;
+      }
+      // cache varibles
+      Point3D cm = t.CenterOfMass();
+      Point3D p1, p2;  //  points to use for further calculation
+      var plane = t.RefPlane();
+      var normal = plane.Normal;
+      var vertical_shift_vector = normal.IsPerpendicular(Vector3D.AxisZ) ? normal : Vector3D.AxisZ;
+      var parallel_vector_u = plane.AxisU;
+      var parallel_vector_v = plane.AxisV;
+      Line3D line = null;
+
+      // crosses
+      line = Line3D.FromDirection(cm, vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(line), "failed cm+shift intersects");
+
+      // crosses with one point in one of the vertices
+      line = Line3D.FromDirection(t.P0, vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(line), "failed p0+shift down intersects");
+
+      line = Line3D.FromDirection(t.P1, vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(line), "failed p1+shift down intersects");
+
+      line = Line3D.FromDirection(t.P2, vertical_shift_vector);
+      Assert.IsTrue(t.Intersects(line), "failed p2+shift down intersects");
+
+      // crosses with one point on the triangle edges
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = Point3D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
+      line = Line3D.FromDirection(p1, (p2 - p1).Normalize());
+      Assert.IsTrue(t.Intersects(line), "failed cm -> p0-p1 intersects");
+
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = Point3D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
+      line = Line3D.FromDirection(p1, (p2 - p1).Normalize());
+      Assert.IsTrue(t.Intersects(line), "failed cm -> p1-p2 intersects");
+
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = Point3D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
+      line = Line3D.FromDirection(p1, (p2 - p1).Normalize());
+      Assert.IsTrue(t.Intersects(line), "failed cm -> p2-p0 intersects");
+
+      // overlap (crosses in 2D, no intersection in 3D)
+      line = Line3D.FromDirection(cm, parallel_vector_u);
+      Assert.IsFalse(t.Intersects(line), "failed cm to parallel U overlaps (intersection 2D, no intersect in 3D)");
+
+      line = Line3D.FromDirection(cm, parallel_vector_v);
+      Assert.IsFalse(t.Intersects(line), "failed cm to parallel V overlaps (intersection 2D, no intersect in 3D)");
+
+      // crosses the plane but not the triangle
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = t.P1 + parallel_vector_u * 2;
+      line = Line3D.FromDirection(p1, (p2 - p1).Normalize());
+      Assert.IsFalse(t.Intersects(line), "failed cm -> p1 intersects plane but not triangle");
+
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = t.P2 + parallel_vector_v * 2;
+      line = Line3D.FromDirection(p1, (p2 - p1).Normalize());
+      Assert.IsFalse(t.Intersects(line), "failed cm -> p2 intersects plane but not triangle");
+
+      p1 = cm + 2 * vertical_shift_vector;
+      p2 = t.P0 - parallel_vector_v * 2;
+      line = Line3D.FromDirection(p1, (p2 - p1).Normalize());
+      Assert.IsFalse(t.Intersects(line), "failed cm -> p0 intersects plane but not triangle");
+    }
 
     [RepeatedTestMethod(100)]
     public void TriangleToRay() {
