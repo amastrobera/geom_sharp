@@ -336,19 +336,19 @@ namespace GeomSharpTests {
 
     // Triangle with other basic primitives
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void TriangleToPlane() {}
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void TriangleToLine() {}
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void TriangleToRay() {}
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void TriangleToLineSegment() {}
   }

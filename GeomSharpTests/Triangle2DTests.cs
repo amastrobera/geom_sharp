@@ -90,11 +90,11 @@ namespace GeomSharpTests {
       Assert.IsFalse(t.Contains(p), "point below" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
     }
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void Intersection() {}
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void Overlap() {
       // 2D

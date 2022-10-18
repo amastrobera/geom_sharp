@@ -515,7 +515,7 @@ namespace GeomSharpTests {
 
     // Triangle with other basic primitives
 
-    [NonImplemented]
+    [Ignore]
     [RepeatedTestMethod(1)]
     public void TriangleToPlane() {}
 

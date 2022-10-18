@@ -40,15 +40,4 @@ namespace Microsoft.VisualStudio.TestTools.UnitTesting {
     }
   }
 
-  public class NonImplementedAttribute : TestMethodAttribute {
-    public NonImplementedAttribute() : base() {}
-
-    private void Invoke(ITestMethod testMethod, out TestResult result) {
-      result = new TestResult();
-      Console.WriteLine("Test " + DisplayName + " Not Implemented");
-      result.Outcome = UnitTestOutcome.NotRunnable;
-      result.ReturnValue = false;
-    }
-  }
-
 }
