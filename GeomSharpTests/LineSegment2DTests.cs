@@ -12,6 +12,45 @@ namespace GeomSharpTests {
   [TestClass]
   public class LineSegment2DTests {
     [RepeatedTestMethod(100)]
+    public void Containment() {
+      // input
+      (var line, var p0, var p1) = RandomGenerator.MakeLine2D();
+
+      if (line is null) {
+        return;
+      }
+
+      // temp data
+      Point2D p;
+      UnitVector2D u = line.Direction;
+      UnitVector2D u_perp = u.Perp().Normalize();
+
+      // must contains the ray points (origin and p1)
+      p = p0;
+      Assert.IsTrue(line.Contains(p), "contains extremities" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1;
+      Assert.IsTrue(line.Contains(p), "contains extremities" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      (double a, double b) = RandomGenerator.MakeLinearCombo2SumTo1();
+      p = Point2D.FromVector(a * p0.ToVector() + b * p1.ToVector());
+      Assert.IsTrue(line.Contains(p), "contains random mid" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // does not contain points aside the ray
+      p = p0 + u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p0 - u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1 + u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1 - u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+    }
+
+    [RepeatedTestMethod(100)]
     public void Intersection() {
       // input
       (var seg, var p0, var p1) = RandomGenerator.MakeLineSegment2D();

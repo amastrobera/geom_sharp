@@ -62,7 +62,8 @@ namespace GeomSharp {
       var line_location = ToLine().Location(p, decimal_precision);
 
       if (line_location == Constants.Location.ON_LINE) {
-        if (p.AlmostEquals(P0, decimal_precision)) {  // this check avoids throwing on .SameDirection() call.
+        if (p.AlmostEquals(P0, decimal_precision) ||  // this check avoids throwing on .SameDirection() call.
+            p.AlmostEquals(P1, decimal_precision)) {
           line_location = Constants.Location.ON_SEGMENT;
         } else {
           if ((p - P0).SameDirectionAs(P1 - P0, decimal_precision)) {

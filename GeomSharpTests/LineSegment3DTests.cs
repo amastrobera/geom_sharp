@@ -13,6 +13,46 @@ namespace GeomSharpTests {
   [TestClass]
   public class LineSegment3DTests {
     [RepeatedTestMethod(100)]
+    public void Containment() {
+      // input
+      (var line, var p0, var p1) = RandomGenerator.MakeLine3D();
+
+      if (line is null) {
+        return;
+      }
+
+      // temp data
+      Point3D p;
+      UnitVector3D u = line.Direction;
+      UnitVector3D u_perp =
+          u.CrossProduct((u.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ)).Normalize();
+
+      // must contains the ray points (origin and p1)
+      p = p0;
+      Assert.IsTrue(line.Contains(p), "contains extremities" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1;
+      Assert.IsTrue(line.Contains(p), "contains extremities" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      (double a, double b) = RandomGenerator.MakeLinearCombo2SumTo1();
+      p = Point3D.FromVector(a * p0.ToVector() + b * p1.ToVector());
+      Assert.IsTrue(line.Contains(p), "contains random mid" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // does not contain points aside the ray
+      p = p0 + u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p0 - u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1 + u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1 - u_perp;
+      Assert.IsFalse(line.Contains(p), "point aside" + "\n\tray=" + line.ToWkt() + "\n\tp=" + p.ToWkt());
+    }
+
+    [RepeatedTestMethod(100)]
     public void Intersection() {
       // input
       (var seg, var p0, var p1) = RandomGenerator.MakeLineSegment3D();

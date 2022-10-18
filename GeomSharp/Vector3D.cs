@@ -57,13 +57,17 @@ namespace GeomSharp {
         IsParallel(other, decimal_precision) &&
         Math.Sign(Math.Round(X, decimal_precision)) == Math.Sign(Math.Round(other.X, decimal_precision)) &&
         Math.Sign(Math.Round(Y, decimal_precision)) == Math.Sign(Math.Round(other.Y, decimal_precision)) &&
-        Math.Sign(Math.Round(Z, decimal_precision)) == Math.Sign(Math.Round(other.Z, decimal_precision));
+        Math.Sign(Math.Round(Z, decimal_precision)) ==
+            Math.Sign(Math.Round(
+                other.Z, decimal_precision));  // comparing the sign of each instead of their product avoids overflow
 
     public bool OppositeDirectionAs(Vector3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         IsParallel(other, decimal_precision) &&
         Math.Sign(Math.Round(X, decimal_precision)) != Math.Sign(Math.Round(other.X, decimal_precision)) &&
         Math.Sign(Math.Round(Y, decimal_precision)) != Math.Sign(Math.Round(other.Y, decimal_precision)) &&
-        Math.Sign(Math.Round(Z, decimal_precision)) != Math.Sign(Math.Round(other.Z, decimal_precision));
+        Math.Sign(Math.Round(Z, decimal_precision)) !=
+            Math.Sign(Math.Round(
+                other.Z, decimal_precision));  // comparing the sign of each instead of their product avoids overflow
 
     /// <summary>
     /// Equality check with custom tolerance adjustment

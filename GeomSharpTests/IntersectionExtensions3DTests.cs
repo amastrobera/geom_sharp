@@ -707,7 +707,7 @@ namespace GeomSharpTests {
       lp0 = Point3D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
       segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);
       Assert.IsTrue(segment.Intersects(t),
-                    "segment through perp on p1-p2 edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
+                    "segment through perp on p1-p2 edge" + "\n\t t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
       lp0 = Point3D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
       segment = LineSegment3D.FromPoints(lp0 - tnorm * 2, lp0 + tnorm * 2);

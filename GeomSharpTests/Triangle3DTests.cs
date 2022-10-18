@@ -103,7 +103,7 @@ namespace GeomSharpTests {
     }
 
     [RepeatedTestMethod(100)]
-    public void Contains() {
+    public void Containment() {
       // 3D
       TestContains(RandomGenerator.MakeTriangle3D().Triangle);
     }

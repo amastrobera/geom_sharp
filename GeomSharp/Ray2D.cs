@@ -42,8 +42,7 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool IsAhead(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
-        (Math.Round((p - Origin).DotProduct(Direction), decimal_precision) >= 0) ? true : false;
+    public bool IsAhead(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) => !IsBehind(p, decimal_precision);
 
     /// <summary>
     /// Tells if a point is a behind of the ray. It uses a property of the DotProduct (being positive in the angle
@@ -52,7 +51,7 @@ namespace GeomSharp {
     /// <param name="p"></param>
     /// <returns></returns>
     public bool IsBehind(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
-        (Math.Round((p - Origin).DotProduct(Direction), decimal_precision) < 0) ? true : false;
+        Math.Round(Direction.DotProduct(p - Origin), decimal_precision) < 0 ? true : false;
 
     public bool IsParallel(Ray2D other,
                            int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
@@ -62,6 +61,10 @@ namespace GeomSharp {
         Direction.IsPerpendicular(other.Direction, decimal_precision);
 
     public bool Contains(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {
+      // if (p.AlmostEquals(Origin, decimal_precision)) {
+      //   return true;
+      // }
+
       // check if the point is on the same line
       if (Math.Round(Direction.PerpProduct(p - Origin), decimal_precision) != 0) {
         return false;

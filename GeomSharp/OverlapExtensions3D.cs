@@ -199,12 +199,24 @@ namespace GeomSharp {
                                          ref_plane.ProjectInto(line.Origin + 2 * line.Direction));
 
       // from 2D back to 3D
+      // if intersection in 2D, return it
       var inter_2D = triangle_2D.Intersection(line_2D, decimal_precision);
       if (inter_2D.ValueType == typeof(Point2D)) {
         var p_3d = ref_plane.Evaluate((Point2D)inter_2D.Value);
         return new IntersectionResult(p_3d);
       } else if (inter_2D.ValueType == typeof(LineSegment2D)) {
         var line_inter = (LineSegment2D)inter_2D.Value;
+        (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
+        return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
+      }
+
+      // also if there overlap in 2D, return it
+      var ovrl_2D = triangle_2D.Overlap(line_2D, decimal_precision);
+      if (ovrl_2D.ValueType == typeof(Point2D)) {
+        var p_3d = ref_plane.Evaluate((Point2D)ovrl_2D.Value);
+        return new IntersectionResult(p_3d);
+      } else if (ovrl_2D.ValueType == typeof(LineSegment2D)) {
+        var line_inter = (LineSegment2D)ovrl_2D.Value;
         (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
         return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
       }
@@ -245,6 +257,7 @@ namespace GeomSharp {
       var ray_2D = new Ray2D(orig_2D, (ref_plane.ProjectInto(ray.Origin + 2 * ray.Direction) - orig_2D).Normalize());
 
       // from 2D back to 3D
+      // if 2D intersection, return it
       var inter_2D = triangle_2D.Intersection(ray_2D, decimal_precision);
       if (inter_2D.ValueType == typeof(Point2D)) {
         var p_3d = ref_plane.Evaluate((Point2D)inter_2D.Value);
@@ -255,7 +268,18 @@ namespace GeomSharp {
         return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
       }
 
-      // no valid intersection
+      // also if 2D overlap, return it
+      var ovrl_2D = triangle_2D.Overlap(ray_2D, decimal_precision);
+      if (ovrl_2D.ValueType == typeof(Point2D)) {
+        var p_3d = ref_plane.Evaluate((Point2D)ovrl_2D.Value);
+        return new IntersectionResult(p_3d);
+      } else if (ovrl_2D.ValueType == typeof(LineSegment2D)) {
+        var line_inter = (LineSegment2D)ovrl_2D.Value;
+        (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
+        return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
+      }
+
+      //  no valid intersection
       return new IntersectionResult();
     }
 
@@ -291,12 +315,24 @@ namespace GeomSharp {
       var segment_2D = LineSegment2D.FromPoints(ref_plane.ProjectInto(segment.P0), ref_plane.ProjectInto(segment.P1));
 
       // from 2D back to 3D
+      // if intersection 2D, return it
       var inter_2D = triangle_2D.Intersection(segment_2D, decimal_precision);
       if (inter_2D.ValueType == typeof(Point2D)) {
         var p_3d = ref_plane.Evaluate((Point2D)inter_2D.Value);
         return new IntersectionResult(p_3d);
       } else if (inter_2D.ValueType == typeof(LineSegment2D)) {
         var line_inter = (LineSegment2D)inter_2D.Value;
+        (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
+        return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
+      }
+
+      // also if overlap, return it
+      var ovlp_2D = triangle_2D.Overlap(segment_2D, decimal_precision);
+      if (ovlp_2D.ValueType == typeof(Point2D)) {
+        var p_3d = ref_plane.Evaluate((Point2D)ovlp_2D.Value);
+        return new IntersectionResult(p_3d);
+      } else if (ovlp_2D.ValueType == typeof(LineSegment2D)) {
+        var line_inter = (LineSegment2D)ovlp_2D.Value;
         (var p0_3d, var p1_3d) = (ref_plane.Evaluate(line_inter.P0), ref_plane.Evaluate(line_inter.P1));
         return new IntersectionResult(LineSegment3D.FromPoints(p0_3d, p1_3d));
       }

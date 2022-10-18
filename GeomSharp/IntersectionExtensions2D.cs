@@ -1,4 +1,6 @@
-﻿namespace GeomSharp {
+﻿using System;
+
+namespace GeomSharp {
 
   public static class IntersectionExtensions2D {
     // intersection functions among different objects
@@ -146,13 +148,16 @@
       }
 
       // case 2: no intersection
-      if (pi1 is null && pi2 is null) {
+      if ((pi1 is null) && (pi2 is null)) {
         return new IntersectionResult();
       }
 
       // case 3: one point intersection
-      if (!(pi1 is null) && pi2 is null) {
+      if (!(pi1 is null) && (pi2 is null)) {
         return new IntersectionResult(pi1);
+      }
+      if ((pi1 is null) && !(pi2 is null)) {
+        return new IntersectionResult(pi2);
       }
 
       // case 4: line segment intersection (return it in the same direction as the line)
@@ -242,7 +247,6 @@
         // case 2: intersection is a point. return if inside the ray
         if (segment.Contains((Point2D)inter_res.Value, decimal_precision)) {
           return inter_res;
-        } else {
         }
 
       } else if (inter_res.ValueType == typeof(LineSegment2D)) {

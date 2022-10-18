@@ -52,12 +52,18 @@ namespace GeomSharp {
     }
 
     public bool SameDirectionAs(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        IsParallel(other, decimal_precision) && Math.Sign(U) == Math.Sign(other.U) &&
-        Math.Sign(V) == Math.Sign(other.V);
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(U, decimal_precision)) == Math.Sign(Math.Round(other.U, decimal_precision)) &&
+        Math.Sign(Math.Round(V, decimal_precision)) ==
+            Math.Sign(Math.Round(other.V,
+                                 decimal_precision));  // comparing the signs instead of the product avoids overflow
 
     public bool OppositeDirectionAs(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        IsParallel(other, decimal_precision) && Math.Sign(U) != Math.Sign(other.U) &&
-        Math.Sign(V) != Math.Sign(other.V);
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(U, decimal_precision)) != Math.Sign(Math.Round(other.U, decimal_precision)) &&
+        Math.Sign(Math.Round(V, decimal_precision)) !=
+            Math.Sign(Math.Round(other.V,
+                                 decimal_precision));  // comparing the signs instead of the product avoids overflow
 
     /// <summary>
     /// Equality check with custom tolerance adjustment

@@ -36,7 +36,7 @@ namespace GeomSharpTests {
     }
 
     [RepeatedTestMethod(100)]
-    public void Contains() {
+    public void Containment() {
       // 2D
       var t = RandomGenerator.MakeTriangle2D().Triangle;
 

@@ -340,16 +340,391 @@ namespace GeomSharpTests {
     [RepeatedTestMethod(1)]
     public void TriangleToPlane() {}
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void TriangleToLine() {}
+    [RepeatedTestMethod(100)]
+    public void TriangleToLine() {
+      (var t, var p0, var p1, var p2) = RandomGenerator.MakeTriangle3D();
+      if (t is null) {
+        return;
+      }
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void TriangleToRay() {}
+      // cache
+      Line3D line;
+      UnitVector3D u, u_perp;
+      Point3D p;
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void TriangleToLineSegment() {}
+      // overlap (crosses in 2D)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = (p2 - p).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = (p0 - p).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      p = Point3D.FromVector((p2.ToVector() + p0.ToVector()) / 2.0);
+      u = (p1 - p).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      // overlap (same plane, touches an edge)
+      // not possible for a line
+
+      // overlap (same plane, touches a vertex)
+      p = p2;
+      u = (p1 - p0).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      p = p0;
+      u = (p2 - p1).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      p = p1;
+      u = (p0 - p2).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      // overlap (same plane, overlaps an edge)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = (p1 - p0).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = (p2 - p1).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      p = Point3D.FromVector((p2.ToVector() + p0.ToVector()) / 2.0);
+      u = (p0 - p2).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsTrue(t.Overlaps(line));
+
+      // crosses (no overlap)
+      u = (p2 - p).Normalize();
+      p = t.CenterOfMass();
+      u_perp = u.CrossProduct((u.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ)).Normalize();
+      line = Line3D.FromDirection(p, u_perp);
+      Assert.IsFalse(t.Overlaps(line));
+
+      // same plane, no overlap (parallel to an edge)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = (p2 - p).Normalize();
+      p -= 2 * u;
+      u = (p0 - p1).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsFalse(t.Overlaps(line));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = (p0 - p).Normalize();
+      p -= 2 * u;
+      u = (p2 - p1).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsFalse(t.Overlaps(line));
+
+      p = Point3D.FromVector((p0.ToVector() + p2.ToVector()) / 2.0);
+      u = (p1 - p).Normalize();
+      p -= 2 * u;
+      u = (p0 - p2).Normalize();
+      line = Line3D.FromDirection(p, u);
+      Assert.IsFalse(t.Overlaps(line));
+    }
+
+    [RepeatedTestMethod(100)]
+    public void TriangleToRay() {
+      (var t, var p0, var p1, var p2) = RandomGenerator.MakeTriangle3D();
+      if (t is null) {
+        return;
+      }
+
+      // cache
+      Ray3D ray;
+      UnitVector3D u, u_perp;
+      Point3D p;
+
+      // overlap(crosses in 2D)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = (p2 - p).Normalize();
+      p -= 2 * u;
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = (p0 - p).Normalize();
+      p -= 2 * u;
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p2.ToVector() + p0.ToVector()) / 2.0);
+      u = (p1 - p).Normalize();
+      p -= 2 * u;
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      // overlap (same plane, touches an edge)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = -(p2 - p).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = -(p0 - p).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p2.ToVector() + p0.ToVector()) / 2.0);
+      u = -(p1 - p).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      // overlap (same plane, touches a vertex)
+      p = p2;
+      u = (p1 - p0).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = p0;
+      u = (p1 - p2).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = p1;
+      u = (p2 - p0).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      // overlap (same plane, overlaps an edge)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = (p1 - p0).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = (p2 - p1).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p2.ToVector() + p0.ToVector()) / 2.0);
+      u = (p0 - p2).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsTrue(t.Overlaps(ray));
+
+      // crosses (no overlap)
+      u = (p2 - p).Normalize();
+      p = t.CenterOfMass();
+      u_perp = u.CrossProduct((u.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ)).Normalize();
+      p -= u_perp * 2;
+      ray = new Ray3D(p, u_perp);
+      Assert.IsFalse(t.Overlaps(ray));
+
+      // same plane, no overlap (parallel to an edge)
+      p = Point3D.FromVector((p0.ToVector() + p1.ToVector()) / 2.0);
+      u = (p2 - p).Normalize();
+      p -= 2 * u;
+      u = (p0 - p1).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsFalse(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p1.ToVector() + p2.ToVector()) / 2.0);
+      u = (p0 - p).Normalize();
+      p -= 2 * u;
+      u = (p2 - p1).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsFalse(t.Overlaps(ray));
+
+      p = Point3D.FromVector((p0.ToVector() + p2.ToVector()) / 2.0);
+      u = (p1 - p).Normalize();
+      p -= 2 * u;
+      u = (p0 - p2).Normalize();
+      ray = new Ray3D(p, u);
+      Assert.IsFalse(t.Overlaps(ray));
+    }
+
+    [RepeatedTestMethod(100)]
+    public void TriangleToLineSegment() {
+      (var t, var tp0, var tp1, var tp2) = RandomGenerator.MakeTriangle3D();
+      if (t is null) {
+        return;
+      }
+
+      // cache
+      LineSegment3D seg;
+      UnitVector3D u, u_perp;
+      Point3D p0, p1;
+
+      // overlap (crosses in 2D)
+      p0 = Point3D.FromVector((tp0.ToVector() + tp1.ToVector()) / 2.0);
+      u = (tp2 - p0).Normalize();
+      p0 -= u;
+      p1 = p0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      (string inter_type, bool p0_in, bool p1_in, bool p_in) = ("", false, false, false);
+      {
+        var ref_plane = t.RefPlane();
+        var triangle = t;
+        var segment = seg;
+        int decimal_precision = 3;
+        // from 3D to 2D to compute the intersection points
+        var triangle_2D = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
+                                                ref_plane.ProjectInto(triangle.P1),
+                                                ref_plane.ProjectInto(triangle.P2));
+
+        var segment_2D = LineSegment2D.FromPoints(ref_plane.ProjectInto(segment.P0), ref_plane.ProjectInto(segment.P1));
+
+        var inter_res = segment_2D.ToLine().Intersection(triangle_2D, decimal_precision);
+        if (inter_res.ValueType == typeof(NullValue)) {
+          inter_type = "NullValue";
+        } else if (inter_res.ValueType == typeof(Point2D)) {
+          inter_type = "Point2D";
+          if (segment_2D.Contains((Point2D)inter_res.Value, decimal_precision)) {
+            p_in = true;
+          }
+        } else if (inter_res.ValueType == typeof(LineSegment2D)) {
+          var inter_seg = (LineSegment2D)inter_res.Value;
+          (p0_in, p1_in) = (segment_2D.Contains(inter_seg.P0, decimal_precision),
+                            segment_2D.Contains(inter_seg.P1, decimal_precision));
+        }
+      }
+      Assert.IsTrue(t.Overlaps(seg),
+                    "\n\tinter_type=" + inter_type + "\n\tp0_in=" + p0_in + "\n\tp1_in=" + p1_in + "\n\tp_in=" + p_in);
+
+      p0 = Point3D.FromVector((tp1.ToVector() + tp2.ToVector()) / 2.0);
+      u = (tp0 - p0).Normalize();
+      p0 -= u;
+      p1 = p0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      p0 = Point3D.FromVector((tp2.ToVector() + tp0.ToVector()) / 2.0);
+      u = (tp1 - p0).Normalize();
+      p0 -= u;
+      p1 = p0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      //// overlap (same plane, touches an edge)
+      // p0 = Point3D.FromVector((tp0.ToVector() + tp1.ToVector()) / 2.0);
+      // u = (tp2 - p0).Normalize();
+      // p1 = p0 - 2 * u;
+      // seg = LineSegment3D.FromPoints(p0, p1);
+      //(inter_type, p0_in, p1_in, p_in) = ("", false, false, false);
+      //{
+      //   var ref_plane = t.RefPlane();
+      //   var triangle = t;
+      //   var segment = seg;
+      //   int decimal_precision = 3;
+      //   // from 3D to 2D to compute the intersection points
+      //   var triangle_2D = Triangle2D.FromPoints(ref_plane.ProjectInto(triangle.P0),
+      //                                           ref_plane.ProjectInto(triangle.P1),
+      //                                           ref_plane.ProjectInto(triangle.P2));
+
+      //  var segment_2D = LineSegment2D.FromPoints(ref_plane.ProjectInto(segment.P0),
+      //  ref_plane.ProjectInto(segment.P1));
+
+      //  var inter_res = segment_2D.ToLine().Intersection(triangle_2D, decimal_precision);
+      //  if (inter_res.ValueType == typeof(NullValue)) {
+      //    inter_type = "NullValue";
+      //  } else if (inter_res.ValueType == typeof(Point2D)) {
+      //    inter_type = "Point2D";
+      //    if (segment_2D.Contains((Point2D)inter_res.Value, decimal_precision)) {
+      //      p_in = true;
+      //    }
+      //  } else if (inter_res.ValueType == typeof(LineSegment2D)) {
+      //    var inter_seg = (LineSegment2D)inter_res.Value;
+      //    (p0_in, p1_in) = (segment_2D.Contains(inter_seg.P0, decimal_precision),
+      //                      segment_2D.Contains(inter_seg.P1, decimal_precision));
+      //  }
+      //}
+      // Assert.IsTrue(t.Overlaps(seg),
+      //              "\n\tinter_type=" + inter_type + "\n\tp0_in=" + p0_in + "\n\tp1_in=" + p1_in + "\n\tp_in=" +
+      //              p_in);
+
+      // p0 = Point3D.FromVector((tp1.ToVector() + tp2.ToVector()) / 2.0);
+      // u = (tp0 - p0).Normalize();
+      // p1 = p0 - 2 * u;
+      // seg = LineSegment3D.FromPoints(p0, p1);
+      // Assert.IsTrue(t.Overlaps(seg));
+
+      // p0 = Point3D.FromVector((tp2.ToVector() + tp0.ToVector()) / 2.0);
+      // u = (tp1 - p0).Normalize();
+      // p1 = p0 - 2 * u;
+      // seg = LineSegment3D.FromPoints(p0, p1);
+      // Assert.IsTrue(t.Overlaps(seg));
+
+      // overlap (same plane, touches a vertex)
+      u = (tp1 - tp0).Normalize();
+      p0 = tp2 - 2 * u;
+      p1 = tp2 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      u = (tp1 - tp2).Normalize();
+      p0 = tp0 - 2 * u;
+      p1 = tp0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      u = (tp2 - tp0).Normalize();
+      p0 = tp1 - 2 * u;
+      p1 = tp1 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      // overlap (same plane, overlaps an edge)
+      p0 = Point3D.FromVector((tp0.ToVector() + tp1.ToVector()) / 2.0);
+      u = (tp1 - tp0).Normalize();
+      p1 = p0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      p0 = Point3D.FromVector((tp1.ToVector() + tp2.ToVector()) / 2.0);
+      u = (tp2 - tp1).Normalize();
+      p1 = p0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      p0 = Point3D.FromVector((tp2.ToVector() + tp0.ToVector()) / 2.0);
+      u = (tp0 - tp2).Normalize();
+      p1 = p0 + 2 * u;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsTrue(t.Overlaps(seg));
+
+      // crosses (no overlap)
+      u = (tp2 - p0).Normalize();
+      p0 = t.CenterOfMass();
+      u_perp = u.CrossProduct((u.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ)).Normalize();
+      p0 -= u_perp * 2;
+      p1 = p0 + 4 * u_perp;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsFalse(t.Overlaps(seg));
+
+      // same plane, no overlap (parallel to an edge)
+      p0 = Point3D.FromVector((tp0.ToVector() + tp1.ToVector()) / 2.0);
+      u = (tp2 - p0).Normalize();
+      p0 -= 2 * u;
+      u = (tp0 - tp1).Normalize();
+      p1 = p0 + u * 4;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsFalse(t.Overlaps(seg));
+
+      p0 = Point3D.FromVector((tp1.ToVector() + tp2.ToVector()) / 2.0);
+      u = (tp0 - p0).Normalize();
+      p0 -= 2 * u;
+      u = (tp2 - tp1).Normalize();
+      p1 = p0 + u * 4;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsFalse(t.Overlaps(seg));
+
+      p0 = Point3D.FromVector((tp0.ToVector() + tp2.ToVector()) / 2.0);
+      u = (tp1 - p0).Normalize();
+      p0 -= 2 * u;
+      u = (tp0 - tp2).Normalize();
+      p1 = p0 + u * 4;
+      seg = LineSegment3D.FromPoints(p0, p1);
+      Assert.IsFalse(t.Overlaps(seg));
+    }
   }
 }

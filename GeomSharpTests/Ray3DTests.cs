@@ -12,6 +12,52 @@ namespace GeomSharpTests {
   [TestClass]
   public class Ray3DTests {
     [RepeatedTestMethod(100)]
+    public void Containment() {
+      // input
+      (var ray, var p0, var p1) = RandomGenerator.MakeRay3D();
+
+      if (ray is null) {
+        return;
+      }
+
+      // temp data
+      Point3D p;
+      UnitVector3D u = ray.Direction;
+      UnitVector3D u_perp =
+          u.CrossProduct((u.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ)).Normalize();
+
+      // must contains the ray points (origin and p1)
+      p = p0;
+      Assert.IsTrue(ray.Contains(p), "contains" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1;
+      Assert.IsTrue(ray.Contains(p), "contains" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // does not contain points aside the ray
+      p = p0 + u_perp;
+      Assert.IsFalse(ray.Contains(p), "point aside" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p0 - u_perp;
+      Assert.IsFalse(ray.Contains(p), "point aside" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1 + u_perp;
+      Assert.IsFalse(ray.Contains(p), "point aside" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p1 - u_perp;
+      Assert.IsFalse(ray.Contains(p), "point aside" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // does not contain a point behind the ray
+      p = p0 - 2 * u;
+      Assert.IsFalse(ray.Contains(p), "point behind" + "\n\tray=" + ray.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = p0 - 2 * u - u_perp;
+      Assert.IsFalse(ray.Contains(p), "point behind right, ray=" + ray.ToWkt() + ", p=" + p.ToWkt());
+
+      p = p0 - 2 * u + u_perp;
+      Assert.IsFalse(ray.Contains(p), "point behind left, ray=" + ray.ToWkt() + ", p=" + p.ToWkt());
+    }
+
+    [RepeatedTestMethod(100)]
     public void Intersection() {
       // input
       (var ray, var p0, var p1) = RandomGenerator.MakeRay3D();
