@@ -133,5 +133,154 @@ namespace GeomSharpTests {
       // other_t = Triangle2D.FromPoints(mid12 + 2 * (mid12 - cm), t.P1, t.P2);
       // Assert.IsTrue(t.Overlaps(other_t), "overlap one sided 12, \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
     }
+
+    [RepeatedTestMethod(100)]
+    public void OnPerimeter() {
+      // 2D
+      var t = RandomGenerator.MakeTriangle2D().Triangle;
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t is null) {
+        return;
+      }
+
+      // temporary data
+      var cm = t.CenterOfMass();
+      var mid01 = Point2D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
+      var mid12 = Point2D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
+      var mid20 = Point2D.FromVector((t.P2.ToVector() + t.P0.ToVector()) / 2.0);
+      // results and test data
+      Point2D p;
+
+      // inner point (false)
+      p = cm;
+      Assert.IsFalse(t.IsOnPerimeter(p), "inner (center of mass)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // perimeter points (mid)
+      p = mid01;
+      Assert.IsTrue(t.IsOnPerimeter(p), "perimeter points (mid)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = mid12;
+      Assert.IsTrue(t.IsOnPerimeter(p), "perimeter points (mid)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = mid20;
+      Assert.IsTrue(t.IsOnPerimeter(p), "perimeter points (mid)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // perimeter points (vertices)
+      p = t.P0;
+      Assert.IsTrue(t.IsOnPerimeter(p), "perimeter points (vertices)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = t.P1;
+      Assert.IsTrue(t.IsOnPerimeter(p), "perimeter points (vertices)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      p = t.P2;
+      Assert.IsTrue(t.IsOnPerimeter(p), "perimeter points (vertices)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      // outer points
+      Vector2D U;
+
+      U = mid01 - cm;
+      p = mid01 + U;
+      Assert.IsFalse(t.IsOnPerimeter(p), "outer points (mids)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      U = mid12 - cm;
+      p = mid12 + U;
+      Assert.IsFalse(t.IsOnPerimeter(p), "outer points (mids)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+
+      U = mid20 - cm;
+      p = mid20 + U;
+      Assert.IsFalse(t.IsOnPerimeter(p), "outer points (mids)\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
+    }
+
+    [RepeatedTestMethod(100)]
+    public void Touch() {
+      // 2D
+      var t1 = RandomGenerator.MakeTriangle2D().Triangle;
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t1 is null) {
+        return;
+      }
+
+      // temporary data
+      var cm = t1.CenterOfMass();
+      var mid01 = Point2D.FromVector((t1.P0.ToVector() + t1.P1.ToVector()) / 2.0);
+      var mid12 = Point2D.FromVector((t1.P1.ToVector() + t1.P2.ToVector()) / 2.0);
+      var mid20 = Point2D.FromVector((t1.P2.ToVector() + t1.P0.ToVector()) / 2.0);
+
+      // results and test data
+      Point2D p0, p1, p2;
+      Vector2D U, V;
+      Triangle2D t2;
+
+      //// hourglass
+      // p0 = t1.P0;
+      // U = -(t1.P1 - t1.P0);
+      // V = -(t1.P2 - t1.P0);
+      // p1 = p0 + U;
+      // p2 = p0 + V;
+      // t2 = Triangle2D.FromPoints(p0, p1, p2);
+      // Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // p0 = t1.P1;
+      // U = -(t1.P2 - t1.P1);
+      // V = -(t1.P0 - t1.P1);
+      // p1 = p0 + U;
+      // p2 = p0 + V;
+      // t2 = Triangle2D.FromPoints(p0, p1, p2);
+      // Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // p0 = t1.P2;
+      // U = -(t1.P0 - t1.P2);
+      // V = -(t1.P1 - t1.P2);
+      // p1 = p0 + U;
+      // p2 = p0 + V;
+      // t2 = Triangle2D.FromPoints(p0, p1, p2);
+      // Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // touching mids
+      p0 = mid01;
+      U = -(t1.P2 - t1.P1);
+      V = -(t1.P2 - t1.P0);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.Touches(t2), "double arrow\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      p0 = mid12;
+      U = -(t1.P0 - t1.P2);
+      V = -(t1.P0 - t1.P1);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.Touches(t2), "double arrow\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      p0 = mid20;
+      U = -(t1.P1 - t1.P0);
+      V = -(t1.P1 - t1.P2);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.Touches(t2), "double arrow\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // external
+      U = -(t1.P2 - t1.P1);
+      V = -(t1.P2 - t1.P0);
+      p0 = mid01 + U;
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsFalse(t1.Touches(t2), "external\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // intersecting
+      p0 = cm;
+      U = -(t1.P2 - t1.P1);
+      V = -(t1.P2 - t1.P0);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsFalse(t1.Touches(t2), "intersecting\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+    }
   }
+
 }

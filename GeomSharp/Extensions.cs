@@ -60,6 +60,23 @@ namespace GeomSharp {
       return points.Sum() / points.Count;
     }
 
+    public static List<Point3D> RemoveDuplicates(this List<Point3D> point_list,
+                                                 int decimal_precision = Constants.THREE_DECIMALS) {
+      if (point_list.Count > 0) {
+        return new List<Point3D>();
+      }
+
+      var key_dictionary = new Dictionary<string, Point3D>();
+      foreach (var p in point_list) {
+        string key = p.ToWkt(decimal_precision);
+        if (!key_dictionary.ContainsKey(key)) {
+          key_dictionary.Add(key, p);
+        }
+      }
+
+      return key_dictionary.Select(pr => pr.Value).ToList();
+    }
+
     /// <summary>
     /// /// Remove all points that are on the same line, to build the minimum polyline
     /// </summary>
@@ -85,17 +102,25 @@ namespace GeomSharp {
           break;
         }
 
+        // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
-        if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
-          // find and remove the point in the middle (extend the edge to the next point)
-          if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
-                         decimal_precision) >= 0) {
-            new_polyline.RemoveAt(i2);
-          } else {
-            new_polyline.RemoveAt(i3);
-          }
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision)) {
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
+        } else {
+          // check if p2 is on the same line p1->p3, and if so remove it
+          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
+            // find and remove the point in the middle (extend the edge to the next point)
+            if (Math.Round(
+                    new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
+                    decimal_precision) >= 0) {
+              new_polyline.RemoveAt(i2);
+            } else {
+              new_polyline.RemoveAt(i3);
+            }
+            --n;  // the size of items has decreased
+            --i;  // analyze again the same start point in the next iteration
+          }
         }
       }
 
@@ -104,6 +129,22 @@ namespace GeomSharp {
       // }
 
       return new_polyline;
+    }
+
+    public static List<Point2D> RemoveDuplicates(this List<Point2D> point_list,
+                                                 int decimal_precision = Constants.THREE_DECIMALS) {
+      if (point_list.Count == 0) {
+        return new List<Point2D>();
+      }
+
+      var key_dictionary = new Dictionary<string, Point2D>();
+      foreach (var p in point_list) {
+        string key = p.ToWkt(decimal_precision);
+        if (!key_dictionary.ContainsKey(key)) {
+          key_dictionary.Add(key, p);
+        }
+      }
+      return key_dictionary.Select(pr => pr.Value).ToList();
     }
 
     /// <summary>
@@ -130,17 +171,25 @@ namespace GeomSharp {
           break;
         }
 
+        // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
-        if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
-          // find and remove the point in the middle (extend the edge to the next point)
-          if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
-                         decimal_precision) >= 0) {
-            new_polyline.RemoveAt(i2);
-          } else {
-            new_polyline.RemoveAt(i3);
-          }
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision)) {
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
+        } else {
+          // check if p2 is on the same line p1->p3, and if so remove it
+          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
+            // find and remove the point in the middle (extend the edge to the next point)
+            if (Math.Round(
+                    new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
+                    decimal_precision) >= 0) {
+              new_polyline.RemoveAt(i2);
+            } else {
+              new_polyline.RemoveAt(i3);
+            }
+            --n;  // the size of items has decreased
+            --i;  // analyze again the same start point in the next iteration
+          }
         }
       }
 

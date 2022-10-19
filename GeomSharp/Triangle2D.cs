@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 
 namespace GeomSharp {
 
@@ -116,44 +118,113 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    // TODO: remove, once Intersection is implemented
-    public bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      (var edge01, var edge12, var edge20) = (LineSegment2D.FromPoints(P0, P1, decimal_precision),
-                                              LineSegment2D.FromPoints(P1, P2, decimal_precision),
-                                              LineSegment2D.FromPoints(P2, P0, decimal_precision));
-
-      (var other01, var other12, var other20) = (LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision),
-                                                 LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision),
-                                                 LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision));
-
-      return edge01.Intersects(other01) || edge01.Intersects(other12) || edge01.Intersects(other20) ||
-             edge12.Intersects(other01) || edge12.Intersects(other12) || edge12.Intersects(other20) ||
-             edge20.Intersects(other01) || edge20.Intersects(other12) || edge20.Intersects(other20);
-    }
-
-    // TODO: add, once Intersection is implemented
-    // public bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-    //    Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     public IntersectionResult Intersection(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      (var edge01, var edge12, var edge20) = (LineSegment2D.FromPoints(P0, P1, decimal_precision),
-                                              LineSegment2D.FromPoints(P1, P2, decimal_precision),
-                                              LineSegment2D.FromPoints(P2, P0, decimal_precision));
+      // check against vertex containment
+      (bool p0_in, bool p1_in, bool p2_in) = (other.Contains(this.P0, decimal_precision),
+                                              other.Contains(this.P1, decimal_precision),
+                                              other.Contains(this.P2, decimal_precision));
+      int ps_in = (new List<bool> { p0_in, p1_in, p2_in }).Select(b => b ? 1 : 0).Sum();
+      //    if all points are contained, it's overlap
+      if (ps_in == 3) {
+        return new IntersectionResult();
+      }
+      (bool q0_in, bool q1_in, bool q2_in) = (this.Contains(other.P0, decimal_precision),
+                                              this.Contains(other.P1, decimal_precision),
+                                              this.Contains(other.P2, decimal_precision));
+      int qs_in = (new List<bool> { q0_in, q1_in, q2_in }).Select(b => b ? 1 : 0).Sum();
+      //    if all points are contained, it's overlap
+      if (qs_in == 3) {
+        return new IntersectionResult();
+      }
 
-      (var other01, var other12, var other20) = (LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision),
-                                                 LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision),
-                                                 LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision));
+      //    if only 2 points or less are contained, this is an intersection
+      var inter_points = new List<Point2D>();
+      if (ps_in > 0) {
+        if (p0_in) {
+          inter_points.Add(this.P0);
+        }
+        if (p1_in) {
+          inter_points.Add(this.P1);
+        }
+        if (p2_in) {
+          inter_points.Add(this.P2);
+        }
+      }
+      if (qs_in > 0) {
+        if (q0_in) {
+          inter_points.Add(other.P0);
+        }
+        if (q1_in) {
+          inter_points.Add(other.P1);
+        }
+        if (q2_in) {
+          inter_points.Add(other.P2);
+        }
+      }
 
-      // TODO: implement and return the resulting Polygon2D
+      // check the intersections with edges
+      Func<LineSegment2D, Triangle2D, bool> AddEdgeToTriangleIntersections =
+          (LineSegment2D _test_edge, Triangle2D _triangle) => {
+            IntersectionResult res = _test_edge.Intersection(_triangle, decimal_precision);
+
+            if (res.ValueType == typeof(Point2D)) {
+              inter_points.Add((Point2D)res.Value);
+              return true;
+            } else if (res.ValueType == typeof(LineSegment2D)) {
+              var _seg = (LineSegment2D)res.Value;
+              inter_points.Add(_seg.P0);
+              inter_points.Add(_seg.P1);
+              return true;
+            }
+
+            return false;
+          };
+
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P0, this.P1, decimal_precision), this);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P1, this.P2, decimal_precision), this);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P2, this.P0, decimal_precision), this);
+
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision), other);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision), other);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision), other);
+
+      if (inter_points.Count > 0) {
+        inter_points.SortCCW();
+        inter_points.RemoveCollinearPoints(decimal_precision);  // removes duplicates, and collinear points (not
+                                                                // necessary), up to a line of two points
+
+        if (inter_points.Count == 0) {
+          throw new Exception("intersections of two triangles were all removed");
+        }
+
+        if (inter_points.Count == 1) {
+          return new IntersectionResult(inter_points.First());
+        }
+
+        if (inter_points.Count == 2) {
+          if (inter_points[0].AlmostEquals(inter_points[1],
+                                           decimal_precision)) {  // the one case of duplicate points not handled by the
+                                                                  // RemoveCollinearPoints() function
+            return new IntersectionResult(inter_points.First());
+          }
+          throw new Exception("intersection of two triangles is a line (impossible)");
+        }
+
+        if (inter_points.Count == 3) {
+          return new IntersectionResult(FromPoints(inter_points[0], inter_points[1], inter_points[2]));
+        }
+
+        return new IntersectionResult(new Polygon2D(inter_points));
+      }
 
       return new IntersectionResult();
     }
 
     /// <summary>
-    /// Two triangles 2D overlap if they share
-    /// - a point
-    /// - an edge
-    /// - the whole surface
+    /// Two triangles 2D overlap if they share the surface area (all of it)
     /// In all other cases of shared surface, the triangles (2D) intersect
     /// </summary>
     /// <param name="other"></param>
@@ -162,110 +233,121 @@ namespace GeomSharp {
         Overlap(other, decimal_precision).ValueType != typeof(NullValue);
 
     public IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      var output_points = new List<Point2D>();
-
-      var s1 = LineSegment2D.FromPoints(P0, P1);
-      var s2 = LineSegment2D.FromPoints(P1, P2);
-      var s3 = LineSegment2D.FromPoints(P2, P0);
-      var other_s1 = LineSegment2D.FromPoints(other.P0, other.P1);
-      var other_s2 = LineSegment2D.FromPoints(other.P1, other.P2);
-      var other_s3 = LineSegment2D.FromPoints(other.P2, other.P0);
-
-      Func<IntersectionResult, bool> AddResultIfAny = (IntersectionResult _res) => {
-        if (_res.ValueType == typeof(Point2D)) {
-          output_points.Add((Point2D)_res.Value);
-          return true;
-        }
-        if (_res.ValueType == typeof(LineSegment2D)) {
-          var seg = (LineSegment2D)_res.Value;
-          output_points.Add(seg.P0);
-          output_points.Add(seg.P1);
-          return true;
-        }
-
-        return false;
-      };
-
-      // does any lines overlap with any other ?
-      AddResultIfAny(s1.Overlap(other_s1, decimal_precision));
-      AddResultIfAny(s1.Overlap(other_s2, decimal_precision));
-      AddResultIfAny(s1.Overlap(other_s3, decimal_precision));
-
-      AddResultIfAny(s2.Overlap(other_s1, decimal_precision));
-      AddResultIfAny(s2.Overlap(other_s2, decimal_precision));
-      AddResultIfAny(s2.Overlap(other_s3, decimal_precision));
-
-      AddResultIfAny(s3.Overlap(other_s1, decimal_precision));
-      AddResultIfAny(s3.Overlap(other_s2, decimal_precision));
-      AddResultIfAny(s3.Overlap(other_s3, decimal_precision));
-
-      // is any point contained in any triangle ?
-      if (Contains(other.P0, decimal_precision)) {
-        output_points.Add(other.P0);
+      // case 1: vertex containment
+      (bool p0_in, bool p1_in, bool p2_in) = (other.Contains(this.P0, decimal_precision),
+                                              other.Contains(this.P1, decimal_precision),
+                                              other.Contains(this.P2, decimal_precision));
+      int ps_in = (new List<bool> { p0_in, p1_in, p2_in }).Select(b => b ? 1 : 0).Sum();
+      //    if all points are contained, it's overlap
+      if (ps_in == 3) {
+        return new IntersectionResult(this);
       }
-
-      if (Contains(other.P1, decimal_precision)) {
-        output_points.Add(other.P1);
-      }
-
-      if (Contains(other.P2, decimal_precision)) {
-        output_points.Add(other.P2);
-      }
-
-      if (other.Contains(P0, decimal_precision)) {
-        output_points.Add(P0);
-      }
-
-      if (other.Contains(P1, decimal_precision)) {
-        output_points.Add(P1);
-      }
-
-      if (other.Contains(P2, decimal_precision)) {
-        output_points.Add(P2);
-      }
-
-      // does any line intersects with any other ?
-      AddResultIfAny(s1.Intersection(other_s1, decimal_precision));
-      AddResultIfAny(s1.Intersection(other_s2, decimal_precision));
-      AddResultIfAny(s1.Intersection(other_s3, decimal_precision));
-
-      AddResultIfAny(s2.Intersection(other_s1, decimal_precision));
-      AddResultIfAny(s2.Intersection(other_s2, decimal_precision));
-      AddResultIfAny(s2.Intersection(other_s3, decimal_precision));
-
-      AddResultIfAny(s3.Intersection(other_s1, decimal_precision));
-      AddResultIfAny(s3.Intersection(other_s2, decimal_precision));
-      AddResultIfAny(s3.Intersection(other_s3, decimal_precision));
-
-      // final output point count
-      if (output_points.Count == 0) {
+      //    if only 2 points or less are contained, this is an intersection, not an overlap
+      if (ps_in > 0) {
         return new IntersectionResult();
       }
 
-      if (output_points.Count == 1) {
-        return new IntersectionResult(output_points[0]);
+      (bool q0_in, bool q1_in, bool q2_in) = (this.Contains(other.P0, decimal_precision),
+                                              this.Contains(other.P1, decimal_precision),
+                                              this.Contains(other.P2, decimal_precision));
+      int qs_in = (new List<bool> { q0_in, q1_in, q2_in }).Select(b => b ? 1 : 0).Sum();
+      //    if all points are contained, it's overlap
+      if (qs_in == 3) {
+        return new IntersectionResult(other);
+      }
+      //    if only 2 points or less are contained, this is an intersection, not an overlap
+      if (qs_in > 0) {
+        return new IntersectionResult();
       }
 
-      if (output_points.Count == 2) {
-        return new IntersectionResult(LineSegment2D.FromPoints(output_points[0], output_points[1]));
-      }
-
-      // triangle or polygon
-      output_points.SortCCW();
-
-      if (output_points.Count == 3) {
-        return new IntersectionResult(Triangle2D.FromPoints(output_points[0], output_points[1], output_points[2]));
-      }
-
-      return new IntersectionResult(new Polygon2D(output_points));
+      return new IntersectionResult();
     }
 
+    /// <summary>
+    /// Two triangles are adjancent if
+    /// - they have at most one edge in common, or part of that edge (otherwise it's a surface overlap)
+    /// - no point of a triangle is inside another (containment)
+    /// - no intersection exists between the two triangles (intersection)
+    /// This function tells whether the triangles are adjacent
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
     public bool IsAdjacent(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         AdjacentSide(other, decimal_precision).ValueType != typeof(NullValue);
 
+    /// <summary>
+    /// Returns the adjacent side of two triangles
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
     public IntersectionResult AdjacentSide(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var ovlp_01 = LineSegment2D.FromPoints(this.P0, this.P1, decimal_precision).Overlap(other);
+      var ovlp_12 = LineSegment2D.FromPoints(this.P1, this.P2, decimal_precision).Overlap(other);
+      var ovlp_20 = LineSegment2D.FromPoints(this.P2, this.P0, decimal_precision).Overlap(other);
+
+      var segment_overlaps =
+          (new List<IntersectionResult> { ovlp_01, ovlp_12, ovlp_20 }).Where(o => o.ValueType == typeof(LineSegment2D));
+
+      if (segment_overlaps.Count() > 1) {
+        // TODO: warning, this could be an Overlap or Intersection
+        return new IntersectionResult();
+      }
+
+      if (segment_overlaps.Count() == 1) {
+        return segment_overlaps.First();
+      }
+
       return new IntersectionResult();
     }
+
+    /// <summary>
+    /// Two triangles touch if one of them has a vertex contained in the edge of the other.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public bool Touches(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        TouchPoint(other, decimal_precision).ValueType == typeof(Point2D);
+
+    /// <summary>
+    /// Returns common point between two triangles
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public IntersectionResult TouchPoint(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var segment_touch_points =
+          (new List<(Point2D Point, bool Touches)> { (other.P0, IsOnPerimeter(other.P0, decimal_precision)),
+                                                     (other.P1, IsOnPerimeter(other.P1, decimal_precision)),
+                                                     (other.P2, IsOnPerimeter(other.P2, decimal_precision)),
+                                                     (this.P0, other.IsOnPerimeter(this.P0, decimal_precision)),
+                                                     (this.P1, other.IsOnPerimeter(this.P1, decimal_precision)),
+                                                     (this.P2, other.IsOnPerimeter(this.P2, decimal_precision)) })
+              .Where(b => b.Touches);
+      if (segment_touch_points.Count() == 0) {
+        return new IntersectionResult();
+      }
+
+      var point_list = segment_touch_points.Select(pr => pr.Point).ToList().RemoveDuplicates();
+
+      if (point_list.Count > 1) {
+        // TODO: warning, this could be an Overlap or Intersection
+        return new IntersectionResult();
+      }
+
+      if (point_list.Count == 1) {
+        return new IntersectionResult(point_list.First());
+      }
+
+      return new IntersectionResult();
+    }
+
+    public bool IsOnPerimeter(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) =>
+        LineSegment2D.FromPoints(P0, P1, decimal_precision).Contains(point) ||
+        LineSegment2D.FromPoints(P1, P2, decimal_precision).Contains(point) ||
+        LineSegment2D.FromPoints(P2, P0, decimal_precision).Contains(point);
 
     // special formatting
     public override string ToString() {
