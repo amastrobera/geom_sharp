@@ -213,30 +213,30 @@ namespace GeomSharpTests {
       Vector2D U, V;
       Triangle2D t2;
 
-      //// hourglass
-      // p0 = t1.P0;
-      // U = -(t1.P1 - t1.P0);
-      // V = -(t1.P2 - t1.P0);
-      // p1 = p0 + U;
-      // p2 = p0 + V;
-      // t2 = Triangle2D.FromPoints(p0, p1, p2);
-      // Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      // hourglass
+      p0 = t1.P0;
+      U = -(t1.P1 - t1.P0);
+      V = -(t1.P2 - t1.P0);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // p0 = t1.P1;
-      // U = -(t1.P2 - t1.P1);
-      // V = -(t1.P0 - t1.P1);
-      // p1 = p0 + U;
-      // p2 = p0 + V;
-      // t2 = Triangle2D.FromPoints(p0, p1, p2);
-      // Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      p0 = t1.P1;
+      U = -(t1.P2 - t1.P1);
+      V = -(t1.P0 - t1.P1);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // p0 = t1.P2;
-      // U = -(t1.P0 - t1.P2);
-      // V = -(t1.P1 - t1.P2);
-      // p1 = p0 + U;
-      // p2 = p0 + V;
-      // t2 = Triangle2D.FromPoints(p0, p1, p2);
-      // Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      p0 = t1.P2;
+      U = -(t1.P0 - t1.P2);
+      V = -(t1.P1 - t1.P2);
+      p1 = p0 + U;
+      p2 = p0 + V;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.Touches(t2), "hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
       // touching mids
       p0 = mid01;
