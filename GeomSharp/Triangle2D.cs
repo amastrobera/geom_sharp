@@ -168,13 +168,13 @@ namespace GeomSharp {
       // check the intersections with edges
       Func<LineSegment2D, Triangle2D, bool> AddEdgeToTriangleIntersections =
           (LineSegment2D _test_edge, Triangle2D _triangle) => {
-            IntersectionResult res = _test_edge.Intersection(_triangle, decimal_precision);
+            IntersectionResult _res = _test_edge.Intersection(_triangle, decimal_precision);
 
-            if (res.ValueType == typeof(Point2D)) {
-              inter_points.Add((Point2D)res.Value);
+            if (_res.ValueType == typeof(Point2D)) {
+              inter_points.Add((Point2D)_res.Value);
               return true;
-            } else if (res.ValueType == typeof(LineSegment2D)) {
-              var _seg = (LineSegment2D)res.Value;
+            } else if (_res.ValueType == typeof(LineSegment2D)) {
+              var _seg = (LineSegment2D)_res.Value;
               inter_points.Add(_seg.P0);
               inter_points.Add(_seg.P1);
               return true;
@@ -183,33 +183,29 @@ namespace GeomSharp {
             return false;
           };
 
-      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P0, this.P1, decimal_precision), this);
-      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P1, this.P2, decimal_precision), this);
-      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P2, this.P0, decimal_precision), this);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P0, this.P1, decimal_precision), other);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P1, this.P2, decimal_precision), other);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(this.P2, this.P0, decimal_precision), other);
 
-      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision), other);
-      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision), other);
-      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision), other);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P0, other.P1, decimal_precision), this);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P1, other.P2, decimal_precision), this);
+      AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision), this);
 
       if (inter_points.Count > 0) {
         inter_points.SortCCW();
-        inter_points.RemoveCollinearPoints(decimal_precision);  // removes duplicates, and collinear points (not
-                                                                // necessary), up to a line of two points
+        inter_points =
+            inter_points.RemoveCollinearPoints(decimal_precision);  // removes duplicates, and collinear points (not
+                                                                    // necessary), up to a line of two points
 
         if (inter_points.Count == 0) {
-          throw new Exception("intersections of two triangles were all removed");
+          return new IntersectionResult();  // this is Touch, not intersection, return NullValue
         }
 
         if (inter_points.Count == 1) {
-          return new IntersectionResult(inter_points.First());
+          return new IntersectionResult();  // this is Touch, not intersection, return NullValue
         }
 
         if (inter_points.Count == 2) {
-          if (inter_points[0].AlmostEquals(inter_points[1],
-                                           decimal_precision)) {  // the one case of duplicate points not handled by the
-                                                                  // RemoveCollinearPoints() function
-            return new IntersectionResult(inter_points.First());
-          }
           throw new Exception("intersection of two triangles is a line (impossible)");
         }
 
@@ -238,14 +234,6 @@ namespace GeomSharp {
                                               other.Contains(this.P1, decimal_precision),
                                               other.Contains(this.P2, decimal_precision));
       int ps_in = (new List<bool> { p0_in, p1_in, p2_in }).Select(b => b ? 1 : 0).Sum();
-      //    if all points are contained, it's overlap
-      if (ps_in == 3) {
-        return new IntersectionResult(this);
-      }
-      //    if only 2 points or less are contained, this is an intersection, not an overlap
-      if (ps_in > 0) {
-        return new IntersectionResult();
-      }
 
       (bool q0_in, bool q1_in, bool q2_in) = (this.Contains(other.P0, decimal_precision),
                                               this.Contains(other.P1, decimal_precision),
@@ -255,7 +243,14 @@ namespace GeomSharp {
       if (qs_in == 3) {
         return new IntersectionResult(other);
       }
+      if (ps_in == 3) {
+        return new IntersectionResult(this);
+      }
+
       //    if only 2 points or less are contained, this is an intersection, not an overlap
+      if (ps_in > 0) {
+        return new IntersectionResult();
+      }
       if (qs_in > 0) {
         return new IntersectionResult();
       }

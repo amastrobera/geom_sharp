@@ -9,8 +9,6 @@ TODO: complete primitive tests,
 	  add deployment action and its tag
 
 
-Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :test_tube: tested
-
 
 ## Definition
 
@@ -38,24 +36,30 @@ TODO: add definitions of "adjacency" and "touch" (one edge touches, now handled 
 ![picture](./etc/test_run.png)
 
 
+
+
 ## Data Structures
+Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :test_tube: tested
+
 
 | 2D | 3D | Utils | 
 | - | - | - | 
-| :heavy_check_mark: Point | :heavy_check_mark: Point | :heavy_check_mark: Angle | 
-| :heavy_check_mark: Vector | :heavy_check_mark: Vector | :x: Rotation | 
-| :heavy_check_mark: Line | :heavy_check_mark: Line | :x: Translation | 
-| :heavy_check_mark: Ray | :heavy_check_mark: Ray | :x: Transformation | 
-| :heavy_check_mark: LineSegment | :heavy_check_mark: LineSegment |  | 
+| :heavy_check_mark: :test_tube: Point | :heavy_check_mark: :test_tube: Point | :heavy_check_mark: Angle | 
+| :heavy_check_mark: :test_tube: Vector | :heavy_check_mark: :test_tube: Vector | :x: Rotation | 
+| :heavy_check_mark: :test_tube: Line | :heavy_check_mark: :test_tube: Line | :x: Translation | 
+| :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Transformation | 
+| :heavy_check_mark: :test_tube: LineSegment | :heavy_check_mark: :test_tube: LineSegment |  | 
 | :x: Polyline | :x: Polyline |  | 
-| :arrow_forward: Triangle | :arrow_forward: Triangle |  | 
+| :heavy_check_mark: :test_tube: Triangle | :heavy_check_mark: :test_tube: Triangle |  | 
 | :x: Polygon | :x: Polygon |  | 
-| | :heavy_check_mark: Plane |  | 
+| | :heavy_check_mark: :test_tube: Plane |  | 
 | | :x: Polyhedron |  | 
 
 
 
 ## Algorithms
+
+Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :test_tube: tested
 
 | Category | SubCategory | Classes Involved |
 | - | - | - |
@@ -74,7 +78,7 @@ TODO: add definitions of "adjacency" and "touch" (one edge touches, now handled 
 | | | :heavy_check_mark: :test_tube: Ray/Ray | 
 | | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
-| | | :heavy_check_mark: Triangle/Triangle | 
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | | :heavy_check_mark: :test_tube: Triangle/Line | 
 | | | :heavy_check_mark: :test_tube: Triangle/Ray | 
 | | | :heavy_check_mark: :test_tube: Triangle/Segment | 
@@ -96,7 +100,7 @@ TODO: add definitions of "adjacency" and "touch" (one edge touches, now handled 
 | | | :heavy_check_mark: :test_tube: Ray/Ray | 
 | | | :heavy_check_mark: :test_tube: Ray/Segment | 
 | | | :heavy_check_mark: :test_tube: Segment/Segment | 
-| | | :heavy_check_mark: Triangle/Triangle | 
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | | :heavy_check_mark: :test_tube: Triangle/Line | 
 | | | :heavy_check_mark: :test_tube: Triangle/Ray | 
 | | | :heavy_check_mark: :test_tube: Triangle/Segment | 
@@ -111,6 +115,10 @@ TODO: add definitions of "adjacency" and "touch" (one edge touches, now handled 
 | | | :x: Polygon/Polyline | 
 | | | :x: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
+| | Touch | |
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | Adjacency | |
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | 3D | | |
 | | Containment | |
 | | | :heavy_check_mark: :test_tube: Line/Point| 
@@ -178,6 +186,10 @@ TODO: add definitions of "adjacency" and "touch" (one edge touches, now handled 
 | | | :x: Polygon/Polyline | 
 | | | :x: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
+| | Touch | |
+| | | :x: Triangle/Triangle | 
+| | Adjacency | |
+| | | :x: Triangle/Triangle | 
 
 
 

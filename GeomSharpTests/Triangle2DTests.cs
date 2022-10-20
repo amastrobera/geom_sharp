@@ -90,48 +90,169 @@ namespace GeomSharpTests {
       Assert.IsFalse(t.Contains(p), "point below" + "\n\tt=" + t.ToWkt() + "\n\tp=" + p.ToWkt());
     }
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void Intersection() {}
+    [RepeatedTestMethod(100)]
+    public void Intersection() {
+      // 2D
+      var t1 = RandomGenerator.MakeTriangle2D().Triangle;
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t1 is null) {
+        return;
+      }
+
+      // temporary data
+      var cm = t1.CenterOfMass();
+      var mid01 = Point2D.FromVector((t1.P0.ToVector() + t1.P1.ToVector()) / 2.0);
+      var mid12 = Point2D.FromVector((t1.P1.ToVector() + t1.P2.ToVector()) / 2.0);
+      var mid20 = Point2D.FromVector((t1.P2.ToVector() + t1.P0.ToVector()) / 2.0);
+      // results and test data
+      Triangle2D t2;
+      IntersectionResult res;
+
+      // intersects (two points inside, one point outside) -> triangle intersection
+      t2 = Triangle2D.FromPoints(t1.P0, t1.P1, cm + 2 * (mid12 - cm));
+      Assert.IsTrue(t1.Intersects(t2),
+                    "intersects (two points inside, one point outside)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(
+          res.ValueType == typeof(Triangle2D),
+          "intersects (sharing an edge) (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      t2 = Triangle2D.FromPoints(t1.P1, t1.P2, cm + 2 * (mid20 - cm));
+      Assert.IsTrue(t1.Intersects(t2),
+                    "intersects (two points inside, one point outside)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(
+          res.ValueType == typeof(Triangle2D),
+          "intersects (sharing an edge) (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      t2 = Triangle2D.FromPoints(t1.P2, t1.P0, cm + 2 * (mid01 - cm));
+      Assert.IsTrue(t1.Intersects(t2),
+                    "intersects (two points inside, one point outside)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(
+          res.ValueType == typeof(Triangle2D),
+          "intersects (sharing an edge) (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // intersects (sharing an edge) -> triangle intersection
+      t2 = Triangle2D.FromPoints(mid12, mid12 + (t1.P2 - t1.P1), t1.P0 + (t1.P2 - t1.P1));
+      Assert.IsTrue(t1.Intersects(t2), "intersects (sharing an edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(
+          res.ValueType == typeof(Triangle2D),
+          "intersects (sharing an edge) (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      t2 = Triangle2D.FromPoints(mid20, mid20 + (t1.P0 - t1.P2), t1.P1 + (t1.P0 - t1.P2));
+      Assert.IsTrue(t1.Intersects(t2), "intersects (sharing an edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(
+          res.ValueType == typeof(Triangle2D),
+          "intersects (sharing an edge) (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      t2 = Triangle2D.FromPoints(mid01, mid01 + (t1.P1 - t1.P0), t1.P2 + (t1.P1 - t1.P0));
+      Assert.IsTrue(t1.Intersects(t2), "intersects (sharing an edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(
+          res.ValueType == typeof(Triangle2D),
+          "intersects (sharing an edge) (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // star of David (no vertex contained) -> hexagon intersection
+      t2 = Triangle2D.FromPoints(mid20 + 0.5 * (mid20 - mid12),
+                                 mid01 + 0.5 * (mid01 - mid12),
+                                 mid12 + 0.5 * (mid12 - cm));
+      Assert.IsTrue(t1.Intersects(t2), "star of David\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.Intersection(t2);
+      Assert.IsTrue(res.ValueType == typeof(Polygon2D),
+                    "star of David (type)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+      Assert.IsTrue(((Polygon2D)t1.Intersection(t2).Value).Size == 6,
+                    "star of David (size)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // overlap (mids) -> no intersection
+      t2 = Triangle2D.FromPoints(mid01, mid12, mid20);
+      Assert.IsFalse(t1.Intersects(t2), "overlap (mids)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // hourglass (touch) -> no intersection
+      t2 = Triangle2D.FromPoints(t1.P0, t1.P0 - (t1.P1 - t1.P0), t1.P0 - (t1.P2 - t1.P0));
+      Console.WriteLine("hourglass\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsFalse(t1.Intersects(t2), "hourglass (touch)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // touching mids (touch) -> no intersection
+      t2 = Triangle2D.FromPoints(mid01, mid01 - (t1.P2 - t1.P1), mid01 - (t1.P2 - t1.P0));
+      Assert.IsFalse(t1.Intersects(t2), "double arrow (touch)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // outsiders -> no intersection
+      t2 = Triangle2D.FromPoints(mid01 - (t1.P2 - t1.P1), mid01 - 2 * (t1.P2 - t1.P1), mid01 - 2 * (t1.P2 - t1.P0));
+      Assert.IsFalse(t1.Intersects(t2), "outsiders\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+    }
+
+    [RepeatedTestMethod(100)]
     public void Overlap() {
       // 2D
-      // var t = RandomGenerator.MakeTriangle2D().Triangle;
+      var t1 = RandomGenerator.MakeTriangle2D().Triangle;
 
-      //// Console.WriteLine("t = " + t.ToWkt());
-      // if (t is null) {
-      //   return;
-      // }
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t1 is null) {
+        return;
+      }
 
-      //// temporary data
-      // var cm = t.CenterOfMass();
-      // var mid01 = Point2D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
-      // var mid12 = Point2D.FromVector((t.P1.ToVector() + t.P2.ToVector()) / 2.0);
-      // var mid02 = Point2D.FromVector((t.P0.ToVector() + t.P2.ToVector()) / 2.0);
-      //// results and test data
-      // Triangle2D other_t;
+      // temporary data
+      var cm = t1.CenterOfMass();
+      var mid01 = Point2D.FromVector((t1.P0.ToVector() + t1.P1.ToVector()) / 2.0);
+      var mid12 = Point2D.FromVector((t1.P1.ToVector() + t1.P2.ToVector()) / 2.0);
+      var mid20 = Point2D.FromVector((t1.P2.ToVector() + t1.P0.ToVector()) / 2.0);
+      // results and test data
+      Triangle2D t2;
+      Vector2D U;
 
-      // other_t = Triangle2D.FromPoints(mid01, mid12, mid02);
-      // Assert.IsTrue(t.Overlaps(other_t), "contained, \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
+      // overlap (same vertices)
+      t2 = Triangle2D.FromPoints(t1.P0, t1.P1, t1.P2);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (same vertices)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // other_t = Triangle2D.FromPoints(mid01, mid12 + 2 * (mid12 - mid01), mid02 + 2 * (mid02 - mid01));
-      // Assert.IsTrue(t.Overlaps(other_t),
-      //               "one inside another (mid1, mid2), \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
+      // overlap (contained)
+      t2 = Triangle2D.FromPoints(t1.P0, t1.P1, cm);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (contained)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // other_t = Triangle2D.FromPoints(cm, mid12 + 3 * (mid12 - mid01), mid02 + 3 * (mid02 - mid01));
-      // Assert.IsTrue(t.Overlaps(other_t),
-      //               "one inside another (mid1, mid2), \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
+      t2 = Triangle2D.FromPoints(t1.P1, t1.P2, cm);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (contained)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // other_t = Triangle2D.FromPoints(mid01 + 2 * (mid01 - cm), t.P1, t.P0);
-      // Assert.IsTrue(t.Overlaps(other_t), "overlap one sided 01, \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
+      t2 = Triangle2D.FromPoints(t1.P2, t1.P0, cm);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (contained)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // other_t = Triangle2D.FromPoints(mid02 + 2 * (mid02 - cm), t.P2, t.P0);
-      // Assert.IsTrue(t.Overlaps(other_t), "overlap one sided 02, \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
+      t2 = Triangle2D.FromPoints(mid01, mid12, cm);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (contained)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
 
-      // other_t = Triangle2D.FromPoints(mid12 + 2 * (mid12 - cm), t.P1, t.P2);
-      // Assert.IsTrue(t.Overlaps(other_t), "overlap one sided 12, \n\tt=" + t.ToWkt() + "\n\tp=" + other_t.ToWkt());
+      t2 = Triangle2D.FromPoints(mid12, mid20, cm);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (contained)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      t2 = Triangle2D.FromPoints(mid20, mid01, cm);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (contained)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // overlap (vertices are mids)
+      t2 = Triangle2D.FromPoints(mid01, mid12, mid20);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (vertices are mids)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // overlap (common edge + mid)
+      t2 = Triangle2D.FromPoints(t1.P0, t1.P1, mid12);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (common edge + mid)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      t2 = Triangle2D.FromPoints(t1.P1, t1.P2, mid20);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (common edge + mid)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      t2 = Triangle2D.FromPoints(t1.P2, t1.P0, mid01);
+      Assert.IsTrue(t1.Overlaps(t2), "overlap (common edge + mid)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // intersect (common edge, outside)
+      U = mid12 - mid01;
+      t2 = Triangle2D.FromPoints(t1.P0, t1.P1, mid12 + U);
+      Assert.IsFalse(t1.Overlaps(t2), "intersect (common edge, outside)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      U = mid20 - mid12;
+      t2 = Triangle2D.FromPoints(t1.P1, t1.P2, mid20 + U);
+      Assert.IsFalse(t1.Overlaps(t2), "intersect (common edge, outside)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      U = mid01 - mid20;
+      t2 = Triangle2D.FromPoints(t1.P2, t1.P0, mid01 + U);
+      Assert.IsFalse(t1.Overlaps(t2), "intersect (common edge, outside)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
     }
 
     [RepeatedTestMethod(100)]

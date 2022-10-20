@@ -86,6 +86,12 @@ namespace GeomSharp {
     public static List<Point3D> RemoveCollinearPoints(this List<Point3D> polyline,
                                                       int decimal_precision = Constants.THREE_DECIMALS) {
       int n = polyline.Count;
+
+      if (n == 2 && polyline[0].AlmostEquals(polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        return new List<Point3D>();
+      }
+
       if (n < 3) {
         return polyline;
         // throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
@@ -104,7 +110,9 @@ namespace GeomSharp {
 
         // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
-        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision)) {
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision) ||
+            new_polyline[i2].AlmostEquals(new_polyline[i1], decimal_precision)) {
+          new_polyline.RemoveAt(i2);
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
         } else {
@@ -124,9 +132,10 @@ namespace GeomSharp {
         }
       }
 
-      // if (n < 2) {
-      //   // warning ("RemoveCollinearPoints had only collinear points, returning empty");
-      // }
+      if (n == 2 && new_polyline[0].AlmostEquals(new_polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        new_polyline.Clear();
+      }
 
       return new_polyline;
     }
@@ -156,9 +165,13 @@ namespace GeomSharp {
     public static List<Point2D> RemoveCollinearPoints(this List<Point2D> polyline,
                                                       int decimal_precision = Constants.THREE_DECIMALS) {
       int n = polyline.Count;
+      if (n == 2 && polyline[0].AlmostEquals(polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        return new List<Point2D>();
+      }
+
       if (n < 3) {
         return polyline;
-        // throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
       }
 
       var new_polyline = new List<Point2D>(polyline);
@@ -173,7 +186,9 @@ namespace GeomSharp {
 
         // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
-        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision)) {
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision) ||
+            new_polyline[i2].AlmostEquals(new_polyline[i1], decimal_precision)) {
+          new_polyline.RemoveAt(i2);
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
         } else {
@@ -193,9 +208,10 @@ namespace GeomSharp {
         }
       }
 
-      // if (n < 2) {
-      //   // warning ("RemoveCollinearPoints had only collinear points, returning empty");
-      // }
+      if (n == 2 && new_polyline[0].AlmostEquals(new_polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        new_polyline.Clear();
+      }
 
       return new_polyline;
     }
