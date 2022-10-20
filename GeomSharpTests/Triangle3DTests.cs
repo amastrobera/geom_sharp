@@ -115,5 +115,13 @@ namespace GeomSharpTests {
     [Ignore]
     [RepeatedTestMethod(1)]
     public void Overlap() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void Adjacency() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void Touch() {}
   }
 }

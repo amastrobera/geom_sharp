@@ -33,7 +33,8 @@ namespace GeomSharp {
       P1 = Origin + 1 * Direction;  // simbolic
     }
 
-    public bool AlmostEquals(Line3D other) => Direction.AlmostEquals(other.Direction);
+    public bool AlmostEquals(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.AlmostEquals(other.Direction, decimal_precision);
 
     public bool Equals(Line3D other) => this.AlmostEquals(other);
 

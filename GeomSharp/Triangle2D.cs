@@ -278,20 +278,33 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public IntersectionResult AdjacentSide(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      var ovlp_01 = LineSegment2D.FromPoints(this.P0, this.P1, decimal_precision).Overlap(other);
-      var ovlp_12 = LineSegment2D.FromPoints(this.P1, this.P2, decimal_precision).Overlap(other);
-      var ovlp_20 = LineSegment2D.FromPoints(this.P2, this.P0, decimal_precision).Overlap(other);
+      // vertex containment
+      var p_in = new List<(Point2D P, bool IsIn)> { (this.P0, other.Contains(this.P0, decimal_precision)),
+                                                    (this.P1, other.Contains(this.P1, decimal_precision)),
+                                                    (this.P2, other.Contains(this.P2, decimal_precision)) };
+      int n_p_in = p_in.Count(a => a.IsIn == true);
 
-      var segment_overlaps =
-          (new List<IntersectionResult> { ovlp_01, ovlp_12, ovlp_20 }).Where(o => o.ValueType == typeof(LineSegment2D));
+      var q_in = new List<(Point2D P, bool IsIn)> { (other.P0, this.Contains(other.P0, decimal_precision)),
+                                                    (other.P1, this.Contains(other.P1, decimal_precision)),
+                                                    (other.P2, this.Contains(other.P2, decimal_precision)) };
 
-      if (segment_overlaps.Count() > 1) {
-        // TODO: warning, this could be an Overlap or Intersection
+      int n_q_in = q_in.Count(a => a.IsIn == true);
+
+      //    if all points are contained, it's overlap
+      if (n_q_in == 3 || n_p_in == 3) {
+        return new IntersectionResult();
+      }
+      // if no points are contained, it's intersection or unrelated
+      if (n_q_in == 0 || n_p_in == 0) {
         return new IntersectionResult();
       }
 
-      if (segment_overlaps.Count() == 1) {
-        return segment_overlaps.First();
+      var all_points_in = p_in.Where(a => a.IsIn).Select(a => a.P).ToList();
+      all_points_in.AddRange(q_in.Where(a => a.IsIn).Select(b => b.P).ToList());
+      all_points_in = all_points_in.RemoveDuplicates(decimal_precision);
+
+      if (all_points_in.Count == 2) {
+        return new IntersectionResult(LineSegment2D.FromPoints(all_points_in[0], all_points_in[1], decimal_precision));
       }
 
       return new IntersectionResult();

@@ -24,6 +24,16 @@ namespace GeomSharp {
     public bool AlmostEquals(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         P0.AlmostEquals(other.P0, decimal_precision) && P1.AlmostEquals(other.P1, decimal_precision);
 
+    /// <summary>
+    /// Almost equals from a to b, or from b to a
+    /// </summary>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public bool IsSameSegment(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        P0.AlmostEquals(other.P0, decimal_precision) && P1.AlmostEquals(other.P1, decimal_precision) ||
+        P1.AlmostEquals(other.P0, decimal_precision) && P0.AlmostEquals(other.P1, decimal_precision);
+
     public bool Equals(LineSegment3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is LineSegment3D &&

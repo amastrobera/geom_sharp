@@ -402,6 +402,76 @@ namespace GeomSharpTests {
       t2 = Triangle2D.FromPoints(p0, p1, p2);
       Assert.IsFalse(t1.Touches(t2), "intersecting\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
     }
+
+    [RepeatedTestMethod(1)]
+    public void Adjacency() {
+      // 2D
+      var t1 = RandomGenerator.MakeTriangle2D().Triangle;
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t1 is null) {
+        return;
+      }
+
+      // temporary data
+      var cm = t1.CenterOfMass();
+      var mid01 = Point2D.FromVector((t1.P0.ToVector() + t1.P1.ToVector()) / 2.0);
+      var mid12 = Point2D.FromVector((t1.P1.ToVector() + t1.P2.ToVector()) / 2.0);
+      var mid20 = Point2D.FromVector((t1.P2.ToVector() + t1.P0.ToVector()) / 2.0);
+      // results and test data
+      Triangle2D t2;
+      IntersectionResult res;
+      Point2D p0, p1, p2;
+
+      // adjacent (same side)
+      p0 = t1.P0;
+      p1 = t1.P1;
+      p2 = mid01 + (mid01 - cm);
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.IsAdjacent(t2), "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.AdjacentSide(t2);
+      Assert.IsTrue(((LineSegment2D)res.Value).IsSameSegment(LineSegment2D.FromPoints(p0, p1)),
+                    "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+      Assert.IsTrue(((LineSegment2D)res.Value).IsSameSegment(LineSegment2D.FromPoints(p1, p0)),
+                    "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      p0 = t1.P1;
+      p1 = t1.P2;
+      p2 = mid12 + (mid12 - cm);
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.IsAdjacent(t2), "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.AdjacentSide(t2);
+      Assert.IsTrue(((LineSegment2D)res.Value).IsSameSegment(LineSegment2D.FromPoints(p0, p1)),
+                    "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      p0 = t1.P2;
+      p1 = t1.P0;
+      p2 = mid20 + (mid20 - cm);
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsTrue(t1.IsAdjacent(t2), "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      res = t1.AdjacentSide(t2);
+      Assert.IsTrue(((LineSegment2D)res.Value).IsSameSegment(LineSegment2D.FromPoints(p0, p1)),
+                    "adjacent (same side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // internal (one side in common)
+      p0 = t1.P0;
+      p1 = t1.P1;
+      p2 = cm;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsFalse(t1.IsAdjacent(t2), "internal (one side in common\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      p0 = t1.P1;
+      p1 = t1.P2;
+      p2 = cm;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsFalse(t1.IsAdjacent(t2), "internal (one side in common\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      p0 = t1.P2;
+      p1 = t1.P0;
+      p2 = cm;
+      t2 = Triangle2D.FromPoints(p0, p1, p2);
+      Assert.IsFalse(t1.IsAdjacent(t2), "internal (one side in common\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+    }
   }
 
 }
