@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Numerics;
 
 namespace GeomSharpTests {
   /// <summary>
@@ -514,10 +513,29 @@ namespace GeomSharpTests {
     }
 
     // Triangle with other basic primitives
+    [RepeatedTestMethod(100)]
+    public void TriangleToPlane() {
+      var random_triangle = RandomGenerator.MakeTriangle3D();
+      var t = random_triangle.Triangle;
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void TriangleToPlane() {}
+      if (t is null) {
+        return;
+      }
+      // cache varibles
+      Point3D cm = t.CenterOfMass();
+      UnitVector3D n = t.RefPlane().Normal;
+      UnitVector3D n_perp =
+          n.CrossProduct((n.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ)).Normalize();
+      Plane plane;
+
+      // no intersection (same plane)
+      plane = t.RefPlane();
+      Assert.IsFalse(t.Intersects(plane), "no intersection (same plane)");
+
+      // intersection (crosses)
+      plane = Plane.FromPointAndNormal(cm, n_perp);
+      Assert.IsTrue(t.Intersects(plane), "intersection (crosses)");
+    }
 
     [RepeatedTestMethod(100)]
     public void TriangleToLine() {

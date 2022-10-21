@@ -96,7 +96,8 @@ namespace GeomSharp {
 
     public bool AlmostEquals(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Normal.AlmostEquals(other.Normal, decimal_precision) &&
-        (Origin - other.Origin).IsPerpendicular(Normal, decimal_precision);
+        (Origin.AlmostEquals(other.Origin, decimal_precision) ||
+         (Origin - other.Origin).IsPerpendicular(Normal, decimal_precision));
 
     public bool Equals(Plane other) => this.AlmostEquals(other);
 

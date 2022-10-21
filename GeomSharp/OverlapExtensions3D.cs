@@ -153,7 +153,6 @@ namespace GeomSharp {
         plane.Overlap(ray, decimal_precision);
 
     // Plane and LineSegment 3D
-
     public static bool Overlaps(this Plane plane,
                                 LineSegment3D segment,
                                 int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -176,6 +175,27 @@ namespace GeomSharp {
                                              Plane plane,
                                              int decimal_precision = Constants.THREE_DECIMALS) =>
         plane.Overlap(segment, decimal_precision);
+
+    // Plane and Triangle 3D
+    public static bool Overlaps(this Plane plane,
+                                Triangle3D triangle,
+                                int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Overlap(triangle, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Overlap(this Plane plane,
+                                             Triangle3D triangle,
+                                             int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.AlmostEquals(triangle.RefPlane(), decimal_precision) ? new IntersectionResult(triangle)
+                                                                   : new IntersectionResult();
+    public static bool Overlaps(this Triangle3D triangle,
+                                Plane plane,
+                                int decimal_precision = Constants.THREE_DECIMALS) => plane.Overlaps(triangle,
+                                                                                                    decimal_precision);
+
+    public static IntersectionResult Overlap(this Triangle3D triangle,
+                                             Plane plane,
+                                             int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Overlap(triangle, decimal_precision);
 
     // Triangle and Line 3D
     public static bool Overlaps(this Triangle3D triangle,

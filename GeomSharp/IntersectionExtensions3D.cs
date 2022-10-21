@@ -178,6 +178,35 @@ namespace GeomSharp {
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         plane.Intersection(line, decimal_precision);
 
+    // Plane and Triangle 3D
+    public static bool Intersects(this Plane plane,
+                                  Triangle3D triangle,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(triangle, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Plane plane,
+                                                  Triangle3D triangle,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var plane_inter = plane.Intersection(triangle.RefPlane());
+      if (plane_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+
+      var line_inter = (Line3D)plane_inter.Value;
+
+      return line_inter.Overlap(triangle);
+    }
+
+    public static bool Intersects(this Triangle3D triangle,
+                                  Plane plane,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersects(triangle, decimal_precision);
+
+    public static IntersectionResult Intersection(this Triangle3D triangle,
+                                                  Plane plane,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(triangle, decimal_precision);
+
     // Plane and Ray 3D
     public static bool Intersects(this Plane plane, Ray3D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
         plane.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
