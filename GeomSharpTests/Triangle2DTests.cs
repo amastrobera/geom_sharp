@@ -403,7 +403,7 @@ namespace GeomSharpTests {
       Assert.IsFalse(t1.Touches(t2), "intersecting\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void Adjacency() {
       // 2D
       var t1 = RandomGenerator.MakeTriangle2D().Triangle;

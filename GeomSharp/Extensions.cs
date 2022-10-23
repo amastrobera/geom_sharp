@@ -62,7 +62,7 @@ namespace GeomSharp {
 
     public static List<Point3D> RemoveDuplicates(this List<Point3D> point_list,
                                                  int decimal_precision = Constants.THREE_DECIMALS) {
-      if (point_list.Count > 0) {
+      if (point_list.Count == 0) {
         return new List<Point3D>();
       }
 

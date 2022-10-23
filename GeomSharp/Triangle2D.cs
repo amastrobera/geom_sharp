@@ -338,7 +338,7 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
 
-      var point_list = segment_touch_points.Select(pr => pr.Point).ToList().RemoveDuplicates();
+      var point_list = segment_touch_points.Select(pr => pr.Point).ToList().RemoveDuplicates(decimal_precision);
 
       if (point_list.Count > 1) {
         // TODO: warning, this could be an Overlap or Intersection

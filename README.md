@@ -189,9 +189,9 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :x: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
 | | Touch | |
-| | | :x: Triangle/Triangle | 
+| | | :x: :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | Adjacency | |
-| | | :x: Triangle/Triangle | 
+| | | :x: :heavy_check_mark: :test_tube: Triangle/Triangle | 
 
 
 
