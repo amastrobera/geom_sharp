@@ -130,11 +130,18 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
 
+      // the segment overlap in 2D must belong to both triangles
       var inter_segment = (LineSegment3D)ovlp_this.Value;
       var ovlp_other = inter_segment.Overlap(other);
       if (ovlp_other.ValueType != typeof(LineSegment3D)) {
         return new IntersectionResult();
       }
+
+      // the segment overlap must not be an adjacent side
+      if (ovlp_other.AlmostEquals(AdjacentSide(other), decimal_precision)) {
+        return new IntersectionResult();
+      }
+
       return ovlp_other;
     }
 
@@ -169,12 +176,21 @@ namespace GeomSharp {
 
       var ovlp = this_2d.Overlap(other_2d);
       if (ovlp.ValueType != typeof(NullValue)) {
-        return ovlp;
+        if (ovlp.ValueType == typeof(Triangle2D)) {
+          return new IntersectionResult(plane.Evaluate((Triangle2D)ovlp.Value));
+        }
+        throw new Exception("unhandled case of triangle overlap: " + ovlp.ValueType);
       }
 
       var inter = this_2d.Intersection(other_2d);
       if (inter.ValueType != typeof(NullValue)) {
-        return inter;
+        if (inter.ValueType == typeof(Triangle2D)) {
+          return new IntersectionResult(plane.Evaluate((Triangle2D)inter.Value));
+        }
+        if (inter.ValueType == typeof(Polygon2D)) {
+          return new IntersectionResult(plane.Evaluate((Polygon2D)inter.Value));
+        }
+        throw new Exception("unhandled case of triangle intersection: " + inter.ValueType);
       }
 
       return new IntersectionResult();
@@ -323,5 +339,4 @@ namespace GeomSharp {
           P2.Z);
     }
   }
-
 }

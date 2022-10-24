@@ -108,13 +108,180 @@ namespace GeomSharpTests {
       TestContains(RandomGenerator.MakeTriangle3D().Triangle);
     }
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void Intersection() {}
+    [RepeatedTestMethod(100)]
+    public void Intersection() {
+      var t1 = RandomGenerator.MakeTriangle3D().Triangle;
 
-    [Ignore]
-    [RepeatedTestMethod(1)]
-    public void Overlap() {}
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t1 is null) {
+        return;
+      }
+
+      // temporary data
+      var cm = t1.CenterOfMass();
+      var mid01 = Point3D.FromVector((t1.P0.ToVector() + t1.P1.ToVector()) / 2.0);
+      var mid12 = Point3D.FromVector((t1.P1.ToVector() + t1.P2.ToVector()) / 2.0);
+      var mid20 = Point3D.FromVector((t1.P2.ToVector() + t1.P0.ToVector()) / 2.0);
+      // results and test data
+      Triangle3D t2;
+      IntersectionResult res;
+      Point3D p0, p1, p2;
+
+      // intersection (inside)
+      p0 = cm + t1.Normal * 2;
+      p1 = t1.P0 - 2 * t1.Normal;
+      p2 = t1.P1 - 2 * t1.Normal;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "intersection (same triangle)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(LineSegment3D),
+                    "intersection (same triangle)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // intersection (on edge)
+      p0 = mid01 + t1.Normal * 2;
+      p1 = t1.P0 - 2 * t1.Normal;
+      p2 = t1.P1 - 2 * t1.Normal;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "intersection (on edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(LineSegment3D),
+                    "intersection (on edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      p0 = mid12 + t1.Normal * 2;
+      p1 = t1.P1 - 2 * t1.Normal;
+      p2 = t1.P2 - 2 * t1.Normal;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "intersection (on edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(LineSegment3D),
+                    "intersection (on edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      p0 = mid20 + t1.Normal * 2;
+      p1 = t1.P2 - 2 * t1.Normal;
+      p2 = t1.P0 - 2 * t1.Normal;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "intersection (on edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(LineSegment3D),
+                    "intersection (on edge)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // no intersection (touch mid)
+      p0 = mid01;
+      p1 = t1.P0 - 2 * t1.Normal;
+      p2 = t1.P1 - 2 * t1.Normal;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsFalse(res.ValueType != typeof(NullValue),
+                     "no intersection (touch mid)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // no intersection (adjacency)
+      p0 = mid01 + 2 * t1.Normal;
+      p1 = t1.P0;
+      p2 = t1.P1;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsFalse(res.ValueType != typeof(NullValue),
+                     "no intersection (adjacency)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // no intersection (overlap)
+      p0 = cm;
+      p1 = t1.P1 + 2 * (mid12 - cm);
+      p2 = t1.P2 + 2 * (mid12 - cm);
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Intersection(t2);
+      Assert.IsFalse(res.ValueType != typeof(NullValue),
+                     "no intersection (overlap)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+    }
+
+    [RepeatedTestMethod(100)]
+    public void Overlap() {
+      var t1 = RandomGenerator.MakeTriangle3D().Triangle;
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (t1 is null) {
+        return;
+      }
+
+      // temporary data
+      var cm = t1.CenterOfMass();
+      var mid01 = Point3D.FromVector((t1.P0.ToVector() + t1.P1.ToVector()) / 2.0);
+      var mid12 = Point3D.FromVector((t1.P1.ToVector() + t1.P2.ToVector()) / 2.0);
+      var mid20 = Point3D.FromVector((t1.P2.ToVector() + t1.P0.ToVector()) / 2.0);
+      // results and test data
+      Triangle3D t2;
+      IntersectionResult res;
+      Point3D p0, p1, p2;
+
+      // overlap (same triangle)
+      p0 = t1.P0;
+      p1 = t1.P1;
+      p2 = t1.P2;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Overlap(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "overlap (same triangle)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(Triangle3D),
+                    "overlap (same triangle)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+      Assert.IsTrue(((Triangle3D)res.Value).AlmostEquals(t1),
+                    "overlap (same triangle)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // overlap (contained cm)
+      p0 = t1.P0;
+      p1 = t1.P1;
+      p2 = cm;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Overlap(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "overlap (contained cm)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(Triangle3D),
+                    "overlap (contained cm)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // overlap (one side in common)
+      p0 = t1.P0;
+      p1 = t1.P1;
+      p2 = cm + 2 * (mid20 - cm);
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Overlap(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "overlap (one side in common)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(Triangle3D),
+                    "overlap (one side in common)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // overlap (star of David)
+      p0 = mid12 + 0.5 * (mid12 - cm);
+      p1 = mid20 + 0.5 * (mid20 - cm);
+      p2 = mid01 + 0.5 * (mid01 - cm);
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Overlap(t2);
+      Assert.IsTrue(res.ValueType != typeof(NullValue),
+                    "overlap (star of David)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+      Assert.IsTrue(res.ValueType == typeof(Polygon3D),
+                    "overlap (star of David)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+      Assert.IsTrue(((Polygon3D)res.Value).Size == 6,
+                    "overlap (star of David)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt() + "\n\ttype=" + res);
+
+      // no overlap (touch one vertex)
+      p0 = t1.P0;
+      p1 = t1.P0 + (t1.P0 - t1.P1);
+      p2 = t1.P0 + (t1.P0 - t1.P2);
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Overlap(t2);
+      Assert.IsFalse(res.ValueType != typeof(NullValue),
+                     "no overlap (touch one vertex)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+
+      // no overlap (adjacent side)
+      p0 = t1.P0;
+      p1 = t1.P1;
+      p2 = mid01 + 2 * (cm - mid01) - t1.Normal * 2;
+      t2 = Triangle3D.FromPoints(p0, p1, p2);
+      res = t1.Overlap(t2);
+      Assert.IsFalse(res.ValueType != typeof(NullValue),
+                     "no overlap (adjacent side)\n\tt1=" + t1.ToWkt() + "\n\tt2=" + t2.ToWkt());
+    }
 
     [RepeatedTestMethod(100)]
     public void Adjacency() {

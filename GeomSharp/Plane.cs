@@ -279,6 +279,15 @@ namespace GeomSharp {
     /// <returns></returns>
     public Point3D Evaluate(Point2D p) => Origin + AxisU * p.U + AxisV * p.V;
 
+    public LineSegment3D Evaluate(LineSegment2D shape_2d) => LineSegment3D.FromPoints(Evaluate(shape_2d.P0),
+                                                                                      Evaluate(shape_2d.P1));
+
+    public Triangle3D Evaluate(Triangle2D shape_2d) => Triangle3D.FromPoints(Evaluate(shape_2d.P0),
+                                                                             Evaluate(shape_2d.P1),
+                                                                             Evaluate(shape_2d.P2));
+
+    public Polygon3D Evaluate(Polygon2D shape_2d) => new Polygon3D(shape_2d.Select(p => Evaluate(p)));
+
     public bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
