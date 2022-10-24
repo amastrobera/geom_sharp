@@ -36,18 +36,18 @@ namespace GeomSharp {
                              int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(_Radians - other.Radians,
                                                                                              decimal_precision) != 0;
 
-    public bool Equals(Angle other) => Math.Round(_Radians - other.Radians, Constants.NINE_DECIMALS) != 0;
+    public bool Equals(Angle other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Angle && this.Equals((Angle)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Angle a, Angle b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Angle a, Angle b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public override string ToString() {

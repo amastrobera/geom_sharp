@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
@@ -19,27 +17,26 @@ namespace GeomSharp {
 
     public Vector2D(Vector2D copy) => (U, V) = (copy.U, copy.V);
 
-    protected Vector2D(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 2) {
+    protected Vector2D(Vector copy_raw) {
+      if (copy_raw.Size != 2) {
         throw new ArgumentException(
-            String.Format("tried to initialize a Vector2D with an {0:D}-dimention vector", copy_raw.Count()));
+            String.Format("tried to initialize a Vector2D with an {0:D}-dimention vector", copy_raw.Size));
       }
       U = copy_raw[0];  // U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
       V = copy_raw[1];  // V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
     }
 
     // unary operations
-    public static Vector2D FromVector(Vector<double> v) {
+    public static Vector2D FromVector(Vector v) {
       return new Vector2D(v);
     }
-    public double[] ToArray() => new double[] { U, V };
+    public double[] ToArray() => ToVector().ToArray();
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
+    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
 
     // unary methods
 
-    public double Length() => ToVector().L1Norm();  // weird rounding errors
-    // public double Length() => Math.Sqrt(U * U + V * V);
+    public double Length() => ToVector().Length();
 
     public UnitVector2D Normalize() {
       double norm = Length();
@@ -54,11 +51,19 @@ namespace GeomSharp {
       return UnitVector2D.FromDoubles(this.U / norm, this.V / norm);
     }
 
-    public bool SameDirectionAs(Vector2D other) =>
-        IsParallel(other) && Math.Sign(U) == Math.Sign(other.U) && Math.Sign(V) == Math.Sign(other.V);
+    public bool SameDirectionAs(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(U, decimal_precision)) == Math.Sign(Math.Round(other.U, decimal_precision)) &&
+        Math.Sign(Math.Round(V, decimal_precision)) ==
+            Math.Sign(Math.Round(other.V,
+                                 decimal_precision));  // comparing the signs instead of the product avoids overflow
 
-    public bool OppositeDirectionAs(Vector2D other) =>
-        IsParallel(other) && Math.Sign(U) != Math.Sign(other.U) && Math.Sign(V) != Math.Sign(other.V);
+    public bool OppositeDirectionAs(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(U, decimal_precision)) != Math.Sign(Math.Round(other.U, decimal_precision)) &&
+        Math.Sign(Math.Round(V, decimal_precision)) !=
+            Math.Sign(Math.Round(other.V,
+                                 decimal_precision));  // comparing the signs instead of the product avoids overflow
 
     /// <summary>
     /// Equality check with custom tolerance adjustment
@@ -69,20 +74,18 @@ namespace GeomSharp {
     public bool AlmostEquals(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Math.Round(this.U - other.U, decimal_precision) == 0 && Math.Round(this.V - other.V, decimal_precision) == 0;
 
-    public bool Equals(Vector2D other) =>
-        Math.Round(this.U - other.U, Constants.NINE_DECIMALS) == 0 && Math.Round(this.V - other.V,
-                                                                                 Constants.NINE_DECIMALS) == 0;
+    public bool Equals(Vector2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Vector2D && this.Equals((Vector2D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Vector2D a, Vector2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Vector2D a, Vector2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // binary operations
@@ -124,9 +127,13 @@ namespace GeomSharp {
 
     public double CrossProduct(Vector2D other) => PerpProduct(other);
 
-    public bool IsPerpendicular(Vector2D b) => Math.Round(DotProduct(b), Constants.THREE_DECIMALS) == 0;
+    public bool IsPerpendicular(Vector2D b,
+                                int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(DotProduct(b),
+                                                                                                decimal_precision) == 0;
 
-    public bool IsParallel(Vector2D b) => Math.Round(PerpProduct(b), Constants.THREE_DECIMALS) == 0;
+    public bool IsParallel(Vector2D b,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(PerpProduct(b),
+                                                                                           decimal_precision) == 0;
 
     /// <summary>
     /// Angle spanned between two vectors

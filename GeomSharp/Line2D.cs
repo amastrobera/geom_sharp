@@ -1,9 +1,4 @@
-﻿using MathNet.Numerics.RootFinding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace GeomSharp {
   /// <summary>
@@ -17,9 +12,10 @@ namespace GeomSharp {
     public Point2D Origin { get; }
     public UnitVector2D Direction { get; }
 
-    public static Line2D FromTwoPoints(Point2D p0, Point2D p1) =>
-        p0.Equals(p1) ? throw new NullLengthException("trying to initialize a line with two identical points")
-                      : new Line2D(p0, p1);
+    public static Line2D FromTwoPoints(Point2D p0, Point2D p1, int decimal_precision = Constants.THREE_DECIMALS) =>
+        p0.AlmostEquals(p1, decimal_precision)
+            ? throw new NullLengthException("trying to initialize a line with two identical points")
+            : new Line2D(p0, p1);
 
     public static Line2D FromDirection(Point2D origin, UnitVector2D direction) => new Line2D(origin, direction);
 
@@ -37,25 +33,32 @@ namespace GeomSharp {
       P1 = Origin + 1 * Direction;
     }
 
-    public bool Equals(Line2D other) => Direction.Equals(other.Direction);
+    public bool AlmostEquals(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.AlmostEquals(other.Direction, decimal_precision);
+
+    public bool Equals(Line2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Line2D && this.Equals((Line2D)other);
 
     public override int GetHashCode() => Direction.ToWkt().GetHashCode();
 
     public static bool operator ==(Line2D a, Line2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Line2D a, Line2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
-    public bool IsParallel(Line2D other) => Direction.IsParallel(other.Direction);
+    public bool IsParallel(Line2D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
+                                                                                                     decimal_precision);
 
-    public bool IsPerpendicular(Line2D other) => Direction.IsPerpendicular(other.Direction);
+    public bool IsPerpendicular(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Direction.IsPerpendicular(other.Direction, decimal_precision);
 
-    public bool Contains(Point2D p) => Location(p) == Constants.Location.ON_LINE;
+    public bool Contains(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Location(p, decimal_precision) == Constants.Location.ON_LINE;
 
     /// <summary>
     /// Projects a Point onto a line
@@ -85,7 +88,7 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public double SignedDistanceTo(Point2D p) => Math.Round(Direction.PerpProduct(p - Origin), Constants.NINE_DECIMALS);
+    public double SignedDistanceTo(Point2D p) => Direction.PerpProduct(p - Origin);
 
     /// <summary>
     /// Tells what the location is for a Point relative to the Line, on the 2D plane
@@ -94,8 +97,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public Constants.Location Location(Point2D p) {
-      var perp_prod = Math.Round(Direction.PerpProduct(p - Origin), Constants.THREE_DECIMALS);
+    public Constants.Location Location(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {
+      var perp_prod = Math.Round(Direction.PerpProduct(p - Origin), decimal_precision);
       if (perp_prod == 0) {
         return Constants.Location.ON_LINE;
       }
@@ -110,8 +113,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Intersects(Line2D other) {
-      return !IsParallel(other);  // in 2D you only have two chances: parallel or intersecting
+    public bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      return !IsParallel(other, decimal_precision);  // in 2D you only have two chances: parallel or intersecting
     }
 
     /// <summary>
@@ -119,8 +122,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Intersection(Line2D other) {
-      if (!Intersects(other)) {
+    public IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!Intersects(other, decimal_precision)) {
         return new IntersectionResult();
       }
 
@@ -132,7 +135,7 @@ namespace GeomSharp {
       double sI = -V.PerpProduct(W) / V.PerpProduct(U);  // guaranteed non-zero if non-parallel
 
       var Ps = Origin + sI * Direction;
-      if (!(Contains(Ps) && other.Contains(Ps))) {
+      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
         throw new Exception(String.Format("Intersection({0}) miscalculated Ps", GetType().ToString().ToString()));
       }
 
@@ -144,11 +147,11 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Overlaps(Line2D other) {
-      if (!IsParallel(other)) {
+    public bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
         return false;
       }
-      if (Contains(other.Origin)) {
+      if (Contains(other.Origin, decimal_precision)) {
         return true;
       }
       return false;
@@ -159,8 +162,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Overlap(Line2D other) => Overlaps(other) ? new IntersectionResult(this)
-                                                                       : new IntersectionResult();
+    public IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
 
     public string ToWkt(int precision = Constants.THREE_DECIMALS) {
       (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);

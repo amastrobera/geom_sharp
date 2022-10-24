@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
@@ -17,23 +15,23 @@ namespace GeomSharp {
 
     public Point2D(Point2D copy) => (U, V) = (copy.U, copy.V);
 
-    public Point2D(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 2) {
+    public Point2D(Vector copy_raw) {
+      if (copy_raw.Size != 2) {
         throw new ArgumentException(
-            String.Format("tried to initialize a Point2D with an {0:D}-dimention vector", copy_raw.Count()));
+            String.Format("tried to initialize a Point2D with an {0:D}-dimention vector", copy_raw.Size));
       }
       U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
       V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
     }
 
     // unary operations
-    public static Point2D FromVector(Vector<double> v) {
+    public static Point2D FromVector(Vector v) {
       return new Point2D(v);
     }
 
     public double[] ToArray() => new double[] { U, V };
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { U, V });
+    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
 
     public Vector2D ToVector2D() {
       return new Vector2D(U, V);
@@ -48,20 +46,18 @@ namespace GeomSharp {
     public bool AlmostEquals(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Math.Round(this.U - other.U, decimal_precision) == 0 && Math.Round(this.V - other.V, decimal_precision) == 0;
 
-    public bool Equals(Point2D other) =>
-        Math.Round(this.U - other.U, Constants.NINE_DECIMALS) == 0 && Math.Round(this.V - other.V,
-                                                                                 Constants.NINE_DECIMALS) == 0;
+    public bool Equals(Point2D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
 
     public override int GetHashCode() => ToWkt().GetHashCode();
 
     public static bool operator ==(Point2D a, Point2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Point2D a, Point2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // arithmetics with Points

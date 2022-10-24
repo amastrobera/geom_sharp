@@ -484,7 +484,7 @@ namespace GeomSharpTests {
       Assert.IsFalse(ray.Intersects(t), "ray overlapping an edge t=" + t.ToWkt() + ", ray=" + ray.ToWkt());
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void TriangleToLineSegment() {
       var random_triangle = RandomGenerator.MakeTriangle2D();
       var t = random_triangle.Triangle;
@@ -498,7 +498,7 @@ namespace GeomSharpTests {
       Point2D cm = t.CenterOfMass();
       LineSegment2D segment;
       Point2D lp0, lp1;
-      Vector2D U;
+      Vector2D U, V;
 
       // case 1: intersect
       //    perpendicular to an edge
@@ -556,23 +556,29 @@ namespace GeomSharpTests {
       Assert.IsTrue(segment.Intersects(t), "segment through a vertex t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
       // case 2: parallel (no intersect)
+      // a segment parallel to P0-P1 and lying above P2
       U = (t.P1 - t.P0);
-      lp0 = t.P2 + (cm - t.P2) + U * 2;
-      lp1 = t.P2 + (cm - t.P2) - U * 2;
+      V = t.P2 - cm;
+      lp0 = t.P2 + V + U * 2;
+      lp1 = t.P2 + V - U * 2;
       segment = LineSegment2D.FromPoints(lp0, lp1);
       Assert.IsFalse(segment.Intersects(t),
                      "external segment parallel to an edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
+      // a segment parallel to P1-P2 and lying above P0
       U = (t.P2 - t.P1);
-      lp0 = t.P0 + (cm - t.P0) + U * 2;
-      lp1 = t.P0 + (cm - t.P0) - U * 2;
+      V = t.P0 - cm;
+      lp0 = t.P0 + V + U * 2;
+      lp1 = t.P0 + V - U * 2;
       segment = LineSegment2D.FromPoints(lp0, lp1);
       Assert.IsFalse(segment.Intersects(t),
                      "external segment parallel to an edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
 
+      // a segment parallel to P2-P0 and lying above P1
       U = (t.P0 - t.P2);
-      lp0 = t.P1 + (cm - t.P1) + U * 2;
-      lp1 = t.P1 + (cm - t.P1) - U * 2;
+      V = t.P1 - cm;
+      lp0 = t.P1 + V + U * 2;
+      lp1 = t.P1 + V - U * 2;
       segment = LineSegment2D.FromPoints(lp0, lp1);
       Assert.IsFalse(segment.Intersects(t),
                      "external segment parallel to an edge t=" + t.ToWkt() + ", segment=" + segment.ToWkt());

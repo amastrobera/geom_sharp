@@ -34,11 +34,11 @@ namespace GeomSharp {
       }
     }
 
-    public bool Equals(Polygon2D other) {
+    public bool AlmostEquals(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other.Size != Size) {
         return false;
       }
-      var points_hashset = Vertices.ToHashSet();
+      var points_hashset = Vertices.ToHashSet();  // TODO: better function using decimal_precision
       foreach (var p in other) {
         if (!points_hashset.Contains(p)) {
           return false;
@@ -48,16 +48,17 @@ namespace GeomSharp {
       return true;
     }
 
+    public bool Equals(Polygon2D other) => this.AlmostEquals(other);
     public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Polygon2D a, Polygon2D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Polygon2D a, Polygon2D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public IEnumerator<Point2D> GetEnumerator() {
@@ -117,28 +118,20 @@ namespace GeomSharp {
     }
 
     /// <summary>
-    /// Sorts a list of points in CCW order
-    /// </summary>
-    /// <param name="points">list of DB.XYZ</param>
-    /// <returns></returns>
-    private static List<Point2D> SortCCW(List<Point2D> points) {
-      var centroid = points.Average();
-      var u_axis = Vector2D.AxisU;
-      var v_axis = Vector2D.AxisV;
-      points.Sort((p1, p2) =>
-                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) < u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
-      return points;
-    }
-
-    /// <summary>
     /// Sorts a list of points in CCW order and creates a polygon out of it
     /// </summary>
     /// <param name="points">list of DB.XYZ</param>
     /// <returns></returns>
-    public static Polygon2D ConcaveHull(List<Point2D> points) => new Polygon2D(SortCCW(points));
+    public static Polygon2D ConcaveHull(List<Point2D> points) {
+      var sorted_points = new List<Point2D>(points);
+      sorted_points.SortCCW();
+
+      return new Polygon2D(sorted_points);
+    }
 
     public static Polygon2D ConvexHull(List<Point2D> points) {
-      var sorted_points = SortCCW(points);
+      var sorted_points = new List<Point2D>(points);
+      sorted_points.SortCCW();
 
       // pick the lowest point
       int n = points.Count;

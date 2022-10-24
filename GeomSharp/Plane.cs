@@ -26,14 +26,16 @@ namespace GeomSharp {
                   UnitVector3D u_axis,
                   UnitVector3D v_axis) => (Origin, Normal, AxisU, AxisV) = (origin, normal, u_axis, v_axis);
 
-    public static Plane FromPoints(Point3D p0, Point3D p1, Point3D p2) {
+    public static Plane FromPoints(Point3D p0,
+                                   Point3D p1,
+                                   Point3D p2,
+                                   int decimal_precision = Constants.THREE_DECIMALS) {
       var U = p1 - p0;
       var V = p2 - p0;
-      if (Math.Round(U.Length(), Constants.THREE_DECIMALS) == 0 ||
-          Math.Round(V.Length(), Constants.THREE_DECIMALS) == 0) {
+      if (Math.Round(U.Length(), decimal_precision) == 0 || Math.Round(V.Length(), decimal_precision) == 0) {
         throw new ArithmeticException("tried to create a plane from two repeated points and another");
       }
-      if (U.IsParallel(V)) {
+      if (U.IsParallel(V, decimal_precision)) {
         throw new ArithmeticException("tried to create a plane from collinear points");
       }
       // make U and V perpendicular by using the normal
@@ -43,12 +45,12 @@ namespace GeomSharp {
       return new Plane(p0, n, u, v);
     }
 
-    public static Plane FromPointAndLine(Point3D p, Line3D line) {
-      return FromPoints(p, line.P0, line.P1);  // will throw if collinear
+    public static Plane FromPointAndLine(Point3D p, Line3D line, int decimal_precision = Constants.THREE_DECIMALS) {
+      return FromPoints(p, line.P0, line.P1, decimal_precision);  // will throw if collinear
     }
 
-    public static Plane FromTwoLines(Line3D line1, Line3D line2) {
-      var result = line1.Intersection(line2);
+    public static Plane FromTwoLines(Line3D line1, Line3D line2, int decimal_precision = Constants.THREE_DECIMALS) {
+      var result = line1.Intersection(line2, decimal_precision);
       if (result.ValueType != typeof(Point3D)) {
         throw new ArithmeticException("cannot build a plane from two lines non-intersecting");
       }
@@ -61,7 +63,9 @@ namespace GeomSharp {
       return new Plane(origin, n, u, v);
     }
 
-    public static Plane FromPointAndNormal(Point3D origin, UnitVector3D normal) {
+    public static Plane FromPointAndNormal(Point3D origin,
+                                           UnitVector3D normal,
+                                           int decimal_precision = Constants.THREE_DECIMALS) {
       // pick a point slightly off the origin, project it on a temporary plane
       var other = Point3D.FromVector(origin.ToVector() + 1);   // add a unit to any dimension
       var temp_plane = new Plane(origin, normal, null, null);  // initialize without U/V axis
@@ -70,18 +74,18 @@ namespace GeomSharp {
       // compute AxisU
       var u_axis = (proj_other - origin).Normalize();
       //      test that the axis belongs to the plane (perpendicular to the normal)
-      if (Math.Round(u_axis.DotProduct(temp_plane.Normal), Constants.THREE_DECIMALS) != 0) {
+      if (Math.Round(u_axis.DotProduct(temp_plane.Normal), decimal_precision) != 0) {
         throw new Exception("FromPointAndNormal failed (u_axis perp to normal)");
       }
 
       // compute AxisV (cross prod of ZX axis: Normal x AxisU)
       var v_axis = temp_plane.Normal.CrossProduct(u_axis).Normalize();
       //      test that the axis belongs to the plane (perpendicular to the normal)
-      if (Math.Round(v_axis.DotProduct(temp_plane.Normal), Constants.THREE_DECIMALS) != 0) {
+      if (Math.Round(v_axis.DotProduct(temp_plane.Normal), decimal_precision) != 0) {
         throw new Exception("FromPointAndNormal failed (v_axis perp to normal)");
       }
 
-      if (Math.Round(v_axis.DotProduct(u_axis), Constants.THREE_DECIMALS) != 0) {
+      if (Math.Round(v_axis.DotProduct(u_axis), decimal_precision) != 0) {
         throw new Exception("FromPointAndNormal failed (v_axis perp u_axis)");
       }
 
@@ -90,22 +94,23 @@ namespace GeomSharp {
 
     // unary operations
 
-    public bool AlmostEquals(Plane other) => Normal.AlmostEquals(other.Normal) &&
-                                             (Origin - other.Origin).IsPerpendicular(Normal);
+    public bool AlmostEquals(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Normal.AlmostEquals(other.Normal, decimal_precision) &&
+        (Origin.AlmostEquals(other.Origin, decimal_precision) ||
+         (Origin - other.Origin).IsPerpendicular(Normal, decimal_precision));
 
-    public bool Equals(Plane other) => Normal.Equals(other.Normal) &&
-                                       (Origin.Equals(other.Origin) || (other.Origin - Origin).IsPerpendicular(Normal));
+    public bool Equals(Plane other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Plane && this.Equals((Plane)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Plane a, Plane b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Plane a, Plane b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     /// <summary>
@@ -135,13 +140,18 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public bool Contains(Point3D p) => Math.Round(SignedDistance(p), Constants.THREE_DECIMALS) == 0;
+    public bool Contains(Point3D p,
+                         int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(SignedDistance(p),
+                                                                                         decimal_precision) == 0;
 
-    public bool Contains(Line3D line) => Normal.IsPerpendicular(line.Direction) && Contains(line.Origin);
+    public bool Contains(Line3D line, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Normal.IsPerpendicular(line.Direction, decimal_precision) && Contains(line.Origin, decimal_precision);
 
-    public bool Contains(Ray3D r) => Normal.IsPerpendicular(r.Direction) && Contains(r.Origin);
+    public bool Contains(Ray3D r, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Normal.IsPerpendicular(r.Direction, decimal_precision) && Contains(r.Origin, decimal_precision);
 
-    public bool Contains(LineSegment3D s) => Normal.IsPerpendicular(s.P1 - s.P0) && Contains(s.P0);
+    public bool Contains(LineSegment3D s, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Normal.IsPerpendicular(s.P1 - s.P0, decimal_precision) && Contains(s.P0, decimal_precision);
 
     /// <summary>
     /// Projects orthogonally the point on the plane
@@ -269,7 +279,17 @@ namespace GeomSharp {
     /// <returns></returns>
     public Point3D Evaluate(Point2D p) => Origin + AxisU * p.U + AxisV * p.V;
 
-    public bool Intersects(Plane other) => Intersection(other).ValueType != typeof(NullValue);
+    public LineSegment3D Evaluate(LineSegment2D shape_2d) => LineSegment3D.FromPoints(Evaluate(shape_2d.P0),
+                                                                                      Evaluate(shape_2d.P1));
+
+    public Triangle3D Evaluate(Triangle2D shape_2d) => Triangle3D.FromPoints(Evaluate(shape_2d.P0),
+                                                                             Evaluate(shape_2d.P1),
+                                                                             Evaluate(shape_2d.P2));
+
+    public Polygon3D Evaluate(Polygon2D shape_2d) => new Polygon3D(shape_2d.Select(p => Evaluate(p)));
+
+    public bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     /// <summary>
     /// Tells if a plane intersects another and computes the Line intesection (or null if they don't intersect).
@@ -281,8 +301,8 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public IntersectionResult Intersection(Plane other) {
-      if (Normal.IsParallel(other.Normal)) {
+    public IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Normal.IsParallel(other.Normal, decimal_precision)) {
         return new IntersectionResult();
       }
 
@@ -293,7 +313,7 @@ namespace GeomSharp {
 
       var pI = Point3D.Zero + (d2 * Normal - d1 * other.Normal).CrossProduct(U) / U.DotProduct(U);
 
-      if (!(Contains(pI) && other.Contains(pI))) {
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
         throw new Exception("plane.Intersection(plane) failed computation: pI does not belong to planes");
       }
 

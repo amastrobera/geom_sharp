@@ -48,14 +48,14 @@ namespace GeomSharp {
       }
     }
 
-    public bool Equals(Polygon3D other) {
+    public bool AlmostEquals(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other.Size != Size) {
         return false;
       }
       if (!Normal.AlmostEquals(other.Normal)) {
         return false;
       }
-      var points_hashset = Vertices.ToHashSet();
+      var points_hashset = Vertices.ToHashSet();  // TODO: better function with decimal_precision
       foreach (var p in other) {
         if (!points_hashset.Contains(p)) {
           return false;
@@ -64,17 +64,17 @@ namespace GeomSharp {
 
       return true;
     }
-
+    public bool Equals(Polygon3D other) => this.AlmostEquals(other);
     public override bool Equals(object other) => other != null && other is Point3D && this.Equals((Point3D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Polygon3D a, Polygon3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Polygon3D a, Polygon3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     public IEnumerator<Point3D> GetEnumerator() {

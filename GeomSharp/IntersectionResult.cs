@@ -38,7 +38,62 @@ namespace GeomSharp {
     public IntersectionResult(Polygon2D v) => (Value, ValueType) = (v, v.GetType());
     public IntersectionResult(Polygon3D v) => (Value, ValueType) = (v, v.GetType());
 
-    public bool Equals(IntersectionResult other) => ValueType.Equals(other.ValueType) && Value.Equals(other.Value);
+    public bool AlmostEquals(IntersectionResult other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!ValueType.Equals(other.ValueType)) {
+        return false;
+      }
+
+      // 2D
+      if (ValueType == typeof(Point2D)) {
+        return ((Point2D)Value).AlmostEquals((Point2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Line2D)) {
+        return ((Line2D)Value).AlmostEquals((Line2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(LineSegment2D)) {
+        return ((LineSegment2D)Value).AlmostEquals((LineSegment2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Ray2D)) {
+        return ((Ray2D)Value).AlmostEquals((Ray2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Triangle2D)) {
+        return ((Triangle2D)Value).AlmostEquals((Triangle2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Polyline2D)) {
+        return ((Polyline2D)Value).AlmostEquals((Polyline2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Triangle2D)) {
+        return ((Polygon2D)Value).AlmostEquals((Polygon2D)other.Value, decimal_precision);
+      }
+
+      // 3D
+      if (ValueType == typeof(Point3D)) {
+        return ((Point3D)Value).AlmostEquals((Point3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Line3D)) {
+        return ((Line3D)Value).AlmostEquals((Line3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(LineSegment3D)) {
+        return ((LineSegment3D)Value).AlmostEquals((LineSegment3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Ray3D)) {
+        return ((Ray3D)Value).AlmostEquals((Ray3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Triangle3D)) {
+        return ((Triangle3D)Value).AlmostEquals((Triangle3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Polyline3D)) {
+        return ((Polyline3D)Value).AlmostEquals((Polyline3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(Triangle3D)) {
+        return ((Polygon3D)Value).AlmostEquals((Polygon3D)other.Value, decimal_precision);
+      }
+
+      // other (exception)
+      throw new Exception("unhandled value type = " + ValueType);
+    }
+
+    public bool Equals(IntersectionResult other) => AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Angle && this.Equals((Angle)other);
 
@@ -53,7 +108,7 @@ namespace GeomSharp {
     }
 
     public override string ToString() {
-      return ValueType.ToString() + ": " + Value.ToString();
+      return ValueType.ToString() + ((Value is null) ? "" : ": " + Value.ToString());
     }
   }
 }

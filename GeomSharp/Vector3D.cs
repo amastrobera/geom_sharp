@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
 
 namespace GeomSharp {
   /// <summary>
@@ -21,10 +19,10 @@ namespace GeomSharp {
 
     public Vector3D(Vector3D copy) => (X, Y, Z) = (copy.X, copy.Y, copy.Z);
 
-    private Vector3D(Vector<double> copy_raw) {
-      if (copy_raw.Count() != 3) {
+    private Vector3D(Vector copy_raw) {
+      if (copy_raw.Size != 3) {
         throw new ArgumentException(
-            String.Format("tried to initialize a Point3D with an {0:D}-dimention vector", copy_raw.Count()));
+            String.Format("tried to initialize a Point3D with an {0:D}-dimention vector", copy_raw.Size));
       }
       X = copy_raw[0];  // X = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
       Y = copy_raw[1];  // Y = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
@@ -33,16 +31,15 @@ namespace GeomSharp {
 
     // unary operations
 
-    public static Vector3D FromVector(Vector<double> v) {
+    public static Vector3D FromVector(Vector v) {
       return new Vector3D(v);
     }
 
-    public double[] ToArray() => new double[] { X, Y, Z };
+    public double[] ToArray() => ToVector().ToArray();
 
-    public Vector<double> ToVector() => Vector<double>.Build.Dense(new double[] { X, Y, Z });
+    public Vector ToVector() => Vector.FromArray(new double[] { X, Y, Z });
 
-    public double Length() => ToVector().L1Norm();
-    // public double Length() => Math.Sqrt(X * X + Y * Y + Z * Z);
+    public double Length() => ToVector().Length();
 
     public UnitVector3D Normalize() {
       double norm = Length();
@@ -56,13 +53,21 @@ namespace GeomSharp {
       return UnitVector3D.FromDoubles(this.X / norm, this.Y / norm, this.Z / norm);
     }
 
-    public bool SameDirectionAs(Vector3D other) =>
-        IsParallel(other) && Math.Sign(X) == Math.Sign(other.X) && Math.Sign(Y) == Math.Sign(other.Y) &&
-        Math.Sign(Z) == Math.Sign(other.Z);
+    public bool SameDirectionAs(Vector3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(X, decimal_precision)) == Math.Sign(Math.Round(other.X, decimal_precision)) &&
+        Math.Sign(Math.Round(Y, decimal_precision)) == Math.Sign(Math.Round(other.Y, decimal_precision)) &&
+        Math.Sign(Math.Round(Z, decimal_precision)) ==
+            Math.Sign(Math.Round(
+                other.Z, decimal_precision));  // comparing the sign of each instead of their product avoids overflow
 
-    public bool OppositeDirectionAs(Vector3D other) =>
-        IsParallel(other) && Math.Sign(X) != Math.Sign(other.X) && Math.Sign(Y) != Math.Sign(other.Y) &&
-        Math.Sign(Z) != Math.Sign(other.Z);
+    public bool OppositeDirectionAs(Vector3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        IsParallel(other, decimal_precision) &&
+        Math.Sign(Math.Round(X, decimal_precision)) != Math.Sign(Math.Round(other.X, decimal_precision)) &&
+        Math.Sign(Math.Round(Y, decimal_precision)) != Math.Sign(Math.Round(other.Y, decimal_precision)) &&
+        Math.Sign(Math.Round(Z, decimal_precision)) !=
+            Math.Sign(Math.Round(
+                other.Z, decimal_precision));  // comparing the sign of each instead of their product avoids overflow
 
     /// <summary>
     /// Equality check with custom tolerance adjustment
@@ -74,20 +79,18 @@ namespace GeomSharp {
         Math.Round(this.X - other.X, decimal_precision) == 0 && Math.Round(this.Y - other.Y, decimal_precision) == 0 &&
         Math.Round(this.Z - other.Z, decimal_precision) == 0;
 
-    public bool Equals(Vector3D other) => Math.Round(this.X - other.X, Constants.NINE_DECIMALS) == 0 &&
-                                          Math.Round(this.Y - other.Y, Constants.NINE_DECIMALS) == 0 &&
-                                          Math.Round(this.Z - other.Z, Constants.NINE_DECIMALS) == 0;
+    public bool Equals(Vector3D other) => this.AlmostEquals(other);
 
     public override bool Equals(object other) => other != null && other is Vector3D && this.Equals((Vector3D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(Vector3D a, Vector3D b) {
-      return a.Equals(b);
+      return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Vector3D a, Vector3D b) {
-      return !a.Equals(b);
+      return !a.AlmostEquals(b);
     }
 
     // arithmetics with Vectors
@@ -129,12 +132,14 @@ namespace GeomSharp {
                                                                       ? plane_normal.CrossProduct(this).Normalize()
                                                                       : null;
 
-    public bool IsPerpendicular(Vector3D b) => Math.Round(DotProduct(b), Constants.NINE_DECIMALS) == 0;
+    public bool IsPerpendicular(Vector3D b,
+                                int decimal_precision = Constants.NINE_DECIMALS) => Math.Round(DotProduct(b),
+                                                                                               decimal_precision) == 0;
 
-    public bool IsParallel(Vector3D b) {
+    public bool IsParallel(Vector3D b, int decimal_precision = Constants.THREE_DECIMALS) {
       var u = Normalize();
       var v = b.Normalize();
-      if (u.AlmostEquals(v) || u.AlmostEquals(-v)) {
+      if (u.AlmostEquals(v, decimal_precision) || u.AlmostEquals(-v, decimal_precision)) {
         return true;
       }
       return false;

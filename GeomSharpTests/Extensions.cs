@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace Microsoft.VisualStudio.TestTools.UnitTesting {
 
@@ -38,4 +39,5 @@ namespace Microsoft.VisualStudio.TestTools.UnitTesting {
       result = testMethod.Invoke(null);
     }
   }
+
 }

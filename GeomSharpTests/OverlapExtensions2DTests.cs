@@ -233,19 +233,178 @@ namespace GeomSharpTests {
 
     // Triangle with other basic primitives
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void TriangleToLine() {
-      Assert.IsTrue(false);
+      var random_triangle = RandomGenerator.MakeTriangle2D();
+      var t = random_triangle.Triangle;
+      (var p0, var p1, var p2) = (random_triangle.p0, random_triangle.p1, random_triangle.p2);
+
+      if (t is null) {
+        return;
+      }
+
+      // temp data
+      Point2D cm = t.CenterOfMass();
+      Line2D line;
+      Point2D lp0;
+      UnitVector2D u;
+      UnitVector2D u_perp;
+
+      // case 1: overlap across the edges
+      // overlap and perpendicular to P0-P1
+      u = (t.P1 - t.P0).Normalize();
+      lp0 = Point2D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
+      line = Line2D.FromDirection(lp0, u);
+      Assert.IsTrue(line.Overlaps(t), "line overlapping p0-p1 edge t=" + t.ToWkt() + ", line=" + line.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      line = Line2D.FromDirection(lp0, u_perp);
+      Assert.IsFalse(line.Overlaps(t), "line perpendicular to p0-p1 edge t=" + t.ToWkt() + ", line=" + line.ToWkt());
+
+      // overlap and perpendicular to P1-P2
+      u = (t.P2 - t.P1).Normalize();
+      lp0 = Point2D.FromVector((t.P2.ToVector() + t.P1.ToVector()) / 2.0);
+      line = Line2D.FromDirection(lp0, u);
+      Assert.IsTrue(line.Overlaps(t), "line overlapping p1-p2 edge t=" + t.ToWkt() + ", line=" + line.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      line = Line2D.FromDirection(lp0, u_perp);
+      Assert.IsFalse(line.Overlaps(t), "line perpendicular to p1-p2 edge t=" + t.ToWkt() + ", line=" + line.ToWkt());
+
+      // overlap and perpendicular to P2-P0
+      u = (t.P0 - t.P2).Normalize();
+      lp0 = Point2D.FromVector((t.P0.ToVector() + t.P2.ToVector()) / 2.0);
+      line = Line2D.FromDirection(lp0, u);
+      Assert.IsTrue(line.Overlaps(t), "line overlapping p2-p0 edge t=" + t.ToWkt() + ", line=" + line.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      line = Line2D.FromDirection(lp0, u_perp);
+      Assert.IsFalse(line.Overlaps(t), "line perpendicular to p2-p0 edge t=" + t.ToWkt() + ", line=" + line.ToWkt());
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void TriangleToRay() {
-      Assert.IsTrue(false);
+      var random_triangle = RandomGenerator.MakeTriangle2D();
+      var t = random_triangle.Triangle;
+      (var p0, var p1, var p2) = (random_triangle.p0, random_triangle.p1, random_triangle.p2);
+
+      if (t is null) {
+        return;
+      }
+
+      // temp data
+      Point2D cm = t.CenterOfMass();
+      Ray2D ray;
+      Point2D lp0;
+      UnitVector2D u;
+      UnitVector2D u_perp;
+
+      // case 1: overlap across the edges
+      // overlap and perpendicular to P0-P1
+      u = (t.P1 - t.P0).Normalize();
+      lp0 = Point2D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
+      ray = new Ray2D(lp0, u);
+      Assert.IsTrue(ray.Overlaps(t), "line overlapping p0-p1 edge t=" + t.ToWkt() + ", line=" + ray.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      ray = new Ray2D(lp0, u_perp);
+      Assert.IsFalse(ray.Overlaps(t), "line perpendicular to p0-p1 edge t=" + t.ToWkt() + ", line=" + ray.ToWkt());
+
+      // overlap and perpendicular to P1-P2
+      u = (t.P2 - t.P1).Normalize();
+      lp0 = Point2D.FromVector((t.P2.ToVector() + t.P1.ToVector()) / 2.0);
+      ray = new Ray2D(lp0, u);
+      Assert.IsTrue(ray.Overlaps(t), "line overlapping p1-p2 edge t=" + t.ToWkt() + ", line=" + ray.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      ray = new Ray2D(lp0, u_perp);
+      Assert.IsFalse(ray.Overlaps(t), "line perpendicular to p1-p2 edge t=" + t.ToWkt() + ", line=" + ray.ToWkt());
+
+      // overlap and perpendicular to P2-P0
+      u = (t.P0 - t.P2).Normalize();
+      lp0 = Point2D.FromVector((t.P0.ToVector() + t.P2.ToVector()) / 2.0);
+      ray = new Ray2D(lp0, u);
+      Assert.IsTrue(ray.Overlaps(t), "line overlapping p2-p0 edge t=" + t.ToWkt() + ", line=" + ray.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      ray = new Ray2D(lp0, u_perp);
+      Assert.IsFalse(ray.Overlaps(t), "line perpendicular to p2-p0 edge t=" + t.ToWkt() + ", line=" + ray.ToWkt());
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void TriangleToLineSegment() {
-      Assert.IsTrue(false);
+      var random_triangle = RandomGenerator.MakeTriangle2D();
+      var t = random_triangle.Triangle;
+      (var p0, var p1, var p2) = (random_triangle.p0, random_triangle.p1, random_triangle.p2);
+
+      if (t is null) {
+        return;
+      }
+
+      // temp data
+      Point2D cm = t.CenterOfMass();
+      LineSegment2D segment;
+      Point2D lp0, lp1;
+      UnitVector2D u;
+      UnitVector2D u_perp;
+
+      // case 1: overlap across the edges
+      // overlap and perpendicular to P0-P1, parallel but detached
+      u = (t.P1 - t.P0).Normalize();
+      lp0 = Point2D.FromVector((t.P0.ToVector() + t.P1.ToVector()) / 2.0);
+      lp1 = lp0 + 2 * u;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsTrue(segment.Overlaps(t), "segment overlapping p0-p1 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      lp1 = lp0 + 2 * u_perp;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Overlaps(t),
+                     "segment perpendicular to p0-p1 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      lp0 = lp0 - 2 * u_perp;
+      lp1 = lp0 + 2 * u;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Overlaps(t),
+                     "segment parallel (detatched) to p0-p1 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      // overlap and perpendicular to P1-P2, parallel but detached
+      u = (t.P2 - t.P1).Normalize();
+      lp0 = Point2D.FromVector((t.P2.ToVector() + t.P1.ToVector()) / 2.0);
+      lp1 = lp0 + 2 * u;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsTrue(segment.Overlaps(t), "segment overlapping p1-p2 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      lp1 = lp0 + 2 * u_perp;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Overlaps(t),
+                     "segment perpendicular to p1-p2 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      lp0 = lp0 - 2 * u_perp;
+      lp1 = lp0 + 2 * u;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Overlaps(t),
+                     "segment parallel (detatched) to p1-p2 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      // overlap and perpendicular to P2-P0, parallel but detached
+      u = (t.P0 - t.P2).Normalize();
+      lp0 = Point2D.FromVector((t.P0.ToVector() + t.P2.ToVector()) / 2.0);
+      lp1 = lp0 + 2 * u;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsTrue(segment.Overlaps(t), "segment overlapping p2-p0 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      u_perp = u.Perp().Normalize();
+      lp1 = lp0 + 2 * u_perp;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Overlaps(t),
+                     "segment perpendicular to p2-p0 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
+
+      lp0 = lp0 - 2 * u_perp;
+      lp1 = lp0 + 2 * u;
+      segment = LineSegment2D.FromPoints(lp0, lp1);
+      Assert.IsFalse(segment.Overlaps(t),
+                     "segment parallel (detatched) to p2-p0 edge t=" + t.ToWkt() + ", line=" + segment.ToWkt());
     }
   }
 }

@@ -26,6 +26,19 @@ namespace GeomSharp {
       Size = Nodes.Count;
     }
 
+    public bool AlmostEquals(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other.Size != Size) {
+        return false;
+      }
+      for (int i = 0; i < Size; ++i) {
+        if (!Nodes[i].AlmostEquals(other.Nodes[i])) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     public double Length() {
       double d = 0;
       for (int i1 = 0; i1 < Nodes.Count - 1; i1++) {

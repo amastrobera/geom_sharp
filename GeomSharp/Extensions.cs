@@ -60,6 +60,23 @@ namespace GeomSharp {
       return points.Sum() / points.Count;
     }
 
+    public static List<Point3D> RemoveDuplicates(this List<Point3D> point_list,
+                                                 int decimal_precision = Constants.THREE_DECIMALS) {
+      if (point_list.Count == 0) {
+        return new List<Point3D>();
+      }
+
+      var key_dictionary = new Dictionary<string, Point3D>();
+      foreach (var p in point_list) {
+        string key = p.ToWkt(decimal_precision);
+        if (!key_dictionary.ContainsKey(key)) {
+          key_dictionary.Add(key, p);
+        }
+      }
+
+      return key_dictionary.Select(pr => pr.Value).ToList();
+    }
+
     /// <summary>
     /// /// Remove all points that are on the same line, to build the minimum polyline
     /// </summary>
@@ -67,8 +84,14 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns>true if at least one point has been removed </returns>
     public static List<Point3D> RemoveCollinearPoints(this List<Point3D> polyline,
-                                                      int decimal_precision = Constants.NINE_DECIMALS) {
+                                                      int decimal_precision = Constants.THREE_DECIMALS) {
       int n = polyline.Count;
+
+      if (n == 2 && polyline[0].AlmostEquals(polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        return new List<Point3D>();
+      }
+
       if (n < 3) {
         return polyline;
         // throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
@@ -85,25 +108,52 @@ namespace GeomSharp {
           break;
         }
 
+        // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
-        if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
-          // find and remove the point in the middle (extend the edge to the next point)
-          if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
-                         decimal_precision) >= 0) {
-            new_polyline.RemoveAt(i2);
-          } else {
-            new_polyline.RemoveAt(i3);
-          }
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision) ||
+            new_polyline[i2].AlmostEquals(new_polyline[i1], decimal_precision)) {
+          new_polyline.RemoveAt(i2);
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
+        } else {
+          // check if p2 is on the same line p1->p3, and if so remove it
+          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
+            // find and remove the point in the middle (extend the edge to the next point)
+            if (Math.Round(
+                    new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
+                    decimal_precision) >= 0) {
+              new_polyline.RemoveAt(i2);
+            } else {
+              new_polyline.RemoveAt(i3);
+            }
+            --n;  // the size of items has decreased
+            --i;  // analyze again the same start point in the next iteration
+          }
         }
       }
 
-      // if (n < 2) {
-      //   // warning ("RemoveCollinearPoints had only collinear points, returning empty");
-      // }
+      if (n == 2 && new_polyline[0].AlmostEquals(new_polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        new_polyline.Clear();
+      }
 
       return new_polyline;
+    }
+
+    public static List<Point2D> RemoveDuplicates(this List<Point2D> point_list,
+                                                 int decimal_precision = Constants.THREE_DECIMALS) {
+      if (point_list.Count == 0) {
+        return new List<Point2D>();
+      }
+
+      var key_dictionary = new Dictionary<string, Point2D>();
+      foreach (var p in point_list) {
+        string key = p.ToWkt(decimal_precision);
+        if (!key_dictionary.ContainsKey(key)) {
+          key_dictionary.Add(key, p);
+        }
+      }
+      return key_dictionary.Select(pr => pr.Value).ToList();
     }
 
     /// <summary>
@@ -113,11 +163,15 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns>true if at least one point has been removed </returns>
     public static List<Point2D> RemoveCollinearPoints(this List<Point2D> polyline,
-                                                      int decimal_precision = Constants.NINE_DECIMALS) {
+                                                      int decimal_precision = Constants.THREE_DECIMALS) {
       int n = polyline.Count;
+      if (n == 2 && polyline[0].AlmostEquals(polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        return new List<Point2D>();
+      }
+
       if (n < 3) {
         return polyline;
-        // throw new ArgumentException("RemoveCollinearPoints called with a list of less than 2 points");
       }
 
       var new_polyline = new List<Point2D>(polyline);
@@ -130,23 +184,34 @@ namespace GeomSharp {
           break;
         }
 
+        // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
-        if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
-          // find and remove the point in the middle (extend the edge to the next point)
-          if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
-                         decimal_precision) >= 0) {
-            new_polyline.RemoveAt(i2);
-          } else {
-            new_polyline.RemoveAt(i3);
-          }
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision) ||
+            new_polyline[i2].AlmostEquals(new_polyline[i1], decimal_precision)) {
+          new_polyline.RemoveAt(i2);
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
+        } else {
+          // check if p2 is on the same line p1->p3, and if so remove it
+          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
+            // find and remove the point in the middle (extend the edge to the next point)
+            if (Math.Round(
+                    new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
+                    decimal_precision) >= 0) {
+              new_polyline.RemoveAt(i2);
+            } else {
+              new_polyline.RemoveAt(i3);
+            }
+            --n;  // the size of items has decreased
+            --i;  // analyze again the same start point in the next iteration
+          }
         }
       }
 
-      // if (n < 2) {
-      //   // warning ("RemoveCollinearPoints had only collinear points, returning empty");
-      // }
+      if (n == 2 && new_polyline[0].AlmostEquals(new_polyline[1], decimal_precision)) {
+        // warning returning empty polyline, only collinear points found
+        new_polyline.Clear();
+      }
 
       return new_polyline;
     }
@@ -217,6 +282,34 @@ namespace GeomSharp {
       } catch (NullLengthException) {
         return new ProjectionResult(new Point2D(proj_p0));
       }
+    }
+
+    // special sorting
+
+    /// <summary>
+    /// Sorts a list of points in counter clockwise order
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static void SortCCW(this List<Point2D> points) {
+      var centroid = points.Average();
+      var u_axis = Vector2D.AxisU;
+      var v_axis = Vector2D.AxisV;
+      points.Sort((p1, p2) =>
+                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) < u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
+    }
+
+    /// <summary>
+    /// Sorts a list of points in  clockwise order
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static void SortCW(this List<Point2D> points) {
+      var centroid = points.Average();
+      var u_axis = Vector2D.AxisU;
+      var v_axis = Vector2D.AxisV;
+      points.Sort((p1, p2) =>
+                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) > u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
     }
 
     // special formatting
