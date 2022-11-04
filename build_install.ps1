@@ -33,6 +33,23 @@ Write-Host "    found msbuild: [$msbuild]"
 Write-Host "... done"
 
 
+# 1. build 
+
+# 2. run tests 
+
+# 3. (nuget) publish
+
+# go to GeomSharp folder
+
+# up the version in .nuspec file
+
+# nuget pack -properties Configuration=Release -symbols
+
+# set the nuget api key in github secrets
+
+# nuget push GeomSharp*.nupkg -Source https://api.nuget.org/v3/index.json
+
+
 Write-Host "================================="
 Write-Host "... finished"
 pause
