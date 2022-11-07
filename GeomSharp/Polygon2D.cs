@@ -79,40 +79,42 @@ namespace GeomSharp {
       return a / 2;
     }
 
+    public Point2D CenterOfMass() =>
+        Point2D.FromVector(Vertices.Select(v => v.ToVector()).Aggregate((v1, v2) => v1 + v2) / Size);
+
     /// <summary>
     /// The crossing number algorithm as described here: https://en.wikipedia.org/wiki/Point_in_polygon
     /// </summary>
     /// <param name="point"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public bool Contains(Point2D point) {
+    public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       int xings = 0;
       var ray = new Ray2D(point, Vector2D.AxisU);  // horizontal ray going to the right
 
-      // for (int i = 0; i < Size; i++) {
-      //   var edge = new LineSegment2D(polygon[i], polygon[(i + 1) % Size]);
+      for (int i = 0; i < Size; i++) {
+        var edge = LineSegment2D.FromPoints(Vertices[i], Vertices[(i + 1) % Size], decimal_precision);
 
-      //  // first edge case: the point might be on one of the edges
-      //  if (edge.IsOnSegment(point)) {
-      //    return true;
-      //  }
+        // first edge case: the point might be on one of the edges
+        if (edge.Contains(point, decimal_precision)) {
+          return true;
+        }
 
-      //  if (edge.Direction.IsAlmostEqualTo(ray.Direction)) {
-      //    // rule 3: exclude horizontal edges
-      //    continue;
-      //  }
-      //  // rule 4: edge / ray intersection must happen strictly on the (right) side of the ray
-      //  if (edge.IntersectsSegmentToRay(ray)) {
-      //    // rule 1,2: consider the half-edge only (I will use the upward-edge, and exclude intersections
-      //    occurring on
-      //        // the EndPoint). Because we have used an intersects-function that uses the full-edge, we now have
-      //        to
-      //        // exclude such edge if the intersection point is the last point (upward-edge)
-      //        if (ray.IsOnRay(edge.EndPoint)) {
-      //      continue;
-      //    }
-      //    xings++;
-      //  }
-      //}
+        if (edge.ToLine().Direction.AlmostEquals(ray.Direction, decimal_precision)) {
+          // rule 3: exclude horizontal edges
+          continue;
+        }
+        // rule 4: edge / ray intersection must happen strictly on the (right) side of the ray
+        if (edge.Intersects(ray, decimal_precision)) {
+          // rule 1,2: consider the half-edge only (I will use the upward-edge, and exclude intersections
+          // occurring on the EndPoint). Because we have used an intersects-function that uses the full-edge, we now
+          // have to exclude such edge if the intersection point is the last point (upward-edge)
+          if (ray.Contains(edge.P1, decimal_precision)) {
+            continue;
+          }
+          xings++;
+        }
+      }
 
       return (xings % 2 == 1);  // true (or false) on number of crossings being odd (or even)
     }

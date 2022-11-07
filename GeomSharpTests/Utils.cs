@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Collections.Generic;
 using GeomSharp;
 
 namespace GeomSharpTests {
@@ -61,6 +61,26 @@ namespace GeomSharpTests {
       } catch (Exception) {
       }
       return (null, p0, p1, p2);
+    }
+
+    public static (Polygon2D Polygon, Point2D Center, double Radius, int Size)
+        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 20, int RMax = 30) {
+      // construct polygon based on a center and radius, and number of points to approximate a circle
+      var c = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+      double r = seed.NextDouble() * RMax;
+      int n = seed.Next(NMax);
+      double rads = Math.PI * 2 / n;
+
+      var cv_points = new List<Point2D>();
+      for (int i = 0; i < n; ++i) {
+        cv_points.Add(new Point2D(c.U + r * Math.Cos(i * rads), c.V + r * Math.Sin(i * rads)));
+      }
+
+      try {
+        return (new Polygon2D(cv_points), c, r, n);
+      } catch (Exception) {
+      }
+      return (null, c, r, n);
     }
 
     //  3D objects

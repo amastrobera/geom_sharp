@@ -63,6 +63,7 @@
     <Compile Include="LineSegment3DTests.cs" />
     <Compile Include="LineSegment2DTests.cs" />
     <Compile Include="ExtensionsTests.cs" />
+    <Compile Include="Polygon2DTests.cs" />
     <Compile Include="Triangle2DTests.cs" />
     <Compile Include="PlaneTests.cs" />
     <Compile Include="Triangle3DTests.cs" />
