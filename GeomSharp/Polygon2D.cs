@@ -11,12 +11,12 @@ namespace GeomSharp {
     private List<Point2D> Vertices;
     public readonly int Size;
 
-    public Polygon2D(params Point2D[] points) {
+    public Polygon2D(Point2D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
 
-      Vertices = (new List<Point2D>(points)).RemoveCollinearPoints();
+      Vertices = (new List<Point2D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Vertices.Count < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
@@ -25,7 +25,8 @@ namespace GeomSharp {
       Size = Vertices.Count;
     }
 
-    public Polygon2D(IEnumerable<Point2D> points) : this(points.ToArray()) {}
+    public Polygon2D(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS)
+        : this(points.ToArray(), decimal_precision) {}
 
     public Point2D this[int i] {
       // IndexOutOfRangeException already managed by the List class
@@ -38,9 +39,31 @@ namespace GeomSharp {
       if (other.Size != Size) {
         return false;
       }
-      var points_hashset = Vertices.ToHashSet();  // TODO: better function using decimal_precision
-      foreach (var p in other) {
-        if (!points_hashset.Contains(p)) {
+
+      // different area, different polygon
+      if (Math.Round(Area() - other.Area(), decimal_precision) != 0) {
+        return false;
+      }
+
+      // different set of points, different polygons
+      //    function to return the index of the first point of the list equal to the given point
+      Func<List<Point2D>, Point2D, int> GetFirstEqualPoint = (List<Point2D> _vertices, Point2D _point) => {
+        for (int _i = 0; _i < _vertices.Count; _i++) {
+          if (_vertices[_i].AlmostEquals(_point, decimal_precision)) {
+            return _i;
+          }
+        }
+        return -1;
+      };
+      //    no equal point found
+      int first_equal_idx = GetFirstEqualPoint(other.Vertices, other[0]);
+      if (first_equal_idx < 0) {
+        return false;
+      }
+      //    test point by point
+      for (int i = 0; i < Size; ++i) {
+        int j = (first_equal_idx + i) % Size;
+        if (!Vertices[i].AlmostEquals(other.Vertices[j], decimal_precision)) {
           return false;
         }
       }
@@ -82,41 +105,61 @@ namespace GeomSharp {
     public Point2D CenterOfMass() =>
         Point2D.FromVector(Vertices.Select(v => v.ToVector()).Aggregate((v1, v2) => v1 + v2) / Size);
 
+    public (Point2D Min, Point2D Max) BoundingBox() => (new Point2D(Vertices.Min(v => v.U), Vertices.Min(v => v.V)),
+                                                        new Point2D(Vertices.Max(v => v.U), Vertices.Max(v => v.V)));
+
     /// <summary>
-    /// The crossing number algorithm as described here: https://en.wikipedia.org/wiki/Point_in_polygon
+    /// The winding number algorithms calculates the number of time the polygon winds around a point. The count is upped
+    /// when a the ray from a point to the right crosses an upward-going edge, and downed when that ray crosses a
+    /// downward-going edge. If the counter reaches zero, the point is outside.
+    /// This algorithm works for simple and non-simple closed polygons, convex or non-convex.
     /// </summary>
     /// <param name="point"></param>
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
-      int xings = 0;
-      var ray = new Ray2D(point, Vector2D.AxisU);  // horizontal ray going to the right
+      // first check to save time, if the point is outside the bounding box, then it's outside the polygon too
+      // improvement to the algorithm's big-O
+      var bbox = BoundingBox();
+      if (Math.Round(point.U - bbox.Min.U, decimal_precision) < 0 ||
+          Math.Round(point.V - bbox.Min.V, decimal_precision) < 0 ||
+          Math.Round(point.U - bbox.Max.U, decimal_precision) > 0 ||
+          Math.Round(point.V - bbox.Max.V, decimal_precision) > 0) {
+        return false;
+      }
 
+      // test for border containment (the point is on the perimeter of the polygon)
       for (int i = 0; i < Size; i++) {
-        var edge = LineSegment2D.FromPoints(Vertices[i], Vertices[(i + 1) % Size], decimal_precision);
-
-        // first edge case: the point might be on one of the edges
-        if (edge.Contains(point, decimal_precision)) {
+        if (LineSegment2D.FromPoints(Vertices[i], Vertices[(i + 1) % Size]).Contains(point, decimal_precision)) {
           return true;
-        }
-
-        if (edge.ToLine().Direction.AlmostEquals(ray.Direction, decimal_precision)) {
-          // rule 3: exclude horizontal edges
-          continue;
-        }
-        // rule 4: edge / ray intersection must happen strictly on the (right) side of the ray
-        if (edge.Intersects(ray, decimal_precision)) {
-          // rule 1,2: consider the half-edge only (I will use the upward-edge, and exclude intersections
-          // occurring on the EndPoint). Because we have used an intersects-function that uses the full-edge, we now
-          // have to exclude such edge if the intersection point is the last point (upward-edge)
-          if (ray.Contains(edge.P1, decimal_precision)) {
-            continue;
-          }
-          xings++;
         }
       }
 
-      return (xings % 2 == 1);  // true (or false) on number of crossings being odd (or even)
+      // winding number method (without using the ray.Intersects(segment) function ...
+      int wn = 0;
+      for (int i = 0; i < Size; i++) {
+        var edge = LineSegment2D.FromPoints(Vertices[i], Vertices[(i + 1) % Size]);
+
+        // upward crossing, up the wn
+        if (Math.Round(edge.P0.V - point.V, decimal_precision) <= 0) {
+          if (Math.Round(edge.P1.V - point.V, decimal_precision) > 0) {
+            var relative_location = edge.Location(point, decimal_precision);
+            if (relative_location == Constants.Location.LEFT) {
+              ++wn;
+            }
+          }
+        } else {
+          // downward crossing, down the wn
+          if (Math.Round(edge.P1.V - point.V, decimal_precision) <= 0) {
+            var relative_location = edge.Location(point, decimal_precision);
+            if (relative_location == Constants.Location.RIGHT) {
+              --wn;
+            }
+          }
+        }
+      }
+
+      return !(wn == 0);
     }
 
     /// <summary>

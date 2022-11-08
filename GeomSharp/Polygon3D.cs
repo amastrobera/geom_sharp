@@ -12,11 +12,11 @@ namespace GeomSharp {
     public readonly int Size;
     public UnitVector3D Normal { get; }
 
-    public Polygon3D(params Point3D[] points) {
+    private Polygon3D(Point3D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
-      Vertices = (new List<Point3D>(points)).RemoveCollinearPoints();
+      Vertices = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Vertices.Count < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
@@ -32,14 +32,15 @@ namespace GeomSharp {
       for (int i1 = 2; i1 < Size; i1++) {
         int i2 = (i1 + 1) % Size;
         var local_normal = (Vertices[0] - centroid).CrossProduct((Vertices[1] - centroid));
-        if (!local_normal.CrossProduct(Normal).AlmostEquals(Vector3D.Zero)) {
+        if (!local_normal.CrossProduct(Normal).AlmostEquals(Vector3D.Zero, decimal_precision)) {
           throw new ArgumentException(
               "tried to initialize a Polygon3D with a set of points that do not belong to the same plane");
         }
       }
     }
 
-    public Polygon3D(IEnumerable<Point3D> points) : this(points.ToArray()) {}
+    public Polygon3D(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS)
+        : this(points.ToArray(), decimal_precision) {}
 
     public Point3D this[int i] {
       // IndexOutOfRangeException already managed by the List class
@@ -48,16 +49,48 @@ namespace GeomSharp {
       }
     }
 
+    public double Area() {
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
+    }
+
     public bool AlmostEquals(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      // different number of points, different polygon (we assume they have been built removing collinear points and
+      // duplicates (constructor guarantees that)
       if (other.Size != Size) {
         return false;
       }
-      if (!Normal.AlmostEquals(other.Normal)) {
+      // different normal, different plane, different polygon
+      if (!Normal.AlmostEquals(other.Normal, decimal_precision)) {
         return false;
       }
-      var points_hashset = Vertices.ToHashSet();  // TODO: better function with decimal_precision
-      foreach (var p in other) {
-        if (!points_hashset.Contains(p)) {
+
+      // different area, different polygon
+      if (Math.Round(Area() - other.Area(), decimal_precision) != 0) {
+        return false;
+      }
+
+      // different set of points, different polygons
+      //    function to return the index of the first point of the list equal to the given point
+      Func<List<Point3D>, Point3D, int> GetFirstEqualPoint = (List<Point3D> _vertices, Point3D _point) => {
+        for (int _i = 0; _i < _vertices.Count; _i++) {
+          if (_vertices[_i].AlmostEquals(_point, decimal_precision)) {
+            return _i;
+          }
+        }
+        return -1;
+      };
+      //    no equal point found
+      int first_equal_idx = GetFirstEqualPoint(other.Vertices, other[0]);
+      if (first_equal_idx < 0) {
+        return false;
+      }
+      //    test point by point
+      for (int i = 0; i < Size; ++i) {
+        int j = (first_equal_idx + i) % Size;
+        if (!Vertices[i].AlmostEquals(other.Vertices[j], decimal_precision)) {
           return false;
         }
       }
@@ -83,6 +116,29 @@ namespace GeomSharp {
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
       return this.GetEnumerator();
+    }
+
+    public (Point3D Min, Point3D Max)
+        BoundingBox() => (new Point3D(Vertices.Min(v => v.X), Vertices.Min(v => v.Y), Vertices.Min(v => v.Z)),
+                          new Point3D(Vertices.Max(v => v.X), Vertices.Max(v => v.Y), Vertices.Max(v => v.Z)));
+
+    /// <summary>
+    /// The crossing number algorithm as described here: https://en.wikipedia.org/wiki/Point_in_polygon
+    /// </summary>
+    /// <param name="point"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public bool Contains(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) {
+      // first check to save time, if the point is outside the plane, then it's outside the polygon too
+      // improvement to the algorithm's big-O
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal, decimal_precision);
+      if (!plane.Contains(point, decimal_precision)) {
+        return false;
+      }
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v)))
+          .Contains(plane.ProjectInto(point), decimal_precision);
     }
 
     // special formatting

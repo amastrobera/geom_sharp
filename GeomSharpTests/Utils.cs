@@ -64,16 +64,18 @@ namespace GeomSharpTests {
     }
 
     public static (Polygon2D Polygon, Point2D Center, double Radius, int Size)
-        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 20, int RMax = 30) {
+        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 20) {
       // construct polygon based on a center and radius, and number of points to approximate a circle
       var c = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
-      double r = seed.NextDouble() * RMax;
+      double r = seed.NextDouble() * (IMax - IMin);
       int n = seed.Next(NMax);
       double rads = Math.PI * 2 / n;
+      double start_rads = seed.NextDouble() * Math.PI * 2;
 
       var cv_points = new List<Point2D>();
       for (int i = 0; i < n; ++i) {
-        cv_points.Add(new Point2D(c.U + r * Math.Cos(i * rads), c.V + r * Math.Sin(i * rads)));
+        cv_points.Add(
+            new Point2D(c.U + r * Math.Cos(start_rads + (i * rads)), c.V + r * Math.Sin(start_rads + (i * rads))));
       }
 
       try {
@@ -158,6 +160,33 @@ namespace GeomSharpTests {
       double a = (double)seed.Next(0, 100) / 100;
       double b = (double)seed.Next(0, 100) / 100;
       return (a, b, 1 - a - b);
+    }
+
+    public static (Polygon3D Polygon, Point3D Center, double Radius, int Size)
+        MakeConvexPolygon3D(int IMin = -10, int IMax = 10, int NMax = 20) {
+      var random_plane = MakePlane(IMin, IMax);
+      if (random_plane.Plane is null) {
+        return (null, null, 0, 0);
+      }
+      var plane = random_plane.Plane;
+
+      var random_poly_2d = MakeConvexPolygon2D(IMin, IMax, NMax);
+      if (random_poly_2d.Polygon is null) {
+        return (null, null, 0, 0);
+      }
+
+      // construct polygon based on a center and radius, and number of points to approximate a circle
+      try {
+        (var c, double r, int n) = (plane.Evaluate(random_poly_2d.Center), random_poly_2d.Radius, random_poly_2d.Size);
+        var points = new List<Point3D>();
+        foreach (var p in random_poly_2d.Polygon) {
+          points.Add(plane.Evaluate(p));
+        }
+        return (new Polygon3D(points), c, r, n);
+
+      } catch (Exception) {
+      }
+      return (null, null, 0, 0);
     }
   }
 
