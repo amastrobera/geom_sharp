@@ -58,6 +58,7 @@
     <Compile Include="IntersectionExtensions3DTests.cs" />
     <Compile Include="Line3DTests.cs" />
     <Compile Include="Line2DTests.cs" />
+    <Compile Include="Polygon3DTests.cs" />
     <Compile Include="Ray2DTests.cs" />
     <Compile Include="Ray3DTests.cs" />
     <Compile Include="LineSegment3DTests.cs" />

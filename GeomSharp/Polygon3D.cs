@@ -56,6 +56,9 @@ namespace GeomSharp {
       return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
     }
 
+    public Point3D CenterOfMass() =>
+        Point3D.FromVector(Vertices.Select(v => v.ToVector()).Aggregate((v1, v2) => v1 + v2) / Size);
+
     public bool AlmostEquals(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       // different number of points, different polygon (we assume they have been built removing collinear points and
       // duplicates (constructor guarantees that)
