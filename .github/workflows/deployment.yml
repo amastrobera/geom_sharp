@@ -1,4 +1,4 @@
-name: nuget-package-upgrade
+name: deployment
 
 on:
   push:
@@ -19,34 +19,6 @@ jobs:
     steps:
     - name: Checkout geom_sharp
       uses: actions/checkout@v2
-
-    - name: Set up MSVC compiler
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Build
-      run: |
-        $proj_dir = $(Join-Path $pwd GeomSharp)
-        echo "proj_dir = $proj_dir "
-        $proj_path = $(Join-Path $proj_dir GeomSharp.csproj)
-        echo "proj_path = $proj_path "
-        msbuild $proj_path -t:build -restore -property:Configuration=Release
-      shell: pwsh
-    
-    - name: Setup VSTest Path
-      uses: darenm/Setup-VSTest@v1.2
-      
-    - name: Test
-      working-directory: geom_sharp/GeomSharpTests
-      run: |
-        $test_dir = $(Join-Path $pwd GeomSharpTests)
-        echo "test_dir = $test_dir"
-        $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
-        echo "test_path = $test_path"
-        msbuild $test_path -t:build -restore -property:Configuration=Release
-        $test_dll_path = $(Join-Path $test_path GeomSharpTests\bin\Release\GeomSharpTests.dll)
-        echo "test_dll_path = $test_dll_path"
-        vstest.console.exe $test_dll_path --Blame
-      shell: pwsh
 
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1

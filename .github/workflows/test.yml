@@ -1,0 +1,39 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'GeomSharp/**'
+  pull_request:
+    paths:
+      - 'GeomSharp/**'
+
+jobs:
+  build:
+    name: Test the library
+
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout geom_sharp
+      uses: actions/checkout@v2
+
+    - name: Set up MSVC compiler
+      uses: microsoft/setup-msbuild@v1.0.2
+   
+    - name: Setup VSTest Path
+      uses: darenm/Setup-VSTest@v1.2
+      
+    - name: Test
+      run: |
+        $test_dir = $(Join-Path $pwd GeomSharpTests)
+        echo "test_dir = $test_dir"
+        $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
+        echo "test_path = $test_path"
+        msbuild $test_path -t:build -restore -property:Configuration=Release
+        $test_dll_path = $(Join-Path $test_path bin\Release\GeomSharpTests.dll)
+        echo "test_dll_path = $test_dll_path"
+        vstest.console.exe $test_dll_path --Blame
+      shell: pwsh
