@@ -21,29 +21,29 @@ jobs:
 
     runs-on: windows-2019
 
-    defaults:
-      run:
-        working-directory: geom_sharp
-
     steps:
     - name: Checkout geom_sharp
       uses: actions/checkout@v2
+      with:
+        path: geom_sharp
 
 
     - name: Set up MSVC compiler
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Build
-      run: |
-        msbuild $APP -t:build -restore -property:Configuration=$BUILD_CONFIG
-        msbuild $TESTS -t:build -restore -property:Configuration=$BUILD_CONFIG
+      working-directory: geom_sharp/GeomSharp
+      run: msbuild "$APP.cproj" -t:build -restore -property:Configuration=$BUILD_CONFIG
 
 
     - name: Setup VSTest Path
       uses: darenm/Setup-VSTest@v1.2
       
     - name: Test
-      run: vstest.console.exe $TESTS\bin\Release\$TESTS.dll --Blame
+      working-directory: geom_sharp/GeomSharpTests
+      run: |
+        msbuild "$TESTS.cproj" -t:build -restore -property:Configuration=$BUILD_CONFIG
+        vstest.console.exe .\bin\Release\$TESTS.dll --Blame
       
 
     - name: Setup NuGet
@@ -54,10 +54,9 @@ jobs:
 
     - name: Get Build Version
       id: merge_params
+      working-directory: geom_sharp/GeomSharp
       run: |
-        $app_main = $APP
-        $pkg_spec_file = $($app_main + ".nuspec")
-        $pkg_spec_path = $(Join-Path $(Join-Path $(pwd) $app_main) $pkg_spec_file)
+        $pkg_spec_path = $(Join-Path $(pwd) "$APP.nuspec")
         [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
         $old_version = $xmlElm.package.metadata.version
         $v = $old_version.Split(".")
@@ -68,13 +67,15 @@ jobs:
 
     - name: Nuget Pack
       id: merge_pack
+      working-directory: geom_sharp/GeomSharp
       run: |
-        $app_main = $APP
-        $pkg_out_dir = $(Join-Path $(Join-Path $(pwd) $app_main) "nupkg")
+        $pkg_spec_path = $(Join-Path $(pwd) "$APP.nuspec")
+        $pkg_out_dir = $(Join-Path $(pwd) "nupkg")
         nuget pack $pkg_spec_path -Properties Configuration=$build_config -Symbols -Version ${{ steps.merge_params.outputs.BUILD_VERSION }} -OutputDirectory $pkg_out_dir
         echo "PKG_DIR=$pkg_out_dir" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       shell: pwsh
 
 
     - name: Nuget Push
+      working-directory: geom_sharp/GeomSharp
       run: nuget push ${{ steps.merge_pack.outputs.PKG_DIR }}\*.nupkg -Source 'https://api.nuget.org/v3/index.json' 
