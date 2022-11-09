@@ -32,7 +32,10 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Build
-      run: msbuild .\GeomSharp -t:build -restore -property:Configuration=Release
+      run: |
+        echo "pwd=$(pwd)"
+        $proj_path = $(Join-Path $pwd GeomSharp)
+        msbuild $proj_path -t:build -restore -property:Configuration=Release
 
     - name: Setup VSTest Path
       uses: darenm/Setup-VSTest@v1.2
@@ -40,8 +43,12 @@ jobs:
     - name: Test
       working-directory: geom_sharp/GeomSharpTests
       run: |
-        msbuild .\GeomSharpTests -t:build -restore -property:Configuration=Release
-        vstest.console.exe .\GeomSharpTests\bin\Release\GeomSharpTests.dll --Blame
+        echo "pwd=$(pwd)"
+        $test_path = $(Join-Path $pwd GeomSharpTests)
+        msbuild $test_path -t:build -restore -property:Configuration=Release
+        $test_dll_path = $(Join-Path $test_path GeomSharpTests\bin\Release\GeomSharpTests.dll)
+        vstest.console.exe $test_dll_path --Blame
+      shell: pwsh
 
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
