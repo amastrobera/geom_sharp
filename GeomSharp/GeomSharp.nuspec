@@ -1,59 +1,45 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
-    <metadata>
-        <!-- Identifier that must be unique within the hosting gallery -->
-        <id>GeomSharp</id>
-
-        <!-- Package version number that is used when resolving dependencies -->
-        <version>1.0.2</version>
-
-        <!-- Authors contain text that appears directly on the gallery -->
-        <authors>Angelo Mastroberardino</authors>
-
-        <!-- 
+  <metadata>
+    <!-- Identifier that must be unique within the hosting gallery -->
+    <id>GeomSharp</id>
+    <!-- Package version number that is used when resolving dependencies -->
+    <version>1.0.2</version>
+    <!-- Authors contain text that appears directly on the gallery -->
+    <authors>Angelo Mastroberardino</authors>
+    <!-- 
             Owners are typically nuget.org identities that allow gallery
             users to easily find other packages by the same owners.  
         -->
-        <owners>amastrobera</owners>
-        
-         <!-- Project URL provides a link for the gallery -->
-        <projectUrl>https://github.com/amastrobera/geom_sharp</projectUrl>
-
-         <!-- License information is displayed on the gallery -->
-        <license type="expression">MIT</license>
-        
-
-        <!-- Icon is used in Visual Studio's package manager UI -->
-        <icon>icon.png</icon>
-
-        <!-- 
+    <owners>amastrobera</owners>
+    <!-- Project URL provides a link for the gallery -->
+    <projectUrl>https://github.com/amastrobera/geom_sharp</projectUrl>
+    <!-- License information is displayed on the gallery -->
+    <license type="expression">MIT</license>
+    <!-- Icon is used in Visual Studio's package manager UI -->
+    <icon>icon.png</icon>
+    <!-- 
             If true, this value prompts the user to accept the license when
             installing the package. 
         -->
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-
-        <!-- Any details about this particular release -->
-        <releaseNotes>Developed and tested primitives up to Triangles and functions Intersection/Overlap/Touch/Adjacency</releaseNotes>
-
-        <!-- 
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <!-- Any details about this particular release -->
+    <releaseNotes>Developed and tested primitives up to Triangles and functions Intersection/Overlap/Touch/Adjacency</releaseNotes>
+    <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
         -->
-        <description>Core utility functions for web applications</description>
-
-        <!-- Copyright information -->
-        <copyright>Copyright (c) 2022 Angelo Mastro</copyright>
-
-        <!-- Tags appear in the gallery and can be used for tag searches -->
-        <tags>geometry 3d 2d intersection triangle line vector point polygon polyhedron</tags>
-
-        <!-- Dependencies are automatically installed when the package is installed -->
-        <dependencies />
-    </metadata>
-
-    <!-- A readme.txt to display when the package is installed -->
-    <files>
-        <file src="etc\readme.txt" target="" />
-        <file src="etc\icon.png" target="" />
-    </files>
+    <description>Core utility functions for web applications</description>
+    <!-- Copyright information -->
+    <copyright>Copyright (c) 2022 Angelo Mastro</copyright>
+    <!-- Tags appear in the gallery and can be used for tag searches -->
+    <tags>geometry 3d 2d intersection triangle line vector point polygon polyhedron</tags>
+    <!-- Dependencies are automatically installed when the package is installed -->
+    <dependencies />
+  </metadata>
+  <!-- A readme.txt to display when the package is installed -->
+  <files>
+    <file src="etc\readme.txt" target="" />
+    <file src="etc\icon.png" target="" />
+  </files>
 </package>

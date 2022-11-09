@@ -72,7 +72,7 @@ namespace GeomSharp {
     }
 
     public bool Equals(Polygon2D other) => this.AlmostEquals(other);
-    public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
+    public override bool Equals(object other) => other != null && other is Polygon2D && this.Equals((Polygon2D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 

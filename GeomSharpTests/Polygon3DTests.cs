@@ -14,7 +14,7 @@ namespace GeomSharpTests {
     [RepeatedTestMethod(100)]
     public void Containment() {
       // 3D
-      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon3D();
+      (var poly, var _c, var radius, int _n) = RandomGenerator.MakeConvexPolygon3D();
 
       // Console.WriteLine("t = " + t.ToWkt());
       if (poly is null) {
@@ -23,6 +23,8 @@ namespace GeomSharpTests {
 
       // temporary data
       Point3D p;
+      var cm = poly.CenterOfMass();
+      var n = poly.Size;
 
       // test 1: centroid is contained
       p = poly.CenterOfMass();
@@ -46,25 +48,38 @@ namespace GeomSharpTests {
                        "outside (vertex " + i.ToString() + "), \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
       }
 
-      //// test 5-6-7: a point on the edge, with (horizontal) ray parallel to the edge
-      //{
-      //  var square = new Polygon3D(new List<Point3D> { poly[0],
-      //                                                 poly[0] + Vector3D.AxisU * radius,
-      //                                                 poly[0] + Vector3D.AxisU * radius + Vector3D.AxisV * radius,
-      //                                                 poly[0] + Vector3D.AxisV * radius });
+      // test 5-6-7: a point on the edge, with (horizontal) ray parallel to the edge
+      {
+        var plane = poly.RefPlane();
+        var p0 = plane.ProjectInto(poly[0]);
 
-      //  p = Point3D.FromVector((square[0].ToVector() + square[1].ToVector()) / 2);
-      //  Assert.IsTrue(square.Contains(p),
-      //                "square (mid point) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+        var square =
+            new Polygon3D(plane.Evaluate(new List<Point2D> { p0,
+                                                             p0 + Vector2D.AxisU * radius,
+                                                             p0 + Vector2D.AxisU * radius + Vector2D.AxisV * radius,
+                                                             p0 + Vector2D.AxisV * radius }));
 
-      //  p = square[0] - Vector3D.AxisU * radius;
-      //  Assert.IsFalse(square.Contains(p),
-      //                 "square (outer point) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+        p = Point3D.FromVector((square[0].ToVector() + square[1].ToVector()) / 2);
+        Assert.IsTrue(square.Contains(p),
+                      "square (mid point) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
 
-      //  p = square[1] + Vector3D.AxisU * radius;
-      //  Assert.IsFalse(square.Contains(p),
-      //                 "square (outer point 2) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
-      //}
+        p = square[0] - 2 * (square[1] - square[0]);
+        Assert.IsFalse(square.Contains(p),
+                       "square (outer point) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+
+        p = square[1] + 2 * (square[1] - square[0]);
+        Assert.IsFalse(square.Contains(p),
+                       "square (outer point 2) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+      }
+
+      // test 8-9: a point outside of the plane is outside of the polygon too
+      {
+        p = cm + poly.Normal * 2;
+        Assert.IsFalse(poly.Contains(p), "point above the plane \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
+
+        p = cm - poly.Normal * 2;
+        Assert.IsFalse(poly.Contains(p), "point below the plane \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
+      }
     }
   }
 }

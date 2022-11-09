@@ -1,0 +1,80 @@
+name: nuget-package-upgrade
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'GeomSharp/**'
+  pull_request:
+    paths:
+      - 'GeomSharp/**'
+
+jobs:
+  build:
+    name: Publish to Nuget library
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'GeomSharp.sln'
+      APP: 'GeomSharp'
+      TESTS: 'GeomSharpTests'
+
+    runs-on: windows-2019
+
+    defaults:
+      run:
+        working-directory: geom_sharp
+
+    steps:
+    - name: Checkout geom_sharp
+      uses: actions/checkout@v2
+
+
+    - name: Set up MSVC compiler
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Build
+      run: |
+        msbuild $APP -t:build -restore -property:Configuration=$BUILD_CONFIG
+        msbuild $TESTS -t:build -restore -property:Configuration=$BUILD_CONFIG
+
+
+    - name: Setup VSTest Path
+      uses: darenm/Setup-VSTest@v1.2
+      
+    - name: Test
+      run: vstest.console.exe $TESTS\bin\Release\$TESTS.dll --Blame
+      
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '6.x'
+
+    - name: Get Build Version
+      id: merge_params
+      run: |
+        $app_main = $APP
+        $pkg_spec_file = $($app_main + ".nuspec")
+        $pkg_spec_path = $(Join-Path $(Join-Path $(pwd) $app_main) $pkg_spec_file)
+        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
+        $old_version = $xmlElm.package.metadata.version
+        $v = $old_version.Split(".")
+        $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
+        echo "BUILD_VERSION=$new_version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      shell: pwsh
+
+
+    - name: Nuget Pack
+      id: merge_pack
+      run: |
+        $app_main = $APP
+        $pkg_out_dir = $(Join-Path $(Join-Path $(pwd) $app_main) "nupkg")
+        nuget pack $pkg_spec_path -Properties Configuration=$build_config -Symbols -Version ${{ steps.merge_params.outputs.BUILD_VERSION }} -OutputDirectory $pkg_out_dir
+        echo "PKG_DIR=$pkg_out_dir" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+      shell: pwsh
+
+
+    - name: Nuget Push
+      run: nuget push ${{ steps.merge_pack.outputs.PKG_DIR }}\*.nupkg -Source 'https://api.nuget.org/v3/index.json' 

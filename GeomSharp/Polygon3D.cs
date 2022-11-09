@@ -49,6 +49,8 @@ namespace GeomSharp {
       }
     }
 
+    public Plane RefPlane() => Plane.FromPointAndNormal(Vertices[0], Normal);
+
     public double Area() {
       var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
 
@@ -101,7 +103,7 @@ namespace GeomSharp {
       return true;
     }
     public bool Equals(Polygon3D other) => this.AlmostEquals(other);
-    public override bool Equals(object other) => other != null && other is Point3D && this.Equals((Point3D)other);
+    public override bool Equals(object other) => other != null && other is Polygon3D && this.Equals((Polygon3D)other);
 
     public override int GetHashCode() => base.GetHashCode();
 

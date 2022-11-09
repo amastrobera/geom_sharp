@@ -279,6 +279,9 @@ namespace GeomSharp {
     /// <returns></returns>
     public Point3D Evaluate(Point2D p) => Origin + AxisU * p.U + AxisV * p.V;
 
+    public List<Point3D> Evaluate(List<Point2D> point_list_2d) =>
+        new List<Point3D>(point_list_2d.Select(p => Evaluate(p)));
+
     public LineSegment3D Evaluate(LineSegment2D shape_2d) => LineSegment3D.FromPoints(Evaluate(shape_2d.P0),
                                                                                       Evaluate(shape_2d.P1));
 
