@@ -32,7 +32,7 @@ jobs:
         echo "test_dir = $test_dir"
         $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
         echo "test_path = $test_path"
-        msbuild $test_path -t:build -restore -property:Configuration=Release
+        msbuild $test_path -t:build -property:Configuration=Release
         $test_dll_path = $(Join-Path $test_path bin\Release\GeomSharpTests.dll)
         echo "test_dll_path = $test_dll_path"
         vstest.console.exe $test_dll_path --Blame
