@@ -27,8 +27,7 @@ jobs:
       run: |
         $proj_dir = $(Join-Path $pwd GeomSharp)
         echo "proj_dir = $proj_dir "
-        ls $proj_dir
-        $proj_path = $(Join-Path $proj_dir GeomSharp.cproj)
+        $proj_path = $(Join-Path $proj_dir GeomSharp.csproj)
         echo "proj_path = $proj_path "
         msbuild $proj_path -t:build -restore -property:Configuration=Release
       shell: pwsh
@@ -41,7 +40,7 @@ jobs:
       run: |
         $test_dir = $(Join-Path $pwd GeomSharpTests)
         echo "test_dir = $test_dir"
-        $test_path = $(Join-Path $test_dir GeomSharpTests.cproj)
+        $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
         echo "test_path = $test_path"
         msbuild $test_path -t:build -restore -property:Configuration=Release
         $test_dll_path = $(Join-Path $test_path GeomSharpTests\bin\Release\GeomSharpTests.dll)
