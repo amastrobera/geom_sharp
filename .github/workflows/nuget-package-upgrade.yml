@@ -19,9 +19,6 @@ jobs:
     steps:
     - name: Checkout geom_sharp
       uses: actions/checkout@v2
-      with:
-        path: geom_sharp
-
 
     - name: Set up MSVC compiler
       uses: microsoft/setup-msbuild@v1.0.2
