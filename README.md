@@ -8,13 +8,6 @@ GeomSharp is a 2D (and 3D) geometry library for C#, based on .Net Framework 4.8
 [![deployment](https://github.com/amastrobera/geom_sharp/actions/workflows/deployment.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/deployment.yml)
 
 
-TODO: complete primitive tests, 
-	  add build script and github action to build and test before PR merge, 
-	  add build status tags on the README, 
-	  add deployment action and its tag
-
-
-
 ## Definition
 
 **Containment**: one shape is completely contained inside another shape (including its borders). 
