@@ -1,0 +1,39 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'GeomSharp/**'
+  pull_request:
+    paths:
+      - 'GeomSharp/**'
+
+jobs:
+  build:
+    name: Build the library
+
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout geom_sharp
+      uses: actions/checkout@v2
+
+    - name: Set up MSVC compiler
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '6.x'
+
+    - name: Build
+      run: |
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        echo "proj_dir = $proj_dir "
+        $proj_path = $(Join-Path $proj_dir GeomSharp.csproj)
+        echo "proj_path = $proj_path "
+        msbuild $proj_path -t:build -property:Configuration=Release -restore   
+      shell: pwsh

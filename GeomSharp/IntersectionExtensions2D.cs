@@ -279,5 +279,63 @@ namespace GeomSharp {
                                                   Triangle2D triangle,
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         triangle.Intersection(segment, decimal_precision);
+
+    // Polygon to Line
+    public static bool Intersects(this Polygon2D poly, Line2D line, int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon2D poly,
+                                                  Line2D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this Line2D line, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Line2D line,
+                                                  Polygon2D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(line, decimal_precision);
+
+    // Polygon to Ray
+    public static bool Intersects(this Polygon2D poly, Ray2D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon2D poly,
+                                                  Ray2D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this Ray2D ray, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ray.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Ray2D ray,
+                                                  Polygon2D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(ray, decimal_precision);
+
+    // Polygon to LineSegment
+    public static bool Intersects(this Polygon2D poly,
+                                  LineSegment2D seg,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(seg, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon2D poly,
+                                                  LineSegment2D seg,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this LineSegment2D seg,
+                                  Polygon2D poly,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        seg.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this LineSegment2D seg,
+                                                  Polygon2D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(seg, decimal_precision);
   }
 }

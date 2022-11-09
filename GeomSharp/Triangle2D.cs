@@ -50,6 +50,10 @@ namespace GeomSharp {
 
     public Point2D CenterOfMass() => Point2D.FromVector((P0.ToVector() + P1.ToVector() + P2.ToVector()) / 3);
 
+    public (Point2D Min, Point2D Max)
+        BoundingBox() => (new Point2D(Math.Min(P0.U, Math.Min(P1.U, P2.U)), Math.Min(P0.V, Math.Min(P1.V, P2.V))),
+                          new Point2D(Math.Max(P0.U, Math.Max(P1.U, P2.U)), Math.Max(P0.V, Math.Max(P1.V, P2.V))));
+
     /// <summary>
     /// Tells whether a point is inside a triangle T. It uses a geometry-only (no linear-algebra) method.
     /// A series of three calls to the notorious IsLeft function to verify that the point is on the left of each edge.
@@ -57,6 +61,16 @@ namespace GeomSharp {
     /// <param name="point"></param>
     /// <returns></returns>
     public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
+      // first check to save time, if the point is outside the bounding box, then it's outside the polygon too
+      // improvement to the algorithm's big-O
+      var bbox = BoundingBox();
+      if (Math.Round(point.U - bbox.Min.U, decimal_precision) < 0 ||
+          Math.Round(point.V - bbox.Min.V, decimal_precision) < 0 ||
+          Math.Round(point.U - bbox.Max.U, decimal_precision) > 0 ||
+          Math.Round(point.V - bbox.Max.V, decimal_precision) > 0) {
+        return false;
+      }
+
       var loc_01 = LineSegment2D.FromPoints(P0, P1).Location(point, decimal_precision);
       var loc_12 = LineSegment2D.FromPoints(P1, P2).Location(point, decimal_precision);
       var loc_20 = LineSegment2D.FromPoints(P2, P0).Location(point, decimal_precision);

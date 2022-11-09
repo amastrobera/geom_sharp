@@ -51,6 +51,13 @@ namespace GeomSharp {
 
     public Plane RefPlane() => Plane.FromPoints(P0, P1, P2);
 
+    public (Point3D Min, Point3D Max) BoundingBox() => (new Point3D(Math.Min(P0.X, Math.Min(P1.X, P2.X)),
+                                                                    Math.Min(P0.Y, Math.Min(P1.Y, P2.Y)),
+                                                                    Math.Min(P0.Z, Math.Min(P1.Z, P2.Z))),
+                                                        new Point3D(Math.Max(P0.X, Math.Max(P1.X, P2.X)),
+                                                                    Math.Max(P0.Y, Math.Max(P1.Y, P2.Y)),
+                                                                    Math.Min(P0.Z, Math.Min(P1.Z, P2.Z))));
+
     /// <summary>
     /// Tells whether a point is inside a triangle T.
     /// First tests if a point is on the same plane of the triangle. The projects everything in 2D and tests for

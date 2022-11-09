@@ -8,16 +8,16 @@ namespace GeomSharp {
   /// <summary>
   /// A Curve made of straight lines in 3D, each line bound by a pair of vertices
   /// </summary>
-  public class Polyline3D {
+  public class Polyline3D : IEquatable<Polyline3D>, IEnumerable<Point3D> {
     public List<Point3D> Nodes { get; }
     public readonly int Size;
 
-    public Polyline3D(params Point3D[] points) {
+    public Polyline3D(Point3D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 2) {
         throw new ArgumentException("tried to initialize a polyline with less than 2 points");
       }
 
-      Nodes = (new List<Point3D>(points)).RemoveCollinearPoints();
+      Nodes = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Nodes.Count < 2) {
         throw new ArgumentException("tried to initialize a polyline with less than 2 non-collinear points");
@@ -26,18 +26,51 @@ namespace GeomSharp {
       Size = Nodes.Count;
     }
 
+    public Polyline3D(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS)
+        : this(points.ToArray(), decimal_precision) {}
+
     public bool AlmostEquals(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other.Size != Size) {
         return false;
       }
+
+      if (Math.Round(Length() - other.Length(), decimal_precision) != 0) {
+        return false;
+      }
+
       for (int i = 0; i < Size; ++i) {
-        if (!Nodes[i].AlmostEquals(other.Nodes[i])) {
+        if (!Nodes[i].AlmostEquals(other.Nodes[i], decimal_precision)) {
           return false;
         }
       }
 
       return true;
     }
+
+    public bool Equals(Polyline3D other) => this.AlmostEquals(other);
+    public override bool Equals(object other) => other != null && other is Polyline3D && this.Equals((Polyline3D)other);
+
+    public override int GetHashCode() => base.GetHashCode();
+
+    public static bool operator ==(Polyline3D a, Polyline3D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(Polyline3D a, Polyline3D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    public IEnumerator<Point3D> GetEnumerator() {
+      return Nodes.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
+    }
+
+    public (Point3D Min, Point3D Max)
+        BoundingBox() => (new Point3D(Nodes.Min(v => v.X), Nodes.Min(v => v.Y), Nodes.Min(v => v.Z)),
+                          new Point3D(Nodes.Max(v => v.X), Nodes.Max(v => v.Y), Nodes.Max(v => v.Z)));
 
     public double Length() {
       double d = 0;
@@ -150,5 +183,4 @@ namespace GeomSharp {
 
                   ")";
   }
-
 }

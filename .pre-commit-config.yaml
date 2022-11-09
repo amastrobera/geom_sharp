@@ -1,0 +1,8 @@
+fail_fast: false
+
+repos:
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.1.1
+    hooks:
+      - id: clang-format
+        args: [--version=6.0, -i] # Workaround for https://github.com/pocc/pre-commit-hooks/issues/9

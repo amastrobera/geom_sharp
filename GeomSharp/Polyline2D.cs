@@ -8,16 +8,16 @@ namespace GeomSharp {
   /// <summary>
   /// A Curve made of straight lines in 2D, each line bound by a pair of vertices
   /// </summary>
-  public class Polyline2D {
+  public class Polyline2D : IEquatable<Polyline2D>, IEnumerable<Point2D> {
     public List<Point2D> Nodes { get; }
     public readonly int Size;
 
-    public Polyline2D(params Point2D[] points) {
+    public Polyline2D(Point2D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 2) {
         throw new ArgumentException("tried to initialize a polyline with less than 2 points");
       }
 
-      Nodes = (new List<Point2D>(points)).RemoveCollinearPoints();
+      Nodes = (new List<Point2D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Nodes.Count < 2) {
         throw new ArgumentException("tried to initialize a polyline with less than 2 non-collinear points");
@@ -26,17 +26,46 @@ namespace GeomSharp {
       Size = Nodes.Count;
     }
 
+    public Polyline2D(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS)
+        : this(points.ToArray(), decimal_precision) {}
+
     public bool AlmostEquals(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other.Size != Size) {
         return false;
       }
+
+      if (Math.Round(Length() - other.Length(), decimal_precision) != 0) {
+        return false;
+      }
+
       for (int i = 0; i < Size; ++i) {
-        if (!Nodes[i].AlmostEquals(other.Nodes[i])) {
+        if (!Nodes[i].AlmostEquals(other.Nodes[i], decimal_precision)) {
           return false;
         }
       }
 
       return true;
+    }
+
+    public bool Equals(Polyline2D other) => this.AlmostEquals(other);
+    public override bool Equals(object other) => other != null && other is Polyline2D && this.Equals((Polyline2D)other);
+
+    public override int GetHashCode() => base.GetHashCode();
+
+    public static bool operator ==(Polyline2D a, Polyline2D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(Polyline2D a, Polyline2D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    public IEnumerator<Point2D> GetEnumerator() {
+      return Nodes.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
     }
 
     public double Length() {

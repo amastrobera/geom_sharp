@@ -1,0 +1,54 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'GeomSharp/**'
+  pull_request:
+    paths:
+      - 'GeomSharp/**'
+
+jobs:
+  build:
+    name: Test the library
+
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout geom_sharp
+      uses: actions/checkout@v2
+
+    - name: Set up MSVC compiler
+      uses: microsoft/setup-msbuild@v1.0.2
+   
+    - name: Setup VSTest Path
+      uses: darenm/Setup-VSTest@v1.2
+          
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '6.x'
+            
+    - name: Test
+      run: |
+        $test_dir = $(Join-Path $pwd GeomSharpTests)
+        echo "test_dir = $test_dir"
+        $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
+        echo "test_path = $test_path"
+        msbuild $test_path -t:build -property:Configuration=Release -restore
+        $test_dll_path = $(Join-Path $test_dir bin\Release\GeomSharpTests.dll)
+        echo "test_dll_path = $test_dll_path"
+        vstest.console.exe $test_dll_path --Blame
+      shell: pwsh
+
+
+
+#"D:\a\geom_sharp\geom_sharp\GeomSharpTests\GeomSharpTests.csproj" (build target) (1:7) ->
+#(EnsureNuGetPackageBuildImports target) -> 
+#  D:\a\geom_sharp\geom_sharp\GeomSharpTests\GeomSharpTests.csproj(91,5): error : This project references 
+# NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  
+# For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. 
+# The missing file is ..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.props.

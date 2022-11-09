@@ -3,11 +3,9 @@
 GeomSharp is a 2D (and 3D) geometry library for C#, based on .Net Framework 4.8
 
 
-TODO: complete primitive tests, 
-	  add build script and github action to build and test before PR merge, 
-	  add build status tags on the README, 
-	  add deployment action and its tag
-
+[![build](https://github.com/amastrobera/geom_sharp/actions/workflows/build.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/build.yml)
+[![test](https://github.com/amastrobera/geom_sharp/actions/workflows/test.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/test.yml)
+[![deployment](https://github.com/amastrobera/geom_sharp/actions/workflows/deployment.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/deployment.yml)
 
 
 ## Definition
@@ -49,9 +47,9 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | :heavy_check_mark: :test_tube: Line | :heavy_check_mark: :test_tube: Line | :x: Translation | 
 | :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Transformation | 
 | :heavy_check_mark: :test_tube: LineSegment | :heavy_check_mark: :test_tube: LineSegment |  | 
-| :x: Polyline | :x: Polyline |  | 
+| :arrow_forward: Polyline | :arrow_forward: Polyline |  | 
 | :heavy_check_mark: :test_tube: Triangle | :heavy_check_mark: :test_tube: Triangle |  | 
-| :x: Polygon | :x: Polygon |  | 
+| :arrow_forward: Polygon | :arrow_forward: Polygon |  | 
 | | :heavy_check_mark: :test_tube: Plane |  | 
 | | :x: Polyhedron |  | 
 
@@ -70,7 +68,7 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Segment/Point | 
 | | | :heavy_check_mark: :test_tube: Triangle/Point | 
 | | | :x: Polyline/Point | 
-| | | :x: Polygon/Point | 
+| | | :heavy_check_mark: :test_tube: Polygon/Point | 
 | | Intersection | |
 | | | :heavy_check_mark: :test_tube: Line/Line| 
 | | | :heavy_check_mark: :test_tube: Line/Ray | 
@@ -128,7 +126,7 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: :test_tube: Triangle/Point | 
 | | | :x: Polyline/Point | 
-| | | :x: Polygon/Point | 
+| | | :heavy_check_mark: :test_tube: Polygon/Point | 
 | | Projection | |
 | | | :heavy_check_mark: :test_tube: ProjectOnto (Point 3D -> 3D) | 
 | | | :heavy_check_mark: :test_tube: VerticalProjectOnto (Point 3D -> 3D) | 

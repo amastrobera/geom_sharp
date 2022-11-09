@@ -1,0 +1,47 @@
+name: deployment
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'GeomSharp/**'
+  pull_request:
+    paths:
+      - 'GeomSharp/**'
+
+jobs:
+  build:
+    name: Publish to Nuget library
+
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout geom_sharp
+      uses: actions/checkout@v2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '6.x'
+
+    - name: Nuget Pack and Push
+      id: merge_params
+      run: |
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
+        $pkg_out_dir = $(Join-Path $proj_dir nupkg)
+        echo "pkg_spec_path = $pkg_spec_path"
+        echo "pkg_out_dir = $pkg_out_dir"
+        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
+        $old_version = $xmlElm.package.metadata.version
+        $v = $old_version.Split(".")
+        $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
+        echo "new_version = $new_version"
+        $xmlElm.package.metadata.version = $new_version
+        $xmlElm.Save($pkg_spec_path)
+        nuget pack $pkg_spec_path -Properties Configuration=Release -Symbols -Version $new_version -OutputDirectory $pkg_out_dir
+        echo "pkg_out_files = $pkg_out_dir\*.nupkg"
+        nuget push "$pkg_out_dir\*.nupkg" -Source 'https://api.nuget.org/v3/index.json' -SkipDuplicate
+      shell: pwsh

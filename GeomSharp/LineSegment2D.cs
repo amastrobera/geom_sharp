@@ -78,8 +78,8 @@ namespace GeomSharp {
           line_location = Constants.Location.ON_SEGMENT;
         } else {
           if ((p - P0).SameDirectionAs(P1 - P0, decimal_precision)) {
-            double t = Math.Round(P0.DistanceTo(p) / Length(), decimal_precision);
-            if (t >= 0 && t <= 1) {
+            double t = P0.DistanceTo(p) / Length();
+            if (Math.Round(t, decimal_precision) >= 0 && Math.Round(t - 1, decimal_precision) <= 0) {
               line_location = Constants.Location.ON_SEGMENT;
             }
           }
