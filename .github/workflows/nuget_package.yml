@@ -13,11 +13,6 @@ on:
 jobs:
   build:
     name: Publish to Nuget library
-    env:
-      BUILD_CONFIG: 'Release'
-      SOLUTION: 'GeomSharp.sln'
-      APP: 'GeomSharp'
-      TESTS: 'GeomSharpTests'
 
     runs-on: windows-2019
 
@@ -33,21 +28,23 @@ jobs:
 
     - name: Build
       run: |
-        echo "pwd=$(pwd)"
         $proj_path = $(Join-Path $pwd GeomSharp)
-        msbuild $proj_path -t:build -restore -property:Configuration=Release
-
+        echo "proj_path = $proj_path "
+        msbuild ./GeomSharp/GeomSharp.cproj -t:build -restore -property:Configuration=Release
+      shell: pwsh
+    
     - name: Setup VSTest Path
       uses: darenm/Setup-VSTest@v1.2
       
     - name: Test
       working-directory: geom_sharp/GeomSharpTests
       run: |
-        echo "pwd=$(pwd)"
         $test_path = $(Join-Path $pwd GeomSharpTests)
-        msbuild $test_path -t:build -restore -property:Configuration=Release
+        echo "test_path = $test_path"
+        msbuild ./GeomSharpTests/GeomSharpTests.cproj -t:build -restore -property:Configuration=Release
         $test_dll_path = $(Join-Path $test_path GeomSharpTests\bin\Release\GeomSharpTests.dll)
-        vstest.console.exe $test_dll_path --Blame
+        echo "test_dll_path = $test_dll_path"
+        vstest.console.exe ./GeomSharpTests/bin/Release/GeomSharpTests.dll --Blame
       shell: pwsh
 
     - name: Setup NuGet
