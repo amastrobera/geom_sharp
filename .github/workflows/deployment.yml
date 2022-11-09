@@ -26,34 +26,27 @@ jobs:
         nuget-api-key: ${{ secrets.NUGET_API_KEY }}
         nuget-version: '6.x'
 
-    - name: Get Build Version
-      id: merge_params
-      run: |
-        $proj_dir = $(Join-Path $pwd GeomSharp)
-        $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
-        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
-        $old_version = $xmlElm.package.metadata.version
-        $v = $old_version.Split(".")
-        $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
-        echo "BUILD_VERSION=$new_version" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-      shell: pwsh
-
-
     - name: Nuget Pack
-      id: merge_pack
+      id: merge_params
       run: |
         $proj_dir = $(Join-Path $pwd GeomSharp)
         $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
         $pkg_out_dir = $(Join-Path $proj_dir nupkg)
         echo "pkg_spec_path = $pkg_spec_path"
         echo "pkg_out_dir = $pkg_out_dir"
-        echo "build_version = ${{ steps.merge_params.outputs.BUILD_VERSION }}"
+        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
+        $old_version = $xmlElm.package.metadata.version
+        $v = $old_version.Split(".")
+        $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
+        echo "new_version = $new_version"
         nuget pack $pkg_spec_path -Properties Configuration=Release -Symbols -Version ${{ steps.merge_params.outputs.BUILD_VERSION }} -OutputDirectory $pkg_out_dir
-        echo "PKG_DIR=$pkg_out_dir" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       shell: pwsh
 
 
     - name: Nuget Push
       run: |
-        echo "pkg_dir =  ${{ steps.merge_pack.outputs.PKG_DIR }}\*.nupkg"
-        nuget push ${{ steps.merge_pack.outputs.PKG_DIR }}\*.nupkg -Source 'https://api.nuget.org/v3/index.json' 
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        $pkg_out_dir = $(Join-Path $proj_dir nupkg)
+        echo "pkg_out_dir = $pkg_out_dir"
+        echo "pkg_out_dir = $pkg_out_dir\*.nupkg"
+        nuget push "$pkg_out_dir\*.nupkg" -Source 'https://api.nuget.org/v3/index.json' -SkipDuplicate

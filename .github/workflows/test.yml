@@ -25,6 +25,13 @@ jobs:
    
     - name: Setup VSTest Path
       uses: darenm/Setup-VSTest@v1.2
+          
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '6.x'
+      
       
     - name: Test
       run: |
@@ -32,8 +39,8 @@ jobs:
         echo "test_dir = $test_dir"
         $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
         echo "test_path = $test_path"
-        msbuild $test_path -t:build -property:Configuration=Release
-        $test_dll_path = $(Join-Path $test_path bin\Release\GeomSharpTests.dll)
+        msbuild $test_path -t:build -property:Configuration=Release -restore
+        $test_dll_path = $(Join-Path $test_dir bin\Release\GeomSharpTests.dll)
         echo "test_dll_path = $test_dll_path"
         vstest.console.exe $test_dll_path --Blame
       shell: pwsh

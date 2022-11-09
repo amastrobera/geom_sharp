@@ -23,16 +23,22 @@ jobs:
     - name: Set up MSVC compiler
       uses: microsoft/setup-msbuild@v1.0.2
 
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '6.x'
+
     - name: Build
       run: |
         $proj_dir = $(Join-Path $pwd GeomSharp)
         echo "proj_dir = $proj_dir "
         $proj_path = $(Join-Path $proj_dir GeomSharp.csproj)
         echo "proj_path = $proj_path "
-        msbuild $proj_path -t:build -property:Configuration=Release   
+        msbuild $proj_path -t:build -property:Configuration=Release -restore   
         $test_dir = $(Join-Path $pwd GeomSharpTests)
         echo "test_dir = $test_dir"
         $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
         echo "test_path = $test_path"
-        msbuild $test_path -t:build -property:Configuration=Release
+        msbuild $test_path -t:build -property:Configuration=Release -restore
       shell: pwsh
