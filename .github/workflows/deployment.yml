@@ -39,7 +39,7 @@ jobs:
         $v = $old_version.Split(".")
         $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
         echo "new_version = $new_version"
-        nuget pack $pkg_spec_path -Properties Configuration=Release -Symbols -Version ${{ steps.merge_params.outputs.BUILD_VERSION }} -OutputDirectory $pkg_out_dir
+        nuget pack $pkg_spec_path -Properties Configuration=Release -Symbols -Version $new_version -OutputDirectory $pkg_out_dir
       shell: pwsh
 
 

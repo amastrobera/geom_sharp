@@ -36,9 +36,4 @@ jobs:
         $proj_path = $(Join-Path $proj_dir GeomSharp.csproj)
         echo "proj_path = $proj_path "
         msbuild $proj_path -t:build -property:Configuration=Release -restore   
-        $test_dir = $(Join-Path $pwd GeomSharpTests)
-        echo "test_dir = $test_dir"
-        $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
-        echo "test_path = $test_path"
-        msbuild $test_path -t:build -property:Configuration=Release -restore
       shell: pwsh

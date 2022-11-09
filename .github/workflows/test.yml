@@ -31,8 +31,7 @@ jobs:
       with:
         nuget-api-key: ${{ secrets.NUGET_API_KEY }}
         nuget-version: '6.x'
-      
-      
+            
     - name: Test
       run: |
         $test_dir = $(Join-Path $pwd GeomSharpTests)
@@ -44,3 +43,12 @@ jobs:
         echo "test_dll_path = $test_dll_path"
         vstest.console.exe $test_dll_path --Blame
       shell: pwsh
+
+
+
+#"D:\a\geom_sharp\geom_sharp\GeomSharpTests\GeomSharpTests.csproj" (build target) (1:7) ->
+#(EnsureNuGetPackageBuildImports target) -> 
+#  D:\a\geom_sharp\geom_sharp\GeomSharpTests\GeomSharpTests.csproj(91,5): error : This project references 
+# NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  
+# For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. 
+# The missing file is ..\packages\MSTest.TestAdapter.2.1.2\build\net45\MSTest.TestAdapter.props.
