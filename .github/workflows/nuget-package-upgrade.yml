@@ -27,6 +27,7 @@ jobs:
       run: |
         $proj_dir = $(Join-Path $pwd GeomSharp)
         echo "proj_dir = $proj_dir "
+        ls $proj_dir
         $proj_path = $(Join-Path $proj_dir GeomSharp.cproj)
         echo "proj_path = $proj_path "
         msbuild $proj_path -t:build -restore -property:Configuration=Release
