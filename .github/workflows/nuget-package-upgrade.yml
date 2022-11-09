@@ -28,7 +28,9 @@ jobs:
 
     - name: Build
       run: |
-        $proj_path = $(Join-Path $pwd GeomSharp)
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        echo "proj_dir = $proj_dir "
+        $proj_path = $(Join-Path $proj_dir GeomSharp.cproj)
         echo "proj_path = $proj_path "
         msbuild $proj_path -t:build -restore -property:Configuration=Release
       shell: pwsh
@@ -39,7 +41,9 @@ jobs:
     - name: Test
       working-directory: geom_sharp/GeomSharpTests
       run: |
-        $test_path = $(Join-Path $pwd GeomSharpTests)
+        $test_dir = $(Join-Path $pwd GeomSharpTests)
+        echo "test_dir = $test_dir"
+        $test_path = $(Join-Path $test_dir GeomSharpTests.cproj)
         echo "test_path = $test_path"
         msbuild $test_path -t:build -restore -property:Configuration=Release
         $test_dll_path = $(Join-Path $test_path GeomSharpTests\bin\Release\GeomSharpTests.dll)
@@ -56,8 +60,8 @@ jobs:
     - name: Get Build Version
       id: merge_params
       run: |
-        $proj_path = $(Join-Path $pwd GeomSharp)
-        $pkg_spec_path = $(Join-Path $proj_path GeomSharp.nuspec)
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
         [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
         $old_version = $xmlElm.package.metadata.version
         $v = $old_version.Split(".")
@@ -69,9 +73,9 @@ jobs:
     - name: Nuget Pack
       id: merge_pack
       run: |
-        $proj_path = $(Join-Path $pwd GeomSharp)
-        $pkg_spec_path = $(Join-Path $proj_path GeomSharp.nuspec)
-        $pkg_out_dir = $(Join-Path $proj_path nupkg)
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
+        $pkg_out_dir = $(Join-Path $proj_dir nupkg)
         nuget pack $pkg_spec_path -Properties Configuration=$build_config -Symbols -Version ${{ steps.merge_params.outputs.BUILD_VERSION }} -OutputDirectory $pkg_out_dir
         echo "PKG_DIR=$pkg_out_dir" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
       shell: pwsh
