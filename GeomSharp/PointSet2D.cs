@@ -76,7 +76,8 @@ namespace GeomSharp {
 
     public Polygon2D ConcaveHull() => Polygon2D.ConcaveHull(Vertices);
 
-    public Polygon2D ConvexHull() => Polygon2D.ConvexHull(Vertices);
+    public Polygon2D ConvexHull(int decimal_precision = Constants.THREE_DECIMALS) =>
+        Polygon2D.ConvexHull(Vertices, decimal_precision);
 
     public override string ToString() => (Vertices.Count == 0)
                                              ? "{}"

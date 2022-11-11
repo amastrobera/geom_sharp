@@ -66,5 +66,38 @@ namespace GeomSharpTests {
                        "square (outer point 2) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
       }
     }
+
+    [RepeatedTestMethod(100)]
+    public void Intersection() {
+      // 2D
+      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon2D();
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (poly is null) {
+        return;
+      }
+
+      // temporary data
+      Polygon2D other;
+      cm = poly.CenterOfMass();
+
+      // test 1: a polygon shifted along the radius by radius size, intersects
+      for (int i = 0; i < n; i++) {
+        var dir = (poly[i] - cm).Normalize();
+        other = new Polygon2D(poly.Select(p => p + radius * dir));
+        Assert.IsTrue(poly.Intersects(other),
+                      "a polygon shifted along the radius by radius size, intersects, \n\tt=" + poly.ToWkt() +
+                          "\n\tother=" + other.ToWkt());
+      }
+
+      // test 2: a polygon shifted along the radius by 2+radius size, does not intersect
+      for (int i = 0; i < n; i++) {
+        var dir = (poly[i] - cm).Normalize();
+        other = new Polygon2D(poly.Select(p => p + 3 * radius * dir));
+        Assert.IsFalse(poly.Intersects(other),
+                       "a polygon shifted along the radius by 2+radius size, does not intersect, \n\tt=" +
+                           poly.ToWkt() + "\n\tother=" + other.ToWkt());
+      }
+    }
   }
 }

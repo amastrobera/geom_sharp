@@ -207,8 +207,9 @@ namespace GeomSharp {
 
       var plane = ApproxPlane(points);
 
-      return new Polygon3D(
-          Polygon2D.ConcaveHull(points.Select(p => plane.ProjectInto(p))).Select(p => plane.Evaluate(p)));
+      var poly_2d = Polygon2D.ConcaveHull(points.Select(p => plane.ProjectInto(p)));
+
+      return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)));
     }
 
     /// <summary>
@@ -218,15 +219,16 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="points"></param>
     /// <returns></returns>
-    public static Polygon3D ConvexHull(List<Point3D> points) {
+    public static Polygon3D ConvexHull(List<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Count < 3) {
         throw new ArgumentException("tried to create a Convex Hull with less than 3 points");
       }
 
-      var plane = ApproxPlane(points);
+      var plane = ApproxPlane(points, decimal_precision);
 
-      return new Polygon3D(
-          Polygon2D.ConvexHull(points.Select(p => plane.ProjectInto(p)).ToList()).Select(p => plane.Evaluate(p)));
+      var poly_2d = Polygon2D.ConvexHull(points.Select(p => plane.ProjectInto(p)).ToList(), decimal_precision);
+
+      return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)));
     }
 
     // special formatting

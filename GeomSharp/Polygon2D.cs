@@ -162,6 +162,46 @@ namespace GeomSharp {
       return !(wn == 0);
     }
 
+    public bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public IntersectionResult Intersection(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: apply the notorious N*Log(N) algorithm of multi-segment intersections
+
+      var mpoint = new List<Point2D>();
+
+      // test all edges intersections
+      for (int i = 0; i < Size - 1; ++i) {
+        var seg = LineSegment2D.FromPoints(Vertices[i], Vertices[i + 1], decimal_precision);
+        for (int j = 0; j < other.Size - 1; ++j) {
+          var other_seg = LineSegment2D.FromPoints(other.Vertices[i], other.Vertices[i + 1], decimal_precision);
+          var inter = seg.Intersection(other_seg);
+          if (inter.ValueType == typeof(Point2D)) {
+            mpoint.Add((Point2D)inter.Value);
+          }
+        }
+      }
+
+      // add all contained points
+      for (int i = 0; i < Size; ++i) {
+        if (other.Contains(Vertices[i])) {
+          mpoint.Add(Vertices[i]);
+        }
+      }
+      for (int j = 0; j < Size; ++j) {
+        if (Contains(other.Vertices[j])) {
+          mpoint.Add(other.Vertices[j]);
+        }
+      }
+
+      // convex hull of these points
+      if (mpoint.Count == 0) {
+        return new IntersectionResult();
+      }
+
+      var cvhull = ConvexHull(mpoint);
+      return (cvhull is null) ? new IntersectionResult() : new IntersectionResult(cvhull);
+    }
+
     /// <summary>
     /// Sorts a list of points in CCW order and creates a polygon out of it
     /// </summary>
@@ -171,35 +211,39 @@ namespace GeomSharp {
       var sorted_points = new List<Point2D>(points);
       sorted_points.SortCCW();
 
-      return new Polygon2D(sorted_points);
+      return (sorted_points.Count < 3) ? null : new Polygon2D(sorted_points);
     }
 
     /// <summary>
     /// Computes the convex hull of any point enumeration
     /// </summary>
     /// <param name="points"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public static Polygon2D ConvexHull(List<Point2D> points) {
+    public static Polygon2D ConvexHull(List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
       var sorted_points = new List<Point2D>(points);
       sorted_points.SortCCW();
 
+      // remove duplicates
+      sorted_points = sorted_points.RemoveDuplicates(decimal_precision);
+
       // pick the lowest point
-      int n = points.Count;
+      int n = sorted_points.Count;
       int i0 = 0;
-      double v_min = points[i0].V;
+      double v_min = sorted_points[i0].V;
       for (int i = 1; i < n; ++i) {
-        if (points[i].V < v_min) {
-          v_min = points[i].V;
+        if (sorted_points[i].V < v_min) {
+          v_min = sorted_points[i].V;
           i0 = i;
         }
       }
       // initialize with the smallest point and the point after
       var cvpoints = new List<Point2D>();
-      cvpoints.Add(points[i0 % n]);
-      cvpoints.Add(points[(i0 + 1) % n]);
+      cvpoints.Add(sorted_points[i0 % n]);
+      cvpoints.Add(sorted_points[(i0 + 1) % n]);
 
       for (int i = 2; i < n + 1; ++i) {
-        cvpoints.Add(points[(i0 + i) % n]);
+        cvpoints.Add(sorted_points[(i0 + i) % n]);
 
         int m = cvpoints.Count;
         int i3 = m - 1;
@@ -207,8 +251,8 @@ namespace GeomSharp {
         int i1 = i3 - 2;
 
         // TODO: Works better when (precision - 1 if precision > 0 else precision) when used by point_to_line_location
-        while (i1 >= 0 &&
-               Line2D.FromPoints(cvpoints[i1], cvpoints[i2]).Location(cvpoints[i3]) != Constants.Location.LEFT) {
+        while (i1 >= 0 && Line2D.FromPoints(cvpoints[i1], cvpoints[i2], decimal_precision)
+                                  .Location(cvpoints[i3], decimal_precision) != Constants.Location.LEFT) {
           cvpoints[i2] = cvpoints[i3];
           cvpoints.RemoveAt(cvpoints.Count - 1);
           i1 -= 1;
@@ -217,11 +261,11 @@ namespace GeomSharp {
         }
       }
       // end condition
-      if (cvpoints[0].AlmostEquals(cvpoints[cvpoints.Count - 1])) {
+      if (cvpoints[0].AlmostEquals(cvpoints[cvpoints.Count - 1], decimal_precision)) {
         cvpoints.RemoveAt(cvpoints.Count - 1);
       }
 
-      return new Polygon2D(cvpoints);
+      return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints);
     }
 
     // formatting functions

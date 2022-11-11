@@ -84,6 +84,39 @@ namespace GeomSharp {
       return d;
     }
 
+    /// <summary>
+    /// Tells if two polylines intersect (one of them cuts throw the other, splitting it in two)
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool Intersects(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
+    /// <summary>
+    /// If two Polyline2D intersect, this return the point in which one of the is stroke through
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public IntersectionResult Intersection(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: bounding box test improvement
+
+      var mpoints = new List<Point2D>();
+
+      for (int i = 0; i < Nodes.Count - 1; i++) {
+        var seg = LineSegment2D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision);
+        var inter = seg.Intersection(other, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoints.Add((Point2D)inter.Value);
+        } else if (inter.ValueType == typeof(PointSet2D)) {
+          foreach (var mp in (PointSet2D)inter.Value) {
+            mpoints.Add(mp);
+          }
+        }
+      }
+
+      return (mpoints.Count > 0) ? new IntersectionResult(new PointSet2D(mpoints)) : new IntersectionResult();
+    }
+
     private int IndexOfNearestSegmentToPoint(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       (int i_min, double d_min) = (-1, double.MaxValue);
       for (int i1 = 0; i1 < Nodes.Count - 1; i1++) {
