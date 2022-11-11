@@ -165,15 +165,20 @@ namespace GeomSharp {
     /// <summary>
     /// Sorts a list of points in CCW order and creates a polygon out of it
     /// </summary>
-    /// <param name="points">list of DB.XYZ</param>
+    /// <param name="points">any enumeration of 2D Points</param>
     /// <returns></returns>
-    public static Polygon2D ConcaveHull(List<Point2D> points) {
+    public static Polygon2D ConcaveHull(IEnumerable<Point2D> points) {
       var sorted_points = new List<Point2D>(points);
       sorted_points.SortCCW();
 
       return new Polygon2D(sorted_points);
     }
 
+        /// <summary>
+        /// Computes the convex hull of any point enumeration
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
     public static Polygon2D ConvexHull(List<Point2D> points) {
       var sorted_points = new List<Point2D>(points);
       sorted_points.SortCCW();

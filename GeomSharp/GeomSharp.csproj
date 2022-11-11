@@ -59,6 +59,8 @@
     <Compile Include="Plane.cs" />
     <Compile Include="Point2D.cs" />
     <Compile Include="Point3D.cs" />
+    <Compile Include="PointSet3D.cs" />
+    <Compile Include="PointSet2D.cs" />
     <Compile Include="Polygon2D.cs" />
     <Compile Include="Polygon3D.cs" />
     <Compile Include="Polyline2D.cs" />

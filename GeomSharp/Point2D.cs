@@ -31,7 +31,7 @@ namespace GeomSharp {
 
     public double[] ToArray() => new double[] { U, V };
 
-    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
+    public Vector ToVector() => new Vector(new double[] { U, V });
 
     public Vector2D ToVector2D() {
       return new Vector2D(U, V);

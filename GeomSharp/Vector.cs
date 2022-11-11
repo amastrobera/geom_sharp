@@ -11,6 +11,32 @@ namespace GeomSharp {
     private double[] _values;
     public readonly int Size;
 
+    public Vector(IEnumerable<double> enumd) {
+      Size = enumd.Count();
+
+      if (Size <= 0) {
+        throw new ArgumentException("init vector with Size <= 0");
+      }
+      _values = new double[Size];
+
+      int i = 0;
+      foreach (var val in enumd) {
+        _values[i] = val;
+        ++i;
+      }
+    }
+
+    private Vector(int n) {
+      Size = n;
+      if (Size <= 0) {
+        throw new ArgumentException("init vector with Size <= 0");
+      }
+      _values = new double[Size];
+      for (int i = 0; i < Size; i++) {
+        _values[i] = 0;
+      }
+    }
+
     public double this[int i] {
       // IndexOutOfRangeException already managed by the List class
       get {
@@ -23,40 +49,15 @@ namespace GeomSharp {
 
     public Vector Clone() => new Vector(this);
 
-    public static Vector FromArray(double[] arr) => FromEnumerable(arr);
-
-    public static Vector FromList(List<double> ldoubles) => FromEnumerable(ldoubles);
-
     public double[] ToArray() => _values;
 
     public List<double> ToList() => _values.ToList();
-
-    private Vector(int size) {
-      if (size <= 0) {
-        throw new ArgumentException("init vector with size <= 0");
-      }
-      _values = new double[size];
-      Size = size;
-      for (int i = 0; i < Size; i++) {
-        _values[i] = 0;
-      }
-    }
 
     private Vector(Vector cp) {
       Size = cp.Size;
       for (int i = 0; i < Size; i++) {
         _values[i] = cp._values[i];
       }
-    }
-
-    private static Vector FromEnumerable(IEnumerable<double> enumd) {
-      var v = new Vector(enumd.Count());
-      int i = 0;
-      foreach (var val in enumd) {
-        v._values[i] = val;
-        ++i;
-      }
-      return v;
     }
 
     // unary methods

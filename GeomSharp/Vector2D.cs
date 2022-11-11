@@ -32,7 +32,7 @@ namespace GeomSharp {
     }
     public double[] ToArray() => ToVector().ToArray();
 
-    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
+    public Vector ToVector() => new Vector(new double[] { U, V });
 
     // unary methods
 

@@ -146,6 +146,89 @@ namespace GeomSharp {
           .Contains(plane.ProjectInto(point), decimal_precision);
     }
 
+    /// <summary>
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
+    /// average plane crossing all points
+    /// </summary>
+    /// <param name="points">any enumeration of 3D Points</param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public static Plane ApproxPlane(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS) {
+      Func<Point3D> CenterOfMass = () => {
+        var _v = new Vector(new double[] { 0, 0, 0 });
+        int _n = points.Count();
+        if (_n < 3) {
+          throw new ArgumentException("ApproxPlane called with less than 3 points");
+        }
+        foreach (var p in points) {
+          _v += p.ToVector() / _n;
+        }
+
+        return Point3D.FromVector(_v);
+      };
+
+      // TODO: pre-sort CCW on a given plane, so that the average normal computed below will go in the same direction!
+
+      var cm = CenterOfMass();
+      int n = points.Count();
+      var avg_norm_vec = new Vector(new double[] { 0, 0, 0 });
+      var point_list = new List<Point3D>(points);
+      int divisor = n;
+      for (int i = 0; i <= n; i++) {
+        (int i1, int i2) = (i % n, (i + 1) % n);
+        if (point_list[i1].AlmostEquals(point_list[i2], decimal_precision)) {
+          ++i;
+          --divisor;
+        } else {
+          avg_norm_vec += Plane.FromPoints(cm, point_list[i1], point_list[i2]).Normal.ToVector();
+        }
+      }
+
+      if (divisor < 3) {
+        throw new ArgumentException(
+            "ApproxPlane: too many duplicate points (less than 3 unique points with decimal_precision=" +
+            decimal_precision.ToString());
+      }
+      avg_norm_vec /= divisor;
+      return Plane.FromPointAndNormal(cm, Vector3D.FromVector(avg_norm_vec).Normalize(), decimal_precision);
+    }
+
+    /// <summary>
+    /// Sorts a list of points in CCW order and creates a polygon out of it
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
+    /// average plane crossing all points
+    /// </summary>
+    /// <param name="points">any enumeration of 3D Points</param>
+    /// <returns></returns>
+    public static Polygon3D ConcaveHull(IEnumerable<Point3D> points) {
+      if (points.Count() < 3) {
+        throw new ArgumentException("tried to create a Concave Hull with less than 3 points");
+      }
+
+      var plane = ApproxPlane(points);
+
+      return new Polygon3D(
+          Polygon2D.ConcaveHull(points.Select(p => plane.ProjectInto(p))).Select(p => plane.Evaluate(p)));
+    }
+
+    /// <summary>
+    /// Computes the convex hull of any point enumeration
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
+    /// average plane crossing all points
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static Polygon3D ConvexHull(List<Point3D> points) {
+      if (points.Count < 3) {
+        throw new ArgumentException("tried to create a Convex Hull with less than 3 points");
+      }
+
+      var plane = ApproxPlane(points);
+
+      return new Polygon3D(
+          Polygon2D.ConvexHull(points.Select(p => plane.ProjectInto(p)).ToList()).Select(p => plane.Evaluate(p)));
+    }
+
     // special formatting
     public override string ToString() => (Vertices.Count == 0)
                                              ? "{}"

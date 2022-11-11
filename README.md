@@ -47,6 +47,8 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | :heavy_check_mark: :test_tube: Line | :heavy_check_mark: :test_tube: Line | :x: Translation | 
 | :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Transformation | 
 | :heavy_check_mark: :test_tube: LineSegment | :heavy_check_mark: :test_tube: LineSegment |  | 
+| :arrow_forward: PointSet | :arrow_forward: PointSet |  | 
+| :x: LineSet | :x: LineSet |  | 
 | :arrow_forward: Polyline | :arrow_forward: Polyline |  | 
 | :heavy_check_mark: :test_tube: Triangle | :heavy_check_mark: :test_tube: Triangle |  | 
 | :arrow_forward: Polygon | :arrow_forward: Polygon |  | 

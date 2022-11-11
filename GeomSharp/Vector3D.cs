@@ -37,7 +37,7 @@ namespace GeomSharp {
 
     public double[] ToArray() => ToVector().ToArray();
 
-    public Vector ToVector() => Vector.FromArray(new double[] { X, Y, Z });
+    public Vector ToVector() => new Vector(new double[] { X, Y, Z });
 
     public double Length() => ToVector().Length();
 
