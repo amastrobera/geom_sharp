@@ -257,7 +257,7 @@ namespace GeomSharp {
       var proj_p0 = v.P0.ToXY();
       var proj_p1 = v.P1.ToXY();
       try {
-        var proj_line = Line2D.FromTwoPoints(proj_p0, proj_p1);
+        var proj_line = Line2D.FromPoints(proj_p0, proj_p1);
         return new ProjectionResult(proj_line);
       } catch (NullLengthException) {
         return new ProjectionResult(new Point2D(proj_p0));
@@ -267,7 +267,7 @@ namespace GeomSharp {
       var proj_p0 = v.P0.ToYZ();
       var proj_p1 = v.P1.ToYZ();
       try {
-        var proj_line = Line2D.FromTwoPoints(proj_p0, proj_p1);
+        var proj_line = Line2D.FromPoints(proj_p0, proj_p1);
         return new ProjectionResult(proj_line);
       } catch (NullLengthException) {
         return new ProjectionResult(new Point2D(proj_p0));
@@ -277,7 +277,7 @@ namespace GeomSharp {
       var proj_p0 = v.P0.ToZX();
       var proj_p1 = v.P1.ToZX();
       try {
-        var proj_line = Line2D.FromTwoPoints(proj_p0, proj_p1);
+        var proj_line = Line2D.FromPoints(proj_p0, proj_p1);
         return new ProjectionResult(proj_line);
       } catch (NullLengthException) {
         return new ProjectionResult(new Point2D(proj_p0));

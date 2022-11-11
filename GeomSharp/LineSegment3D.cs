@@ -107,15 +107,15 @@ namespace GeomSharp {
 
     public bool Intersects(LineSegment3D other) => Intersection(other).ValueType != typeof(NullValue);
 
-    public IntersectionResult Intersection(LineSegment3D other) {
-      var int_res = ToLine().Intersection(other.ToLine());
+    public IntersectionResult Intersection(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var int_res = ToLine().Intersection(other.ToLine(), decimal_precision);
 
       if (int_res.ValueType == typeof(NullValue)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)int_res.Value;
-      if (Contains(pI) && other.Contains(pI)) {
+      if (Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
       return new IntersectionResult();

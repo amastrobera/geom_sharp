@@ -33,7 +33,7 @@ namespace GeomSharpTests {
       var p1 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
 
       try {
-        return (Line2D.FromTwoPoints(p0, p1), p0, p1);
+        return (Line2D.FromPoints(p0, p1), p0, p1);
       } catch (Exception) {
       }
       return (null, p0, p1);
@@ -83,6 +83,33 @@ namespace GeomSharpTests {
       } catch (Exception) {
       }
       return (null, c, r, n);
+    }
+
+    public static (Polyline2D Polyline, UnitVector2D Direction, int Size)
+        MakeSimplePolyline2D(int IMin = -10, int IMax = 10, int NMax = 30) {
+      // construct polyline with no self-intersections
+      // build a p0 + sin approximated line
+      try {
+        var p0 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+        var direction = MakeVector2D(IMin, IMax).Normalize();
+
+        double length = seed.NextDouble() * (IMax - IMin);
+        int n = seed.Next(NMax);
+        double r = 1 / n * length;
+        double rads = Math.PI * 2 / n;
+        double start_rads = seed.NextDouble() * Math.PI * 2;
+
+        var cv_points = new List<Point2D>();
+        for (int i = 0; i < n; ++i) {
+          var pi = p0 + i / n * length * direction;
+          cv_points.Add(
+              new Point2D(pi.U + r * Math.Cos(start_rads + (i * rads)), pi.V + r * Math.Sin(start_rads + (i * rads))));
+        }
+
+        return (new Polyline2D(cv_points), direction, n);
+      } catch (Exception) {
+      }
+      return (null, null, 0);
     }
 
     //  3D objects
@@ -187,6 +214,39 @@ namespace GeomSharpTests {
       } catch (Exception) {
       }
       return (null, null, 0, 0);
+    }
+
+    public static (Polyline3D Polyline, UnitVector3D DirectionLongitudinal, UnitVector3D DirectionLateral, int Size)
+        MakeSimplePolyline3D(int IMin = -10, int IMax = 10, int NMax = 30) {
+      // construct polyline with no self-intersections
+      // build a p0 + sin approximated line
+      var p0 = new Point3D(seed.Next(IMin, IMax), seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+      var direction_longitudinal = MakeVector3D(IMin, IMax).Normalize();
+      var direction_elevation = (direction_longitudinal.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ);
+      var direction_lateral = direction_longitudinal.CrossProduct(direction_elevation).Normalize();
+
+      try {
+        double length = seed.NextDouble() * (IMax - IMin);
+        int n = seed.Next(NMax);
+        double r = 1 / n * length;
+        double rads_xy = Math.PI / n;
+        double start_rads_xy = seed.NextDouble() * Math.PI;
+        double rads_yz = Math.PI * 2 / n;
+        double start_rads_yz = seed.NextDouble() * Math.PI * 2;
+
+        var cv_points = new List<Point3D>();
+        for (int i = 0; i < n; ++i) {
+          var pi = p0 + i / n * length * direction_longitudinal;
+          cv_points.Add(new Point3D(
+              pi.X + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Cos(start_rads_xy + (i * rads_xy)),
+              pi.Y + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy)),
+              pi.Z + r * Math.Cos(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy))));
+        }
+
+        return (new Polyline3D(cv_points), direction_longitudinal, direction_lateral, n);
+      } catch (Exception) {
+      }
+      return (null, null, null, 0);
     }
   }
 

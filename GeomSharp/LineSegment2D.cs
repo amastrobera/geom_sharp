@@ -49,7 +49,7 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    public Line2D ToLine() => Line2D.FromTwoPoints(P0, P1);
+    public Line2D ToLine() => Line2D.FromPoints(P0, P1);
 
     public double Length() => (P1 - P0).Length();
 

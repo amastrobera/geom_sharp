@@ -174,11 +174,11 @@ namespace GeomSharp {
       return new Polygon2D(sorted_points);
     }
 
-        /// <summary>
-        /// Computes the convex hull of any point enumeration
-        /// </summary>
-        /// <param name="points"></param>
-        /// <returns></returns>
+    /// <summary>
+    /// Computes the convex hull of any point enumeration
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
     public static Polygon2D ConvexHull(List<Point2D> points) {
       var sorted_points = new List<Point2D>(points);
       sorted_points.SortCCW();
@@ -208,7 +208,7 @@ namespace GeomSharp {
 
         // TODO: Works better when (precision - 1 if precision > 0 else precision) when used by point_to_line_location
         while (i1 >= 0 &&
-               Line2D.FromTwoPoints(cvpoints[i1], cvpoints[i2]).Location(cvpoints[i3]) != Constants.Location.LEFT) {
+               Line2D.FromPoints(cvpoints[i1], cvpoints[i2]).Location(cvpoints[i3]) != Constants.Location.LEFT) {
           cvpoints[i2] = cvpoints[i3];
           cvpoints.RemoveAt(cvpoints.Count - 1);
           i1 -= 1;

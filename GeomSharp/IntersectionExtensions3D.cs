@@ -344,6 +344,159 @@ namespace GeomSharp {
                                                   Triangle3D triangle,
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         triangle.Intersection(segment, decimal_precision);
+
+    // Polyline to Line
+    public static bool Intersects(this Polyline3D pline,
+                                  Line3D line,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline3D pline,
+                                                  Line3D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point3D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg = LineSegment3D.FromPoints(pline[i1], pline[i2], decimal_precision);
+        var inter = seg.Intersection(line, decimal_precision);
+        if (inter.ValueType == typeof(Point3D)) {
+          mpoint.Add((Point3D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet3D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this Line3D line,
+                                  Polyline3D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Line3D line,
+                                                  Polyline3D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(line, decimal_precision);
+
+    // Polyline to Ray
+    public static bool Intersects(this Polyline3D pline, Ray3D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline3D pline,
+                                                  Ray3D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point3D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg = LineSegment3D.FromPoints(pline[i1], pline[i2], decimal_precision);
+        var inter = seg.Intersection(ray, decimal_precision);
+        if (inter.ValueType == typeof(Point3D)) {
+          mpoint.Add((Point3D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet3D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this Ray3D ray, Polyline3D pline, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ray.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Ray3D ray,
+                                                  Polyline3D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(ray, decimal_precision);
+
+    // Polyline to LineSegment
+    public static bool Intersects(this Polyline3D pline,
+                                  LineSegment3D seg,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(seg, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline3D pline,
+                                                  LineSegment3D seg,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point3D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg2 = LineSegment3D.FromPoints(pline[i1], pline[i2], decimal_precision);
+        var inter = seg2.Intersection(seg, decimal_precision);
+        if (inter.ValueType == typeof(Point3D)) {
+          mpoint.Add((Point3D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet3D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this LineSegment3D seg,
+                                  Polyline3D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        seg.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this LineSegment3D seg,
+                                                  Polyline3D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(seg, decimal_precision);
+
+    // Polygon to Line
+    public static bool Intersects(this Polygon3D poly, Line3D line, int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon3D poly,
+                                                  Line3D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this Line3D line, Polygon3D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Line3D line,
+                                                  Polygon3D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(line, decimal_precision);
+
+    // Polygon to Ray
+    public static bool Intersects(this Polygon3D poly, Ray3D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon3D poly,
+                                                  Ray3D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this Ray3D ray, Polygon3D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ray.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Ray3D ray,
+                                                  Polygon3D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(ray, decimal_precision);
+
+    // Polygon to LineSegment
+    public static bool Intersects(this Polygon3D poly,
+                                  LineSegment3D seg,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(seg, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon3D poly,
+                                                  LineSegment3D seg,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this LineSegment3D seg,
+                                  Polygon3D poly,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        seg.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this LineSegment3D seg,
+                                                  Polygon3D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(seg, decimal_precision);
   }
 
 }

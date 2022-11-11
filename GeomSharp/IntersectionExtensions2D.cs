@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace GeomSharp {
 
@@ -279,6 +280,101 @@ namespace GeomSharp {
                                                   Triangle2D triangle,
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         triangle.Intersection(segment, decimal_precision);
+
+    // Polyline to Line
+    public static bool Intersects(this Polyline2D pline,
+                                  Line2D line,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline2D pline,
+                                                  Line2D line,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point2D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg = LineSegment2D.FromPoints(pline[i1], pline[i2], decimal_precision);
+        var inter = seg.Intersection(line, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoint.Add((Point2D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet2D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this Line2D line,
+                                  Polyline2D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Line2D line,
+                                                  Polyline2D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(line, decimal_precision);
+
+    // Polyline to Ray
+    public static bool Intersects(this Polyline2D pline, Ray2D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(ray, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline2D pline,
+                                                  Ray2D ray,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point2D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg = LineSegment2D.FromPoints(pline[i1], pline[i2], decimal_precision);
+        var inter = seg.Intersection(ray, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoint.Add((Point2D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet2D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this Ray2D ray, Polyline2D pline, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ray.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Ray2D ray,
+                                                  Polyline2D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(ray, decimal_precision);
+
+    // Polyline to LineSegment
+    public static bool Intersects(this Polyline2D pline,
+                                  LineSegment2D seg,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(seg, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline2D pline,
+                                                  LineSegment2D seg,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point2D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg2 = LineSegment2D.FromPoints(pline[i1], pline[i2], decimal_precision);
+        var inter = seg2.Intersection(seg, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoint.Add((Point2D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet2D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this LineSegment2D seg,
+                                  Polyline2D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        seg.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this LineSegment2D seg,
+                                                  Polyline2D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(seg, decimal_precision);
 
     // Polygon to Line
     public static bool Intersects(this Polygon2D poly, Line2D line, int decimal_precision = Constants.THREE_DECIMALS) =>

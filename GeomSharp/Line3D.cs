@@ -114,8 +114,8 @@ namespace GeomSharp {
       (var p1, var other_p1) = (plane_2d.ProjectInto(Origin), plane_2d.ProjectInto(other.Origin));
       (var p2, var other_p2) =
           (plane_2d.ProjectInto(Origin + 2 * Direction), plane_2d.ProjectInto(other.Origin + 2 * other.Direction));
-      (var line_2d, var other_line_2d) = (Line2D.FromTwoPoints(p1, p2, decimal_precision),
-                                          Line2D.FromTwoPoints(other_p1, other_p2, decimal_precision));
+      (var line_2d, var other_line_2d) = (Line2D.FromPoints(p1, p2, decimal_precision),
+                                          Line2D.FromPoints(other_p1, other_p2, decimal_precision));
 
       var inter_res = line_2d.Intersection(other_line_2d, decimal_precision);
       if (inter_res.ValueType == typeof(NullValue)) {
