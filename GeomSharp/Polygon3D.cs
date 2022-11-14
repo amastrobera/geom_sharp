@@ -146,6 +146,55 @@ namespace GeomSharp {
           .Contains(plane.ProjectInto(point), decimal_precision);
     }
 
+    public bool Intersects(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var plane = RefPlane();
+      var other_plane = other.RefPlane();
+
+      // check if planes intersect into a line
+      var plane_intersection = plane.Intersection(other_plane, decimal_precision);
+      if (plane_intersection.ValueType != typeof(Line3D)) {
+        return new IntersectionResult();
+      }
+      var line_inter = (Line3D)plane_intersection.Value;
+
+      // check if the line intersection of the two planes passes through both polygons
+      //    intersection with polygon 1
+      var line_inter_2D_on_poly = Line2D.FromPoints(plane.ProjectInto(line_inter.Origin),
+                                                    plane.ProjectInto(line_inter.Origin + line_inter.Direction));
+      var poly_2D = new Polygon2D(Vertices.Select(v => plane.ProjectInto(v)));
+      var line_inter_on_poly_2D = poly_2D.Intersection(line_inter_2D_on_poly);
+      if (line_inter_on_poly_2D.ValueType != typeof(LineSegment2D)) {
+        return new IntersectionResult();
+      }
+      var seg_inter_on_poly_2D = (LineSegment2D)line_inter_on_poly_2D.Value;
+      var seg_inter = LineSegment3D.FromPoints(plane.Evaluate(seg_inter_on_poly_2D.P0),
+                                               plane.Evaluate(seg_inter_on_poly_2D.P1),
+                                               decimal_precision);
+      //    intersection with polygon 2
+      var seg_inter_on_other_2D = LineSegment2D.FromPoints(other_plane.ProjectInto(seg_inter.P0),
+                                                           other_plane.ProjectInto(seg_inter.P1),
+                                                           decimal_precision);
+      var other_2D = new Polygon2D(other.Vertices.Select(v => other_plane.ProjectInto(v)));
+      //      both vertices contained ? this is the smallest intersection LineSegment
+      if (other_2D.Contains(seg_inter_on_other_2D.P0, decimal_precision) &&
+          other_2D.Contains(seg_inter_on_other_2D.P1, decimal_precision)) {
+        return new IntersectionResult(seg_inter);
+      }
+      var other_seg_inter_2D = other_2D.Intersection(seg_inter_on_other_2D, decimal_precision);
+      //      no intersection ? polygon crosses the plane but not the other polygon
+      if (other_seg_inter_2D.ValueType != typeof(LineSegment2D)) {
+        return new IntersectionResult();
+      }
+      //      smaller than that segment intersection ? save it and return it
+      var smaller_inter_on_other_2D = (LineSegment2D)other_seg_inter_2D.Value;
+      var smaller_inter_on_other = LineSegment3D.FromPoints(other_plane.Evaluate(smaller_inter_on_other_2D.P0),
+                                                            other_plane.Evaluate(smaller_inter_on_other_2D.P1),
+                                                            decimal_precision);
+      return new IntersectionResult(smaller_inter_on_other);
+    }
+
     /// <summary>
     /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
     /// average plane crossing all points

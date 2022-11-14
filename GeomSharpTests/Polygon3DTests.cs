@@ -81,5 +81,21 @@ namespace GeomSharpTests {
         Assert.IsFalse(poly.Contains(p), "point below the plane \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
       }
     }
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void Intersection() {
+      // 3D
+      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon3D();
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (poly is null) {
+        return;
+      }
+
+      // temporary data
+      Polygon3D other;
+      cm = poly.CenterOfMass();
+    }
   }
 }

@@ -173,8 +173,8 @@ namespace GeomSharp {
       for (int i = 0; i < Size - 1; ++i) {
         var seg = LineSegment2D.FromPoints(Vertices[i], Vertices[i + 1], decimal_precision);
         for (int j = 0; j < other.Size - 1; ++j) {
-          var other_seg = LineSegment2D.FromPoints(other.Vertices[i], other.Vertices[i + 1], decimal_precision);
-          var inter = seg.Intersection(other_seg);
+          var other_seg = LineSegment2D.FromPoints(other.Vertices[j], other.Vertices[j + 1], decimal_precision);
+          var inter = seg.Intersection(other_seg, decimal_precision);
           if (inter.ValueType == typeof(Point2D)) {
             mpoint.Add((Point2D)inter.Value);
           }
@@ -183,12 +183,12 @@ namespace GeomSharp {
 
       // add all contained points
       for (int i = 0; i < Size; ++i) {
-        if (other.Contains(Vertices[i])) {
+        if (other.Contains(Vertices[i], decimal_precision)) {
           mpoint.Add(Vertices[i]);
         }
       }
       for (int j = 0; j < Size; ++j) {
-        if (Contains(other.Vertices[j])) {
+        if (Contains(other.Vertices[j], decimal_precision)) {
           mpoint.Add(other.Vertices[j]);
         }
       }
@@ -198,7 +198,7 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
 
-      var cvhull = ConvexHull(mpoint);
+      var cvhull = ConvexHull(mpoint, decimal_precision);
       return (cvhull is null) ? new IntersectionResult() : new IntersectionResult(cvhull);
     }
 
