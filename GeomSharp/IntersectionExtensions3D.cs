@@ -315,7 +315,7 @@ namespace GeomSharp {
 
     public static bool Intersects(this Triangle3D triangle,
                                   LineSegment3D segment,
-                                  int decimal_precision = Constants.NINE_DECIMALS) =>
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
         triangle.Intersection(segment, decimal_precision).ValueType != typeof(NullValue);
 
     public static IntersectionResult Intersection(this Triangle3D triangle,

@@ -12,14 +12,14 @@ namespace GeomSharp {
     public readonly int Size;
 
     public Polygon2D(Point2D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (points.Length < 3) {
-        throw new ArgumentException("tried to initialize a polygon with less than 3 points");
+      if (points.Length < 4) {
+        throw new ArgumentException("tried to initialize a polygon with less than 4 points");
       }
 
       Vertices = (new List<Point2D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
-      if (Vertices.Count < 3) {
-        throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
+      if (Vertices.Count < 4) {
+        throw new ArgumentException("tried to initialize a polygon with less than 4 non-collinear points");
       }
 
       Size = Vertices.Count;
@@ -174,9 +174,13 @@ namespace GeomSharp {
         var seg = LineSegment2D.FromPoints(Vertices[i], Vertices[i + 1], decimal_precision);
         for (int j = 0; j < other.Size - 1; ++j) {
           var other_seg = LineSegment2D.FromPoints(other.Vertices[j], other.Vertices[j + 1], decimal_precision);
-          var inter = seg.Intersection(other_seg, decimal_precision);
-          if (inter.ValueType == typeof(Point2D)) {
-            mpoint.Add((Point2D)inter.Value);
+          try {
+            var inter = seg.Intersection(other_seg, decimal_precision);
+            if (inter.ValueType == typeof(Point2D)) {
+              mpoint.Add((Point2D)inter.Value);
+            }
+          } catch (Exception ex) {
+            // warning of Intersection throw
           }
         }
       }
@@ -198,6 +202,10 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
 
+      if (mpoint.Count == 3) {
+        return new IntersectionResult(Triangle2D.FromPoints(mpoint[0], mpoint[1], mpoint[2]));
+      }
+
       var cvhull = ConvexHull(mpoint, decimal_precision);
       return (cvhull is null) ? new IntersectionResult() : new IntersectionResult(cvhull);
     }
@@ -206,10 +214,10 @@ namespace GeomSharp {
     /// Sorts a list of points in CCW order and creates a polygon out of it
     /// </summary>
     /// <param name="points">any enumeration of 2D Points</param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public static Polygon2D ConcaveHull(IEnumerable<Point2D> points) {
-      var sorted_points = new List<Point2D>(points);
-      sorted_points.SortCCW();
+    public static Polygon2D ConcaveHull(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
+      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveDuplicates(decimal_precision);
 
       return (sorted_points.Count < 3) ? null : new Polygon2D(sorted_points);
     }
@@ -221,19 +229,20 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConvexHull(List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var sorted_points = new List<Point2D>(points);
-      sorted_points.SortCCW();
+      var concave_hull = ConcaveHull(points, decimal_precision);
 
-      // remove duplicates
-      sorted_points = sorted_points.RemoveDuplicates(decimal_precision);
+      if (concave_hull is null) {
+        return null;
+      }
+      var sorted_points = concave_hull.Vertices;
 
       // pick the lowest point
       int n = sorted_points.Count;
       int i0 = 0;
-      double v_min = sorted_points[i0].V;
+      double v_max = sorted_points[i0].V;
       for (int i = 1; i < n; ++i) {
-        if (sorted_points[i].V < v_min) {
-          v_min = sorted_points[i].V;
+        if (Math.Round(sorted_points[i].V - v_max, decimal_precision) > 0) {
+          v_max = sorted_points[i].V;
           i0 = i;
         }
       }
@@ -242,13 +251,13 @@ namespace GeomSharp {
       cvpoints.Add(sorted_points[i0 % n]);
       cvpoints.Add(sorted_points[(i0 + 1) % n]);
 
-      for (int i = 2; i < n + 1; ++i) {
+      for (int i = 2; i <= n; ++i) {
         cvpoints.Add(sorted_points[(i0 + i) % n]);
 
         int m = cvpoints.Count;
         int i3 = m - 1;
-        int i2 = i3 - 1;
-        int i1 = i3 - 2;
+        int i2 = m - 2;
+        int i1 = m - 3;
 
         // TODO: Works better when (precision - 1 if precision > 0 else precision) when used by point_to_line_location
         while (i1 >= 0 && Line2D.FromPoints(cvpoints[i1], cvpoints[i2], decimal_precision)

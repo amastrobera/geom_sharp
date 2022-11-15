@@ -88,10 +88,11 @@ namespace GeomSharp {
         (Vertices.Count == 0)
             ? "MULTIPOINT EMPTY"
             : "MULTIPOINT (" +
-                  Vertices.Select(
-                      v => string.Format(String.Format("({0}0:F{1:D}{2} {0}1:F{1:D}{2})", "{", precision, "}"),
-                                         v.U,
-                                         v.V)) +
+                  string.Join(",",
+                              Vertices.Select(v => string.Format(
+                                                  String.Format("({0}0:F{1:D}{2} {0}1:F{1:D}{2})", "{", precision, "}"),
+                                                  v.U,
+                                                  v.V))) +
                   ")";
   }
 }

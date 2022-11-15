@@ -290,26 +290,38 @@ namespace GeomSharp {
     /// Sorts a list of points in counter clockwise order
     /// </summary>
     /// <param name="points"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public static void SortCCW(this List<Point2D> points) {
+    public static List<Point2D> SortCCW(this List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
       var centroid = points.Average();
       var u_axis = Vector2D.AxisU;
       var v_axis = Vector2D.AxisV;
       points.Sort((p1, p2) =>
-                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) < u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
+                      ((p1 == p2) ? 0
+                                  : (Math.Round((u_axis.AngleTo(p1 - centroid) - u_axis.AngleTo(p2 - centroid)).Radians,
+                                                decimal_precision) < 0
+                                         ? -1
+                                         : 1)));
+
+      return points;
     }
 
     /// <summary>
     /// Sorts a list of points in  clockwise order
     /// </summary>
     /// <param name="points"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public static void SortCW(this List<Point2D> points) {
+    public static List<Point2D> SortCW(this List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
       var centroid = points.Average();
       var u_axis = Vector2D.AxisU;
       var v_axis = Vector2D.AxisV;
-      points.Sort((p1, p2) =>
-                      ((p1 == p2) ? 0 : (u_axis.AngleTo(p1 - centroid) > u_axis.AngleTo(p2 - centroid) ? -1 : 1)));
+      points.Sort((p1, p2) => ((p1 == p2) ? 0
+                               : Math.Round((u_axis.AngleTo(p1 - centroid) - u_axis.AngleTo(p2 - centroid)).Radians,
+                                            decimal_precision) > 0
+                                   ? -1
+                                   : 1));
+      return points;
     }
 
     // special formatting

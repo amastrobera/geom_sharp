@@ -206,10 +206,9 @@ namespace GeomSharp {
       AddEdgeToTriangleIntersections(LineSegment2D.FromPoints(other.P2, other.P0, decimal_precision), this);
 
       if (inter_points.Count > 0) {
-        inter_points.SortCCW();
-        inter_points =
-            inter_points.RemoveCollinearPoints(decimal_precision);  // removes duplicates, and collinear points (not
-                                                                    // necessary), up to a line of two points
+        inter_points = inter_points.SortCCW(decimal_precision)
+                           .RemoveCollinearPoints(decimal_precision);  // removes duplicates, and collinear points (not
+                                                                       // necessary), up to a line of two points
 
         if (inter_points.Count == 0) {
           return new IntersectionResult();  // this is Touch, not intersection, return NullValue

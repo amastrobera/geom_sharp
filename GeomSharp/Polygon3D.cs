@@ -13,13 +13,13 @@ namespace GeomSharp {
     public UnitVector3D Normal { get; }
 
     private Polygon3D(Point3D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (points.Length < 3) {
-        throw new ArgumentException("tried to initialize a polygon with less than 3 points");
+      if (points.Length < 4) {
+        throw new ArgumentException("tried to initialize a polygon with less than 4 points");
       }
       Vertices = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
-      if (Vertices.Count < 3) {
-        throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
+      if (Vertices.Count < 4) {
+        throw new ArgumentException("tried to initialize a polygon with less than 4 non-collinear points");
       }
       // adding the size
       Size = Vertices.Count;
@@ -162,9 +162,10 @@ namespace GeomSharp {
       // check if the line intersection of the two planes passes through both polygons
       //    intersection with polygon 1
       var line_inter_2D_on_poly = Line2D.FromPoints(plane.ProjectInto(line_inter.Origin),
-                                                    plane.ProjectInto(line_inter.Origin + line_inter.Direction));
+                                                    plane.ProjectInto(line_inter.Origin + line_inter.Direction),
+                                                    decimal_precision);
       var poly_2D = new Polygon2D(Vertices.Select(v => plane.ProjectInto(v)));
-      var line_inter_on_poly_2D = poly_2D.Intersection(line_inter_2D_on_poly);
+      var line_inter_on_poly_2D = poly_2D.Intersection(line_inter_2D_on_poly, decimal_precision);
       if (line_inter_on_poly_2D.ValueType != typeof(LineSegment2D)) {
         return new IntersectionResult();
       }

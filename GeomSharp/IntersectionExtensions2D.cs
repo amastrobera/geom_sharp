@@ -382,8 +382,26 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon2D poly,
                                                   Line2D line,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
-      throw new NotImplementedException();
+      var mpoint = new List<Point2D>();
+
+      // test all edges intersections
+      for (int i = 0; i <= poly.Size; ++i) {
+        try {
+          var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
+          var inter = line.Intersection(poly_seg, decimal_precision);
+          if (inter.ValueType == typeof(Point2D)) {
+            mpoint.Add((Point2D)inter.Value);
+          }
+        } catch (Exception ex) {
+          // warning of Intersection throw
+        }
+      }
+
+      // convex hull of these points
+      if (mpoint.Count == 0) {
+        return new IntersectionResult();
+      }
+      return new IntersectionResult(new PointSet2D(mpoint));
     }
 
     public static bool Intersects(this Line2D line, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -400,8 +418,26 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon2D poly,
                                                   Ray2D ray,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
-      throw new NotImplementedException();
+      var mpoint = new List<Point2D>();
+
+      // test all edges intersections
+      for (int i = 0; i <= poly.Size; ++i) {
+        try {
+          var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
+          var inter = ray.Intersection(poly_seg, decimal_precision);
+          if (inter.ValueType == typeof(Point2D)) {
+            mpoint.Add((Point2D)inter.Value);
+          }
+        } catch (Exception ex) {
+          // warning of Intersection throw
+        }
+      }
+
+      // convex hull of these points
+      if (mpoint.Count == 0) {
+        return new IntersectionResult();
+      }
+      return new IntersectionResult(new PointSet2D(mpoint));
     }
 
     public static bool Intersects(this Ray2D ray, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -420,8 +456,26 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon2D poly,
                                                   LineSegment2D seg,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
-      throw new NotImplementedException();
+      var mpoint = new List<Point2D>();
+
+      // test all edges intersections
+      for (int i = 0; i <= poly.Size; ++i) {
+        try {
+          var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
+          var inter = seg.Intersection(poly_seg, decimal_precision);
+          if (inter.ValueType == typeof(Point2D)) {
+            mpoint.Add((Point2D)inter.Value);
+          }
+        } catch (Exception ex) {
+          // warning of Intersection throw
+        }
+      }
+
+      // convex hull of these points
+      if (mpoint.Count == 0) {
+        return new IntersectionResult();
+      }
+      return new IntersectionResult(new PointSet2D(mpoint));
     }
 
     public static bool Intersects(this LineSegment2D seg,
