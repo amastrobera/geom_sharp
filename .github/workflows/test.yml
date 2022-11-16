@@ -38,6 +38,7 @@ jobs:
         echo "test_dir = $test_dir"
         $test_path = $(Join-Path $test_dir GeomSharpTests.csproj)
         echo "test_path = $test_path"
+        $packages_path = $(Join-Path $pwd packages)
         msbuild $test_path -t:build -property:Configuration=Release -restore
         $test_dll_path = $(Join-Path $test_dir bin\Release\GeomSharpTests.dll)
         echo "test_dll_path = $test_dll_path"

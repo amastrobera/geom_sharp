@@ -31,10 +31,12 @@ namespace GeomSharp {
     public ProjectionResult(Point3D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Line2D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Line3D v) => (Value, ValueType) = (v, v.GetType());
-    public ProjectionResult(LineSegment2D v) => (Value, ValueType) = (v, v.GetType());
-    public ProjectionResult(LineSegment3D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Ray2D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Ray3D v) => (Value, ValueType) = (v, v.GetType());
+    public ProjectionResult(LineSegment2D v) => (Value, ValueType) = (v, v.GetType());
+    public ProjectionResult(LineSegment3D v) => (Value, ValueType) = (v, v.GetType());
+    public ProjectionResult(PointSet2D v) => (Value, ValueType) = (v, v.GetType());
+    public ProjectionResult(PointSet3D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Polyline2D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Polyline3D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Polygon2D v) => (Value, ValueType) = (v, v.GetType());

@@ -13,13 +13,13 @@ namespace GeomSharp {
     public UnitVector3D Normal { get; }
 
     private Polygon3D(Point3D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (points.Length < 3) {
-        throw new ArgumentException("tried to initialize a polygon with less than 3 points");
+      if (points.Length < 4) {
+        throw new ArgumentException("tried to initialize a polygon with less than 4 points");
       }
       Vertices = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
-      if (Vertices.Count < 3) {
-        throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
+      if (Vertices.Count < 4) {
+        throw new ArgumentException("tried to initialize a polygon with less than 4 non-collinear points");
       }
       // adding the size
       Size = Vertices.Count;
@@ -144,6 +144,158 @@ namespace GeomSharp {
       // transform the problem into a 2D one (a polygon is a planar geometry after all)
       return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v)))
           .Contains(plane.ProjectInto(point), decimal_precision);
+    }
+
+    public bool Intersects(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      throw new NotImplementedException();
+
+      // TODO: create MULTI LINE ELEMENT as intersection result of Plane to Polygon
+      // var plane1 = RefPlane();
+      // var plane2 = other.RefPlane();
+
+      // Console.WriteLine("> polygon intersection");
+
+      //// check if planes intersect into a line
+      // var plane_intersection = plane1.Intersection(plane2, decimal_precision);
+      // if (plane_intersection.ValueType != typeof(Line3D)) {
+      //   Console.WriteLine("  x no intersection");
+      //   return new IntersectionResult();
+      // }
+      // var planes_line_inter = (Line3D)plane_intersection.Value;
+
+      //// check if the line intersection of the two planes passes through both polygons
+      ////    intersection with polygon 1
+      // var line_inter_2D_on_poly1 =
+      //     Line2D.FromPoints(plane1.ProjectInto(planes_line_inter.Origin),
+      //                       plane1.ProjectInto(planes_line_inter.Origin + planes_line_inter.Direction),
+      //                       decimal_precision);
+      // var poly1_2D = new Polygon2D(Vertices.Select(v => plane1.ProjectInto(v)));
+      // var line_inter_on_poly1_2D = poly1_2D.Intersection(line_inter_2D_on_poly1, decimal_precision);
+      // if (line_inter_on_poly1_2D.ValueType != typeof(LineSegment2D)) {
+      //   Console.WriteLine("  x no line2D intersection with polygon 1: " +
+      //   line_inter_on_poly1_2D.ValueType.ToString()); return new IntersectionResult();
+      // }
+      // var seg_inter_on_poly1_2D = (LineSegment2D)line_inter_on_poly1_2D.Value;
+      ////          segment intersection poly 1, in 3D
+      // var seg_inter_poly1 = LineSegment3D.FromPoints(plane1.Evaluate(seg_inter_on_poly1_2D.P0),
+      //                                                plane1.Evaluate(seg_inter_on_poly1_2D.P1),
+      //                                                decimal_precision);
+      ////    intersection with polygon 2
+      // var line_inter_2D_on_poly2 =
+      //     Line2D.FromPoints(plane2.ProjectInto(planes_line_inter.Origin),
+      //                       plane2.ProjectInto(planes_line_inter.Origin + planes_line_inter.Direction),
+      //                       decimal_precision);
+      // var poly2_2D = new Polygon2D(other.Vertices.Select(v => plane2.ProjectInto(v)));
+      // var line_inter_on_poly2_2D = poly2_2D.Intersection(line_inter_2D_on_poly2, decimal_precision);
+      // if (line_inter_on_poly2_2D.ValueType != typeof(LineSegment2D)) {
+      //   Console.WriteLine("  x no line2D intersection with polygon 2: " +
+      //   line_inter_on_poly2_2D.ValueType.ToString()); return new IntersectionResult();
+      // }
+      // var seg_inter_on_poly2_2D = (LineSegment2D)line_inter_on_poly2_2D.Value;
+      ////          segment intersection poly 2, in 3D
+      // var seg_inter_poly2 = LineSegment3D.FromPoints(plane1.Evaluate(seg_inter_on_poly2_2D.P0),
+      //                                                plane1.Evaluate(seg_inter_on_poly2_2D.P1),
+      //                                                decimal_precision);
+
+      ////    overlap between lines is the intersection
+      // var poly1_poly2_inter = seg_inter_poly1.Overlap(seg_inter_poly2, decimal_precision);
+      // if (poly1_poly2_inter.ValueType !=
+      //     typeof(LineSegment3D)) {  // just one point would be classified as a "touch" rather than an "intersection"
+      //   Console.WriteLine("  x no poly1_poly2_inter " + poly1_poly2_inter.ValueType.ToString() +
+      //                     "\n\tseg_inter_poly1=" + seg_inter_poly1.ToWkt() +
+      //                     "\n\tseg_inter_poly2=" + seg_inter_poly2.ToWkt());
+      //   return new IntersectionResult();
+      // }
+
+      // Console.WriteLine("  > poly1_poly2_inter found" + poly1_poly2_inter.ValueType.ToString());
+      // return new IntersectionResult((LineSegment3D)poly1_poly2_inter.Value);
+    }
+
+    /// <summary>
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
+    /// average plane crossing all points
+    /// </summary>
+    /// <param name="points">any enumeration of 3D Points</param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public static Plane ApproxPlane(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS) {
+      Func<Point3D> CenterOfMass = () => {
+        var _v = new Vector(new double[] { 0, 0, 0 });
+        int _n = points.Count();
+        if (_n < 3) {
+          throw new ArgumentException("ApproxPlane called with less than 3 points");
+        }
+        foreach (var p in points) {
+          _v += p.ToVector() / _n;
+        }
+
+        return Point3D.FromVector(_v);
+      };
+
+      // TODO: pre-sort CCW on a given plane, so that the average normal computed below will go in the same direction!
+
+      var cm = CenterOfMass();
+      int n = points.Count();
+      var avg_norm_vec = new Vector(new double[] { 0, 0, 0 });
+      var point_list = new List<Point3D>(points);
+      int divisor = n;
+      for (int i = 0; i <= n; i++) {
+        (int i1, int i2) = (i % n, (i + 1) % n);
+        if (point_list[i1].AlmostEquals(point_list[i2], decimal_precision)) {
+          ++i;
+          --divisor;
+        } else {
+          avg_norm_vec += Plane.FromPoints(cm, point_list[i1], point_list[i2]).Normal.ToVector();
+        }
+      }
+
+      if (divisor < 3) {
+        throw new ArgumentException(
+            "ApproxPlane: too many duplicate points (less than 3 unique points with decimal_precision=" +
+            decimal_precision.ToString());
+      }
+      avg_norm_vec /= divisor;
+      return Plane.FromPointAndNormal(cm, Vector3D.FromVector(avg_norm_vec).Normalize(), decimal_precision);
+    }
+
+    /// <summary>
+    /// Sorts a list of points in CCW order and creates a polygon out of it
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
+    /// average plane crossing all points
+    /// </summary>
+    /// <param name="points">any enumeration of 3D Points</param>
+    /// <returns></returns>
+    public static Polygon3D ConcaveHull(IEnumerable<Point3D> points) {
+      if (points.Count() < 3) {
+        throw new ArgumentException("tried to create a Concave Hull with less than 3 points");
+      }
+
+      var plane = ApproxPlane(points);
+
+      var poly_2d = Polygon2D.ConcaveHull(points.Select(p => plane.ProjectInto(p)));
+
+      return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)));
+    }
+
+    /// <summary>
+    /// Computes the convex hull of any point enumeration
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
+    /// average plane crossing all points
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static Polygon3D ConvexHull(List<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (points.Count < 3) {
+        throw new ArgumentException("tried to create a Convex Hull with less than 3 points");
+      }
+
+      var plane = ApproxPlane(points, decimal_precision);
+
+      var poly_2d = Polygon2D.ConvexHull(points.Select(p => plane.ProjectInto(p)).ToList(), decimal_precision);
+
+      return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)));
     }
 
     // special formatting

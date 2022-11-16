@@ -29,6 +29,13 @@ namespace GeomSharp {
     public Polyline3D(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
 
+    public Point3D this[int i] {
+      // IndexOutOfRangeException already managed by the List class
+      get {
+        return Nodes[i];
+      }
+    }
+
     public bool AlmostEquals(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other.Size != Size) {
         return false;
@@ -81,11 +88,55 @@ namespace GeomSharp {
       return d;
     }
 
-    private int IndexOfNearestSegmentToPoint(Point3D point) {
+    public bool Contains(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) {
+      for (int i1 = 0; i1 < Nodes.Count - 1; ++i1) {
+        int i2 = i1 + 1;
+        var piece_line = LineSegment3D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
+        if (piece_line.Contains(point, decimal_precision)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /// <summary>
+    /// Tells if two polylines intersect (one of them cuts throw the other, splitting it in two)
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool Intersects(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
+    /// <summary>
+    /// If two Polyline3D intersect, this return the point in which one of the is stroke through
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public IntersectionResult Intersection(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: bounding box test improvement
+
+      var mpoints = new List<Point3D>();
+
+      for (int i = 0; i < Nodes.Count - 1; i++) {
+        var seg = LineSegment3D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision);
+        var inter = seg.Intersection(other, decimal_precision);
+        if (inter.ValueType == typeof(Point3D)) {
+          mpoints.Add((Point3D)inter.Value);
+        } else if (inter.ValueType == typeof(PointSet3D)) {
+          foreach (var mp in (PointSet3D)inter.Value) {
+            mpoints.Add(mp);
+          }
+        }
+      }
+
+      return (mpoints.Count > 0) ? new IntersectionResult(new PointSet3D(mpoints)) : new IntersectionResult();
+    }
+
+    private int IndexOfNearestSegmentToPoint(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) {
       (int i_min, double d_min) = (-1, double.MaxValue);
       for (int i1 = 0; i1 < Nodes.Count - 1; i1++) {
         int i2 = i1 + 1;
-        var d = Line3D.FromPoints(Nodes[i1], Nodes[i2]).DistanceTo(point);
+        var d = Line3D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision).DistanceTo(point);
         if (d < d_min) {
           d_min = d;
           i_min = i1;
@@ -98,8 +149,8 @@ namespace GeomSharp {
       return i_min;
     }
 
-    public Point3D ProjectOnto(Point3D p) {
-      int i_nearest = IndexOfNearestSegmentToPoint(p);
+    public Point3D ProjectOnto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
+      int i_nearest = IndexOfNearestSegmentToPoint(p, decimal_precision);
       return Line3D.FromPoints(Nodes[i_nearest], Nodes[i_nearest + 1]).ProjectOnto(p);
     }
 
@@ -110,16 +161,17 @@ namespace GeomSharp {
     /// It's the twin function of GetPointOnPolyline
     /// </summary>
     /// <param name="point"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public double LocationPct(Point3D point) {
+    public double LocationPct(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) {
       double curve_len = Length();
       double len_done = 0;
       for (int i1 = 0; i1 < Nodes.Count - 1; ++i1) {
         int i2 = i1 + 1;
-        var piece_line = LineSegment3D.FromPoints(Nodes[i1], Nodes[i2]);
+        var piece_line = LineSegment3D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
         double piece_len = piece_line.Length();
-        if (piece_line.Contains(point)) {
-          double t = Math.Round(piece_line.P0.DistanceTo(point) / Length(), Constants.NINE_DECIMALS);
+        if (piece_line.Contains(point, decimal_precision)) {
+          double t = Math.Round(piece_line.P0.DistanceTo(point) / Length(), decimal_precision);
           if (t >= 0 && t <= 1) {
             return (len_done + t * piece_len) / curve_len;
           }
@@ -138,21 +190,22 @@ namespace GeomSharp {
     /// It's the twin function of LocationAlongTheLine
     /// </summary>
     /// <param name="pct">must be in the range [0, 1] of throws</param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public Point3D GetPointOnPolyline(double pct) {
-      if (Math.Round(pct, Constants.NINE_DECIMALS) < 0 || Math.Round(pct, Constants.NINE_DECIMALS) > 1) {
+    public Point3D GetPointOnPolyline(double pct, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Math.Round(pct, decimal_precision) < 0 || Math.Round(pct, decimal_precision) > 1) {
         throw new ArgumentException("pct should be in the range [0,1]");
       }
 
-      double curve_len = Math.Round(Length(), Constants.NINE_DECIMALS);
-      double curve_todo = Math.Round(pct * curve_len, Constants.NINE_DECIMALS);
+      double curve_len = Math.Round(Length(), decimal_precision);
+      double curve_todo = Math.Round(pct * curve_len, decimal_precision);
       double len_done = 0;
       double pct_done = 0;
       int n = Nodes.Count;
       for (int i = 0; i < n - 1; ++i) {
-        var piece_line = LineSegment3D.FromPoints(Nodes[i], Nodes[i + 1]);
+        var piece_line = LineSegment3D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision);
         double piece_len = piece_line.Length();
-        if (Math.Round(len_done + piece_len, Constants.NINE_DECIMALS) >= curve_todo) {
+        if (Math.Round(len_done + piece_len, decimal_precision) >= curve_todo) {
           // found segment containing the point
           double tI = ((pct - pct_done) * curve_len) / piece_len;
           var PI = piece_line.P0 + tI * (piece_line.P1 - piece_line.P0);

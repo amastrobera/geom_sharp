@@ -49,7 +49,7 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    public Line2D ToLine() => Line2D.FromTwoPoints(P0, P1);
+    public Line2D ToLine() => Line2D.FromPoints(P0, P1);
 
     public double Length() => (P1 - P0).Length();
 
@@ -159,13 +159,12 @@ namespace GeomSharp {
       var U = P1 - P0;
       var W = P0 - other.P0;
 
-      double sI = Math.Round(-V.PerpProduct(W) / V.PerpProduct(U),  // guaranteed non-zero if non-parallel
-                             decimal_precision);
+      double sI = -V.PerpProduct(W) / V.PerpProduct(U);  // guaranteed non-zero if non-parallel
 
-      double tI = Math.Round(U.PerpProduct(W) / U.PerpProduct(V),  // guaranteed non-zero if non-parallel
-                             decimal_precision);
+      double tI = U.PerpProduct(W) / U.PerpProduct(V);  // guaranteed non-zero if non-parallel
 
-      if (sI >= 0 && sI <= 1 && tI >= 0 && tI <= 1) {
+      if (Math.Round(sI, decimal_precision) >= 0 && Math.Round(sI, decimal_precision) <= 1 &&
+          Math.Round(tI, decimal_precision) >= 0 && Math.Round(tI, decimal_precision) <= 1) {
         // intersection: the point Ps cannot possibly be outside of the segment!
         var Ps = P0 + sI * (P1 - P0);
         if (!Contains(Ps, decimal_precision)) {
@@ -177,15 +176,6 @@ namespace GeomSharp {
           throw new Exception("Intersects() miscalculated Qs");
         }
         return new IntersectionResult(Ps);
-      }
-
-      // no intersection: the point Ps cannot possibly belong to the segment!
-      if (Contains(P0 + sI * (P1 - P0), decimal_precision)) {
-        throw new Exception("Intersects() miscalculated Ps");
-      }
-      // no intersection: the point Qs cannot possibly belong to the other segment!
-      if (!other.Contains(other.P0 + tI * (other.P1 - other.P0), decimal_precision)) {
-        throw new Exception("Intersects() miscalculated Qs");
       }
 
       return new IntersectionResult();

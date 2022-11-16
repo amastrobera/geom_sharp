@@ -37,7 +37,7 @@ namespace GeomSharp {
 
     public double[] ToArray() => ToVector().ToArray();
 
-    public Vector ToVector() => Vector.FromArray(new double[] { X, Y, Z });
+    public Vector ToVector() => new Vector(new double[] { X, Y, Z });
 
     public double Length() => ToVector().Length();
 
@@ -133,8 +133,8 @@ namespace GeomSharp {
                                                                       : null;
 
     public bool IsPerpendicular(Vector3D b,
-                                int decimal_precision = Constants.NINE_DECIMALS) => Math.Round(DotProduct(b),
-                                                                                               decimal_precision) == 0;
+                                int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(DotProduct(b),
+                                                                                                decimal_precision) == 0;
 
     public bool IsParallel(Vector3D b, int decimal_precision = Constants.THREE_DECIMALS) {
       var u = Normalize();
@@ -149,9 +149,13 @@ namespace GeomSharp {
     /// Angle spanned between two vectors
     /// cos(theta) = V * W / (|V|*|W|) = v*w (unit vectors)
     /// </summary>
-    /// <param name="b"></param>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public Angle AngleTo(Vector3D b) => Angle.FromRadians(Math.Acos(DotProduct(b) / (Length() * b.Length())));
+    public Angle AngleTo(Vector3D other, int decimal_precision = Constants.THREE_DECIMALS) => Angle.FromRadians(
+        Math.Acos(DotProduct(other) /
+                  (Length() * other.Length())));  // TODO: adjust the sign of the acos according to the quadrant dy
+                                                  // falls into (what quadrant ? this is 3D)
 
     // special formatting functions
 

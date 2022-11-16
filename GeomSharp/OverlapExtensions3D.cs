@@ -215,7 +215,7 @@ namespace GeomSharp {
                                               ref_plane.ProjectInto(triangle.P1),
                                               ref_plane.ProjectInto(triangle.P2));
 
-      var line_2D = Line2D.FromTwoPoints(ref_plane.ProjectInto(line.Origin),
+      var line_2D = Line2D.FromPoints(ref_plane.ProjectInto(line.Origin),
                                          ref_plane.ProjectInto(line.Origin + 2 * line.Direction));
 
       // from 2D back to 3D

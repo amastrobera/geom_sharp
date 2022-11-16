@@ -12,7 +12,7 @@ namespace GeomSharp {
     public Point2D Origin { get; }
     public UnitVector2D Direction { get; }
 
-    public static Line2D FromTwoPoints(Point2D p0, Point2D p1, int decimal_precision = Constants.THREE_DECIMALS) =>
+    public static Line2D FromPoints(Point2D p0, Point2D p1, int decimal_precision = Constants.THREE_DECIMALS) =>
         p0.AlmostEquals(p1, decimal_precision)
             ? throw new NullLengthException("trying to initialize a line with two identical points")
             : new Line2D(p0, p1);

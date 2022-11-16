@@ -33,7 +33,7 @@ namespace GeomSharpTests {
       var p1 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
 
       try {
-        return (Line2D.FromTwoPoints(p0, p1), p0, p1);
+        return (Line2D.FromPoints(p0, p1), p0, p1);
       } catch (Exception) {
       }
       return (null, p0, p1);
@@ -64,25 +64,55 @@ namespace GeomSharpTests {
     }
 
     public static (Polygon2D Polygon, Point2D Center, double Radius, int Size)
-        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 20) {
+        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 30, Point2D Center = null) {
       // construct polygon based on a center and radius, and number of points to approximate a circle
-      var c = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
-      double r = seed.NextDouble() * (IMax - IMin);
-      int n = seed.Next(NMax);
-      double rads = Math.PI * 2 / n;
-      double start_rads = seed.NextDouble() * Math.PI * 2;
-
-      var cv_points = new List<Point2D>();
-      for (int i = 0; i < n; ++i) {
-        cv_points.Add(
-            new Point2D(c.U + r * Math.Cos(start_rads + (i * rads)), c.V + r * Math.Sin(start_rads + (i * rads))));
-      }
-
       try {
+        var c = (Center is null) ? new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax)) : Center;
+        double r = seed.NextDouble() * (IMax - IMin);
+        int n = seed.Next(NMax);
+        if (n < 4) {
+          throw new Exception("polygon generated with less than 4 points");
+        }
+        double rads = Math.PI * 2 / n;
+        double start_rads = seed.NextDouble() * Math.PI * 2;
+
+        var cv_points = new List<Point2D>();
+        for (int i = 0; i < n; ++i) {
+          cv_points.Add(
+              new Point2D(c.U + r * Math.Cos(start_rads + (i * rads)), c.V + r * Math.Sin(start_rads + (i * rads))));
+        }
+
         return (new Polygon2D(cv_points), c, r, n);
       } catch (Exception) {
       }
-      return (null, c, r, n);
+      return (null, null, 0, 0);
+    }
+
+    public static (Polyline2D Polyline, UnitVector2D Direction, int Size)
+        MakeSimplePolyline2D(int IMin = -10, int IMax = 10, int NMax = 30) {
+      // construct polyline with no self-intersections
+      // build a p0 + sin approximated line
+      try {
+        var p0 = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+        var direction = MakeVector2D(IMin, IMax).Normalize();
+
+        double length = seed.NextDouble() * (IMax - IMin);
+        int n = seed.Next(NMax);
+        double r = 1 / n * length;
+        double rads = Math.PI * 2 / n;
+        double start_rads = seed.NextDouble() * Math.PI * 2;
+
+        var cv_points = new List<Point2D>();
+        for (int i = 0; i < n; ++i) {
+          var pi = p0 + i / n * length * direction;
+          cv_points.Add(
+              new Point2D(pi.U + r * Math.Cos(start_rads + (i * rads)), pi.V + r * Math.Sin(start_rads + (i * rads))));
+        }
+
+        return (new Polyline2D(cv_points), direction, n);
+      } catch (Exception) {
+      }
+      return (null, null, 0);
     }
 
     //  3D objects
@@ -162,31 +192,68 @@ namespace GeomSharpTests {
       return (a, b, 1 - a - b);
     }
 
-    public static (Polygon3D Polygon, Point3D Center, double Radius, int Size)
-        MakeConvexPolygon3D(int IMin = -10, int IMax = 10, int NMax = 20) {
-      var random_plane = MakePlane(IMin, IMax);
-      if (random_plane.Plane is null) {
+    public static (Polygon3D Polygon, Point3D Center, double Radius, int Size) MakeConvexPolygon3D(
+        int IMin = -10, int IMax = 10, int NMax = 30, Point3D Center = null, Plane RefPlane = null) {
+      var ref_plane = (RefPlane is null) ? MakePlane(IMin, IMax).Plane : RefPlane;
+      if (ref_plane is null) {
         return (null, null, 0, 0);
       }
-      var plane = random_plane.Plane;
 
-      var random_poly_2d = MakeConvexPolygon2D(IMin, IMax, NMax);
+      var random_poly_2d =
+          MakeConvexPolygon2D(IMin,
+                              IMax,
+                              NMax,
+                              (Center is null) ? MakePoint2D(IMin, IMax) : ref_plane.ProjectInto(Center));
       if (random_poly_2d.Polygon is null) {
         return (null, null, 0, 0);
       }
 
       // construct polygon based on a center and radius, and number of points to approximate a circle
       try {
-        (var c, double r, int n) = (plane.Evaluate(random_poly_2d.Center), random_poly_2d.Radius, random_poly_2d.Size);
+        (var c, double r, int n) =
+            (ref_plane.Evaluate(random_poly_2d.Center), random_poly_2d.Radius, random_poly_2d.Size);
         var points = new List<Point3D>();
         foreach (var p in random_poly_2d.Polygon) {
-          points.Add(plane.Evaluate(p));
+          points.Add(ref_plane.Evaluate(p));
         }
         return (new Polygon3D(points), c, r, n);
 
       } catch (Exception) {
       }
       return (null, null, 0, 0);
+    }
+
+    public static (Polyline3D Polyline, UnitVector3D DirectionLongitudinal, UnitVector3D DirectionLateral, int Size)
+        MakeSimplePolyline3D(int IMin = -10, int IMax = 10, int NMax = 30) {
+      // construct polyline with no self-intersections
+      // build a p0 + sin approximated line
+      var p0 = new Point3D(seed.Next(IMin, IMax), seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+      var direction_longitudinal = MakeVector3D(IMin, IMax).Normalize();
+      var direction_elevation = (direction_longitudinal.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ);
+      var direction_lateral = direction_longitudinal.CrossProduct(direction_elevation).Normalize();
+
+      try {
+        double length = seed.NextDouble() * (IMax - IMin);
+        int n = seed.Next(NMax);
+        double r = 1 / n * length;
+        double rads_xy = Math.PI / n;
+        double start_rads_xy = seed.NextDouble() * Math.PI;
+        double rads_yz = Math.PI * 2 / n;
+        double start_rads_yz = seed.NextDouble() * Math.PI * 2;
+
+        var cv_points = new List<Point3D>();
+        for (int i = 0; i < n; ++i) {
+          var pi = p0 + i / n * length * direction_longitudinal;
+          cv_points.Add(new Point3D(
+              pi.X + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Cos(start_rads_xy + (i * rads_xy)),
+              pi.Y + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy)),
+              pi.Z + r * Math.Cos(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy))));
+        }
+
+        return (new Polyline3D(cv_points), direction_longitudinal, direction_lateral, n);
+      } catch (Exception) {
+      }
+      return (null, null, null, 0);
     }
   }
 

@@ -32,7 +32,7 @@ namespace GeomSharp {
     }
     public double[] ToArray() => ToVector().ToArray();
 
-    public Vector ToVector() => Vector.FromArray(new double[] { U, V });
+    public Vector ToVector() => new Vector(new double[] { U, V });
 
     // unary methods
 
@@ -139,9 +139,15 @@ namespace GeomSharp {
     /// Angle spanned between two vectors
     /// cos(theta) = V * W / (|V|*|W|) = v*w (unit vectors)
     /// </summary>
-    /// <param name="b"></param>
+    /// <param name="other"></param>
+    /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public Angle AngleTo(Vector2D b) => Angle.FromRadians(Math.Acos(DotProduct(b) / (Length() * b.Length())));
+    public Angle AngleTo(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      double acos = Math.Acos(DotProduct(other) / (Length() * other.Length()));  // returns 0 <= acos < Math.PI
+      // handle all cases
+      double dy = other.V - V;
+      return Angle.FromRadians(Math.Round(dy, decimal_precision) >= 0 ? acos : 2 * Math.PI - acos);
+    }
 
     // special formatting
     public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
