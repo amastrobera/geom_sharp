@@ -375,7 +375,7 @@ namespace GeomSharp {
       return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
     }
 
-    public string ToWkt() {
+    public string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
       return string.Format("POLYGON (({0:F2} {1:F2}, {2:F2} {3:F2},{4:F2} {5:F2},{0:F2} {1:F2}))",
                            P0.U,
                            P0.V,

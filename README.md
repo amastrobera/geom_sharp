@@ -87,10 +87,10 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Polyline/Segment | 
 | | | :heavy_check_mark: :test_tube: Polyline/Polyline |
 | | | :x: Polyline/Triangle |
-| | | :x: Polygon/Line | 
-| | | :x: Polygon/Ray | 
-| | | :x: Polygon/Segment | 
-| | | :x: Polygon/Polyline | 
+| | | :heavy_check_mark: Polygon/Line | 
+| | | :heavy_check_mark: Polygon/Ray | 
+| | | :heavy_check_mark: Polygon/Segment | 
+| | | :heavy_check_mark: Polygon/Polyline | 
 | | | :heavy_check_mark: :test_tube: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
 | | Overlap | |
@@ -146,6 +146,8 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Plane/Ray | 
 | | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: :test_tube: Plane/Triangle | 
+| | | :heavy_check_mark: Plane/Polyline | 
+| | | :x: Plane/Polygon | 
 | | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | | :heavy_check_mark: :test_tube: Triangle/Line | 
 | | | :heavy_check_mark: :test_tube: Triangle/Ray | 
@@ -155,10 +157,10 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Polyline/Segment | 
 | | | :heavy_check_mark: :test_tube: Polyline/Polyline |
 | | | :x: Polyline/Triangle |
-| | | :x: Polygon/Line | 
-| | | :x: Polygon/Ray | 
-| | | :x: Polygon/Segment | 
-| | | :x: Polygon/Polyline | 
+| | | :heavy_check_mark: Polygon/Line | 
+| | | :heavy_check_mark: Polygon/Ray | 
+| | | :heavy_check_mark: Polygon/Segment | 
+| | | :heavy_check_mark: Polygon/Polyline | 
 | | | :x: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
 | | Overlap | |

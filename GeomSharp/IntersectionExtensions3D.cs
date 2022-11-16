@@ -245,6 +245,39 @@ namespace GeomSharp {
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         plane.Intersection(ray, decimal_precision);
 
+    // Plane and Polyline
+
+    public static bool Intersects(this Plane plane,
+                                  Polyline3D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Plane plane,
+                                                  Polyline3D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point3D>();
+      int n = pline.Size;
+      for (int i = 0; i < n - 1; ++i) {
+        var pline_seg = LineSegment3D.FromPoints(pline[i], pline[i + 1], decimal_precision);
+        var inter = plane.Intersection(pline_seg, decimal_precision);
+        if (inter.ValueType == typeof(Point3D)) {
+          mpoint.Add((Point3D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet3D(mpoint)) : new IntersectionResult();
+    }
+
+    public static bool Intersects(this Polyline3D segment,
+                                  Plane plane,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersects(segment, decimal_precision);
+
+    public static IntersectionResult Intersection(this Polyline3D segment,
+                                                  Plane plane,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(segment, decimal_precision);
+
     // Triangle and Line 3D
     public static bool Intersects(this Triangle3D triangle,
                                   Line3D line,
@@ -446,8 +479,19 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon3D poly,
                                                   Line3D line,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
-      throw new NotImplementedException();
+      var ref_plane = poly.RefPlane();
+      var plane_inter = ref_plane.Intersection(line, decimal_precision);
+      if (plane_inter.ValueType != typeof(Point3D)) {
+        return new IntersectionResult();
+      }
+
+      var plane_point_inter = (Point3D)plane_inter.Value;
+
+      if (poly.Contains(plane_point_inter, decimal_precision)) {
+        return new IntersectionResult(plane_point_inter);
+      }
+
+      return new IntersectionResult();
     }
 
     public static bool Intersects(this Line3D line, Polygon3D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -464,8 +508,19 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon3D poly,
                                                   Ray3D ray,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
-      throw new NotImplementedException();
+      var ref_plane = poly.RefPlane();
+      var plane_inter = ref_plane.Intersection(ray, decimal_precision);
+      if (plane_inter.ValueType != typeof(Point3D)) {
+        return new IntersectionResult();
+      }
+
+      var plane_point_inter = (Point3D)plane_inter.Value;
+
+      if (poly.Contains(plane_point_inter, decimal_precision)) {
+        return new IntersectionResult(plane_point_inter);
+      }
+
+      return new IntersectionResult();
     }
 
     public static bool Intersects(this Ray3D ray, Polygon3D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -484,8 +539,19 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon3D poly,
                                                   LineSegment3D seg,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      // TODO: create a MULTI LINE class to host an intersection result made of multiple line segments
-      throw new NotImplementedException();
+      var ref_plane = poly.RefPlane();
+      var plane_inter = ref_plane.Intersection(seg, decimal_precision);
+      if (plane_inter.ValueType != typeof(Point3D)) {
+        return new IntersectionResult();
+      }
+
+      var plane_point_inter = (Point3D)plane_inter.Value;
+
+      if (poly.Contains(plane_point_inter, decimal_precision)) {
+        return new IntersectionResult(plane_point_inter);
+      }
+
+      return new IntersectionResult();
     }
 
     public static bool Intersects(this LineSegment3D seg,
@@ -497,6 +563,46 @@ namespace GeomSharp {
                                                   Polygon3D poly,
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         poly.Intersection(seg, decimal_precision);
+
+    // Polygon to Polyline
+    public static bool Intersects(this Polygon3D poly,
+                                  Polyline3D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon3D poly,
+                                                  Polyline3D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var ref_plane = poly.RefPlane();
+      var plane_inter = ref_plane.Intersection(pline, decimal_precision);
+
+      if (plane_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+
+      if (plane_inter.ValueType == typeof(Point3D)) {
+        var plane_point_inter = (Point3D)plane_inter.Value;
+
+        if (poly.Contains(plane_point_inter, decimal_precision)) {
+          return new IntersectionResult(plane_point_inter);
+        }
+        return new IntersectionResult();
+      }
+
+      if (plane_inter.ValueType == typeof(PointSet3D)) {
+        var inter_set = (PointSet3D)plane_inter.Value;
+
+        var mpoint = inter_set.Where(p => poly.Contains(p, decimal_precision));
+
+        if (mpoint.Count() == 0) {
+          return new IntersectionResult();
+        }
+
+        return new IntersectionResult(new PointSet3D(mpoint));
+      }
+
+      throw new ArithmeticException("unknown intsection type of polygon to polyline: " +
+                                    plane_inter.ValueType.ToString());
+    }
   }
 
 }

@@ -69,10 +69,20 @@ namespace GeomSharp {
       // pick a point slightly off the origin, project it on a temporary plane
       var other = Point3D.FromVector(origin.ToVector() + 1);   // add a unit to any dimension
       var temp_plane = new Plane(origin, normal, null, null);  // initialize without U/V axis
-      var proj_other = temp_plane.ProjectOnto(other);
+      Point3D proj_point;
+      proj_point = temp_plane.ProjectOnto(other);
+      if (proj_point.AlmostEquals(origin, decimal_precision)) {
+        // try adding 1
+        var one_vec = new Vector3D(1, 1, 1).Normalize();
+        var one_point = origin + (normal.IsParallel(one_vec, decimal_precision) ? (one_vec + Vector3D.AxisY) : one_vec);
+        proj_point = temp_plane.ProjectOnto(one_point);
+        if (proj_point.AlmostEquals(origin, decimal_precision)) {
+          throw new Exception("could not generate Axis U / Asis V with proj_point");
+        }
+      }
 
       // compute AxisU
-      var u_axis = (proj_other - origin).Normalize();
+      var u_axis = (proj_point - origin).Normalize();
       //      test that the axis belongs to the plane (perpendicular to the normal)
       if (Math.Round(u_axis.DotProduct(temp_plane.Normal), decimal_precision) != 0) {
         throw new Exception("FromPointAndNormal failed (u_axis perp to normal)");
@@ -225,8 +235,8 @@ namespace GeomSharp {
     /// cos(theta) = A*B / |A|*|B|
     /// The projection of a vector B onto another A is then
     /// |B|*cos(theta) = A*B / |A|
-    /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of the
-    /// plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
+    /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of
+    /// the plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
     /// </summary>
     public Point2D ProjectInto(Point3D p) {
       var q = ProjectOnto(p);
@@ -260,8 +270,8 @@ namespace GeomSharp {
     /// cos(theta) = A*B / |A|*|B|
     /// The projection of a vector B onto another A is then
     /// |B|*cos(theta) = A*B / |A|
-    /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of the
-    /// plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
+    /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of
+    /// the plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
     /// </summary>
     public Point2D VerticalProjectInto(Point3D p) {
       var q = VerticalProjectOnto(p);
@@ -298,9 +308,9 @@ namespace GeomSharp {
     /// Tells if a plane intersects another and computes the Line intesection (or null if they don't intersect).
     /// If first checks whther the plane is parallel to the other.
     /// If not, it finds the direction line first, U = n1 x n2, and the origin point P = intersection of three planes.
-    /// The three planes involved are this plane, the other plane, and the plane with normal n3 = U and passing through
-    /// the origin O. 11 adds and 23 multiplies and always works (three planes linearly independent as they are all
-    /// perpendicular)
+    /// The three planes involved are this plane, the other plane, and the plane with normal n3 = U and passing
+    /// through the origin O. 11 adds and 23 multiplies and always works (three planes linearly independent as they
+    /// are all perpendicular)
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>

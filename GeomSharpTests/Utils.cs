@@ -64,10 +64,10 @@ namespace GeomSharpTests {
     }
 
     public static (Polygon2D Polygon, Point2D Center, double Radius, int Size)
-        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 30) {
+        MakeConvexPolygon2D(int IMin = -10, int IMax = 10, int NMax = 30, Point2D Center = null) {
       // construct polygon based on a center and radius, and number of points to approximate a circle
       try {
-        var c = new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax));
+        var c = (Center is null) ? new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax)) : Center;
         double r = seed.NextDouble() * (IMax - IMin);
         int n = seed.Next(NMax);
         if (n < 4) {
@@ -192,25 +192,29 @@ namespace GeomSharpTests {
       return (a, b, 1 - a - b);
     }
 
-    public static (Polygon3D Polygon, Point3D Center, double Radius, int Size)
-        MakeConvexPolygon3D(int IMin = -10, int IMax = 10, int NMax = 30) {
-      var random_plane = MakePlane(IMin, IMax);
-      if (random_plane.Plane is null) {
+    public static (Polygon3D Polygon, Point3D Center, double Radius, int Size) MakeConvexPolygon3D(
+        int IMin = -10, int IMax = 10, int NMax = 30, Point3D Center = null, Plane RefPlane = null) {
+      var ref_plane = (RefPlane is null) ? MakePlane(IMin, IMax).Plane : RefPlane;
+      if (ref_plane is null) {
         return (null, null, 0, 0);
       }
-      var plane = random_plane.Plane;
 
-      var random_poly_2d = MakeConvexPolygon2D(IMin, IMax, NMax);
+      var random_poly_2d =
+          MakeConvexPolygon2D(IMin,
+                              IMax,
+                              NMax,
+                              (Center is null) ? MakePoint2D(IMin, IMax) : ref_plane.ProjectInto(Center));
       if (random_poly_2d.Polygon is null) {
         return (null, null, 0, 0);
       }
 
       // construct polygon based on a center and radius, and number of points to approximate a circle
       try {
-        (var c, double r, int n) = (plane.Evaluate(random_poly_2d.Center), random_poly_2d.Radius, random_poly_2d.Size);
+        (var c, double r, int n) =
+            (ref_plane.Evaluate(random_poly_2d.Center), random_poly_2d.Radius, random_poly_2d.Size);
         var points = new List<Point3D>();
         foreach (var p in random_poly_2d.Polygon) {
-          points.Add(plane.Evaluate(p));
+          points.Add(ref_plane.Evaluate(p));
         }
         return (new Polygon3D(points), c, r, n);
 

@@ -119,5 +119,65 @@ namespace GeomSharp {
     public override string ToString() {
       return ValueType.ToString() + ((Value is null) ? "" : ": " + Value.ToString());
     }
+
+    public string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Value is null) {
+        return "";
+      }
+
+      // 2D
+      if (ValueType == typeof(Point2D)) {
+        return ((Point2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Line2D)) {
+        return ((Line2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Ray2D)) {
+        return ((Ray2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(LineSegment2D)) {
+        return ((LineSegment2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Polyline2D)) {
+        return ((Polyline2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(PointSet2D)) {
+        return ((PointSet2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Triangle2D)) {
+        return ((Triangle2D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Polygon2D)) {
+        return ((Polygon2D)Value).ToWkt(decimal_precision);
+      }
+
+      // 3D
+      if (ValueType == typeof(Point3D)) {
+        return ((Point3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Line3D)) {
+        return ((Line3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Ray3D)) {
+        return ((Ray3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(LineSegment3D)) {
+        return ((LineSegment3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Polyline3D)) {
+        return ((Polyline3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(PointSet3D)) {
+        return ((PointSet3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Triangle3D)) {
+        return ((Triangle3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(Polygon3D)) {
+        return ((Polygon3D)Value).ToWkt(decimal_precision);
+      }
+
+      throw new Exception("ToWkt unmanaged value type " + ValueType.ToString());
+    }
   }
 }

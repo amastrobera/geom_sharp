@@ -31,6 +31,7 @@ jobs:
         echo "pkg_out_dir = $pkg_out_dir"
         [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
         $old_version = $xmlElm.package.metadata.version
+        echo "old_version = $old_version"
         $v = $old_version.Split(".")
         $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
         echo "new_version = $new_version"
