@@ -6,9 +6,6 @@ on:
       - master
     paths:
       - 'GeomSharp/**'
-  pull_request:
-    paths:
-      - 'GeomSharp/**'
 
 jobs:
   build:

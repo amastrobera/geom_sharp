@@ -21,6 +21,28 @@ jobs:
         nuget-api-key: ${{ secrets.NUGET_API_KEY }}
         nuget-version: '6.x'
 
+    - name: Upversion the patch
+      run: |
+        $proj_dir = $(Join-Path $pwd GeomSharp)
+        $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
+        echo "pkg_spec_path = $pkg_spec_path"
+        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
+        $old_version = $xmlElm.package.metadata.version
+        echo "old_version = $old_version"
+        $v = $old_version.Split(".")
+        $new_version = $(-join ($v[0], '.', $v[1], '.', $([int]$v[2].Split("-")[0] + [int]1)))
+        echo "new_version = $new_version"
+        $xmlElm.package.metadata.version = $new_version
+        $xmlElm.Save($pkg_spec_path)
+      shell: pwsh
+
+    - name: Commit the upversioning
+      run: |
+        git config --global user.name 'Angelo Mastro'
+        git config --global user.email 'amastrobera@users.noreply.github.com'
+        git commit -am "Automated upversioning the patch (+1)"
+        git push
+
     - name: Nuget Pack and Push
       id: merge_params
       run: |
@@ -29,15 +51,7 @@ jobs:
         $pkg_out_dir = $(Join-Path $proj_dir nupkg)
         echo "pkg_spec_path = $pkg_spec_path"
         echo "pkg_out_dir = $pkg_out_dir"
-        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
-        $old_version = $xmlElm.package.metadata.version
-        echo "old_version = $old_version"
-        $v = $old_version.Split(".")
-        $new_version = $(-join ($v[0], '.', $v[1], '.', $v[2].Split("-")[0], '-', $(git rev-parse --short HEAD)))
-        echo "new_version = $new_version"
-        $xmlElm.package.metadata.version = $new_version
-        $xmlElm.Save($pkg_spec_path)
-        nuget pack $pkg_spec_path -Properties Configuration=Release -Symbols -Version $new_version -OutputDirectory $pkg_out_dir
+        nuget pack $pkg_spec_path -Properties Configuration=Release -Version $new_version -OutputDirectory $pkg_out_dir
         echo "pkg_out_files = $pkg_out_dir\*.nupkg"
         nuget push "$pkg_out_dir\*.nupkg" -Source 'https://api.nuget.org/v3/index.json' -SkipDuplicate
       shell: pwsh
