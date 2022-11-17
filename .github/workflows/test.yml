@@ -1,11 +1,6 @@
 name: test
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'GeomSharp/**'
   pull_request:
     paths:
       - 'GeomSharp/**'
