@@ -1,11 +1,16 @@
-# geom_sharp
+# GeomSharp
 
-GeomSharp is a 2D (and 3D) geometry library for C#, based on .Net Framework 4.8
+ A 2D (and 3D) geometry library for C#, based on .Net Framework 4.8
 
 
 [![build](https://github.com/amastrobera/geom_sharp/actions/workflows/build.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/build.yml)
 [![test](https://github.com/amastrobera/geom_sharp/actions/workflows/test.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/test.yml)
 [![deployment](https://github.com/amastrobera/geom_sharp/actions/workflows/deployment.yml/badge.svg)](https://github.com/amastrobera/geom_sharp/actions/workflows/deployment.yml)
+
+
+## How to install it 
+
+Download it from the [Nuget repo](https://www.nuget.org/packages/GeomSharp/) and add it to your project.
 
 
 ## Definition
