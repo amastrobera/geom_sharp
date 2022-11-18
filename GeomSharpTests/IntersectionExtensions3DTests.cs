@@ -512,6 +512,34 @@ namespace GeomSharpTests {
       Assert.IsFalse(plane.Intersects(segment));
     }
 
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void PlaneToPolygon() {
+      // 3D
+      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon3D();
+
+      // Console.WriteLine("t = " + t.ToWkt());
+      if (poly is null) {
+        return;
+      }
+
+      // cache varibles
+      Plane other_plane;
+      var plane = poly.RefPlane();
+      var plane_norm = plane.Normal;
+      var plane_axis_u = plane.AxisU;
+      var plane_axis_v = plane.AxisV;
+
+      cm = poly.CenterOfMass();
+      n = poly.Size;
+
+      // test 1: a plane parallel to the polygon does not intersect
+      other_plane = Plane.FromPointAndNormal(cm + 2 * plane_norm, plane_norm);
+      Assert.IsFalse(other_plane.Intersects(poly),
+                     "a plane parallel to the polygon does not intersect, \n\tplane = " + other_plane.ToWkt() +
+                         "\n\tpoly=" + poly.ToWkt());
+    }
+
     // Triangle with other basic primitives
     [RepeatedTestMethod(100)]
     public void TriangleToPlane() {

@@ -405,9 +405,8 @@ namespace GeomSharp {
         return new IntersectionResult(mpoint[0]);
       }
 
-      if (mpoint.Count == 2) {
-        return new IntersectionResult(LineSegment2D.FromPoints(mpoint[0], mpoint[1], decimal_precision));
-      }
+      // TODO: verify what intersection is a point (Point or PointSet), and what is is a line (LineSegment or
+      // LineSegmentSet)
 
       // more than 3, in case of an irregular polygon (with self-intersections, or holes)
       return new IntersectionResult(new PointSet2D(mpoint));

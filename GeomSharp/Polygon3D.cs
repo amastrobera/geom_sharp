@@ -151,7 +151,6 @@ namespace GeomSharp {
     public IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       throw new NotImplementedException();
 
-      // TODO: create MULTI LINE SEGMENT ELEMENT as intersection result of Plane to Polygon
       // var plane1 = RefPlane();
       // var plane2 = other.RefPlane();
 

@@ -53,10 +53,10 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Transformation | 
 | :heavy_check_mark: :test_tube: LineSegment | :heavy_check_mark: :test_tube: LineSegment |  | 
 | :arrow_forward: PointSet | :arrow_forward: PointSet |  | 
-| :x: LineSet | :x: LineSet |  | 
-| :arrow_forward: Polyline | :arrow_forward: Polyline |  | 
+| :heavy_check_mark: LineSet | :heavy_check_mark: LineSet |  | 
+| :heavy_check_mark: Polyline | :heavy_check_mark: Polyline |  | 
 | :heavy_check_mark: :test_tube: Triangle | :heavy_check_mark: :test_tube: Triangle |  | 
-| :arrow_forward: Polygon | :arrow_forward: Polygon |  | 
+| :heavy_check_mark: Polygon | :heavy_check_mark: Polygon |  | 
 | | :heavy_check_mark: :test_tube: Plane |  | 
 | | :x: Polyhedron |  | 
 
@@ -152,7 +152,7 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Plane/Segment | 
 | | | :heavy_check_mark: :test_tube: Plane/Triangle | 
 | | | :heavy_check_mark: Plane/Polyline | 
-| | | :x: Plane/Polygon | 
+| | | :heavy_check_mark: :test_tube: Plane/Polygon | 
 | | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | | :heavy_check_mark: :test_tube: Triangle/Line | 
 | | | :heavy_check_mark: :test_tube: Triangle/Ray | 
@@ -166,7 +166,7 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: Polygon/Ray | 
 | | | :heavy_check_mark: Polygon/Segment | 
 | | | :heavy_check_mark: Polygon/Polyline | 
-| | | :x: Polygon/Polygon | 
+| | | :heavy_check_mark: :test_tube: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
 | | Overlap | |
 | | | :heavy_check_mark: :test_tube: Line/Line| 

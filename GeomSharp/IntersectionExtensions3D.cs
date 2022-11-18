@@ -278,6 +278,38 @@ namespace GeomSharp {
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         plane.Intersection(segment, decimal_precision);
 
+    // Plane and Polygon
+
+    public static bool Intersects(this Plane plane, Polygon3D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Plane plane,
+                                                  Polygon3D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      var poly_plane = poly.RefPlane();
+      var poly_inter = poly_plane.Intersection(plane, decimal_precision);
+      if (poly_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+      var poly_inter_line = (Line3D)poly_inter.Value;
+
+      // looking for one or more lines
+      var poly_2D = new Polygon2D(poly.Select(p => poly_plane.ProjectInto(p)), decimal_precision);
+      var poly_inter_line_2D = Line2D.FromPoints(poly_plane.ProjectInto(poly_inter_line.P0),
+                                                 poly_plane.ProjectInto(poly_inter_line.P1),
+                                                 decimal_precision);
+
+      return new IntersectionResult();
+    }
+
+    public static bool Intersects(this Polygon3D poly, Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersects(poly, decimal_precision);
+
+    public static IntersectionResult Intersection(this Polygon3D poly,
+                                                  Plane plane,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Intersection(poly, decimal_precision);
+
     // Triangle and Line 3D
     public static bool Intersects(this Triangle3D triangle,
                                   Line3D line,
