@@ -390,7 +390,12 @@ namespace GeomSharp {
           var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
           var inter = line.Intersection(poly_seg, decimal_precision);
           if (inter.ValueType == typeof(Point2D)) {
-            mpoint.Add((Point2D)inter.Value);
+            // do not add the point if it is only a "touch", that is if it the line strikes through a vertex of the
+            // polygon
+            var p = (Point2D)inter.Value;
+            if (!poly_seg.P0.AlmostEquals(p, decimal_precision) && !poly_seg.P1.AlmostEquals(p, decimal_precision)) {
+              mpoint.Add(p);
+            }
           }
         } catch (Exception ex) {
           // warning of Intersection throw
@@ -426,35 +431,11 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon2D poly,
                                                   Ray2D ray,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      var mpoint = new List<Point2D>();
+      var line_inter = ray.ToLine().Intersection(poly, decimal_precision);
 
-      // test all edges intersections
-      for (int i = 0; i < poly.Size; ++i) {
-        try {
-          var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
-          var inter = ray.Intersection(poly_seg, decimal_precision);
-          if (inter.ValueType == typeof(Point2D)) {
-            mpoint.Add((Point2D)inter.Value);
-          }
-        } catch (Exception ex) {
-          // warning of Intersection throw
-        }
-      }
+      // TODO: verify that the points are all ahead of the ray
 
-      if (mpoint.Count == 0) {
-        return new IntersectionResult();
-      }
-
-      if (mpoint.Count == 1) {
-        return new IntersectionResult(mpoint[0]);
-      }
-
-      if (mpoint.Count == 2) {
-        return new IntersectionResult(LineSegment2D.FromPoints(mpoint[0], mpoint[1], decimal_precision));
-      }
-
-      // more than 3, in case of an irregular polygon (with self-intersections, or holes)
-      return new IntersectionResult(new PointSet2D(mpoint));
+      throw new NotImplementedException();
     }
 
     public static bool Intersects(this Ray2D ray, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -473,35 +454,11 @@ namespace GeomSharp {
     public static IntersectionResult Intersection(this Polygon2D poly,
                                                   LineSegment2D seg,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      var mpoint = new List<Point2D>();
+      var line_inter = seg.ToLine().Intersection(poly, decimal_precision);
 
-      // test all edges intersections
-      for (int i = 0; i < poly.Size; ++i) {
-        try {
-          var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
-          var inter = seg.Intersection(poly_seg, decimal_precision);
-          if (inter.ValueType == typeof(Point2D)) {
-            mpoint.Add((Point2D)inter.Value);
-          }
-        } catch (Exception ex) {
-          // warning of Intersection throw
-        }
-      }
+      // TODO: verify that the points are all ahead of the ray
 
-      if (mpoint.Count == 0) {
-        return new IntersectionResult();
-      }
-
-      if (mpoint.Count == 1) {
-        return new IntersectionResult(mpoint[0]);
-      }
-
-      if (mpoint.Count == 2) {
-        return new IntersectionResult(LineSegment2D.FromPoints(mpoint[0], mpoint[1], decimal_precision));
-      }
-
-      // more than 3, in case of an irregular polygon (with self-intersections, or holes)
-      return new IntersectionResult(new PointSet2D(mpoint));
+      throw new NotImplementedException();
     }
 
     public static bool Intersects(this LineSegment2D seg,

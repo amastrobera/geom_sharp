@@ -41,6 +41,9 @@ namespace GeomSharp {
     public IntersectionResult(PointSet2D v) => (Value, ValueType) = (v, v.GetType());
     public IntersectionResult(PointSet3D v) => (Value, ValueType) = (v, v.GetType());
 
+    public IntersectionResult(LineSegmentSet2D v) => (Value, ValueType) = (v, v.GetType());
+    public IntersectionResult(LineSegmentSet3D v) => (Value, ValueType) = (v, v.GetType());
+
     public bool AlmostEquals(IntersectionResult other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (!ValueType.Equals(other.ValueType)) {
         return false;
@@ -64,6 +67,9 @@ namespace GeomSharp {
       }
       if (ValueType == typeof(PointSet2D)) {
         return ((PointSet2D)Value).AlmostEquals((PointSet2D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(LineSegmentSet2D)) {
+        return ((LineSegmentSet2D)Value).AlmostEquals((LineSegmentSet2D)other.Value, decimal_precision);
       }
       if (ValueType == typeof(Triangle2D)) {
         return ((Triangle2D)Value).AlmostEquals((Triangle2D)other.Value, decimal_precision);
@@ -90,6 +96,9 @@ namespace GeomSharp {
       }
       if (ValueType == typeof(PointSet3D)) {
         return ((PointSet3D)Value).AlmostEquals((PointSet3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(LineSegmentSet3D)) {
+        return ((LineSegmentSet3D)Value).AlmostEquals((LineSegmentSet3D)other.Value, decimal_precision);
       }
       if (ValueType == typeof(Triangle3D)) {
         return ((Triangle3D)Value).AlmostEquals((Triangle3D)other.Value, decimal_precision);
@@ -144,6 +153,9 @@ namespace GeomSharp {
       if (ValueType == typeof(PointSet2D)) {
         return ((PointSet2D)Value).ToWkt(decimal_precision);
       }
+      if (ValueType == typeof(LineSegmentSet2D)) {
+        return ((LineSegmentSet2D)Value).ToWkt(decimal_precision);
+      }
       if (ValueType == typeof(Triangle2D)) {
         return ((Triangle2D)Value).ToWkt(decimal_precision);
       }
@@ -169,6 +181,9 @@ namespace GeomSharp {
       }
       if (ValueType == typeof(PointSet3D)) {
         return ((PointSet3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(LineSegmentSet3D)) {
+        return ((LineSegmentSet3D)Value).ToWkt(decimal_precision);
       }
       if (ValueType == typeof(Triangle3D)) {
         return ((Triangle3D)Value).ToWkt(decimal_precision);

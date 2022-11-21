@@ -293,11 +293,22 @@ namespace GeomSharp {
       }
       var poly_inter_line = (Line3D)poly_inter.Value;
 
-      // looking for one or more lines
+      // change the problem into a 2D one
+      //      intersect in 2D one polygon with the line, the result is either empty or a multi line set
       var poly_2D = new Polygon2D(poly.Select(p => poly_plane.ProjectInto(p)), decimal_precision);
       var poly_inter_line_2D = Line2D.FromPoints(poly_plane.ProjectInto(poly_inter_line.P0),
                                                  poly_plane.ProjectInto(poly_inter_line.P1),
                                                  decimal_precision);
+      var poly_inter_set_2D = poly_2D.Intersection(poly_inter_line_2D, decimal_precision);
+      if (poly_inter_set_2D.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+
+      List<LineSegment2D> seg_inter_2D = (poly_inter_set_2D.ValueType == typeof(LineSegment2D))
+                                             ? new List<LineSegment2D> { (LineSegment2D)poly_inter_set_2D.Value }
+                                             : ((LineSegmentSet2D)poly_inter_set_2D.Value).ToList();
+
+      // TODO: cross check with other polygon 2D
 
       return new IntersectionResult();
     }
