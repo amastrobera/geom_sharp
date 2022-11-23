@@ -149,67 +149,90 @@ namespace GeomSharp {
     public bool Intersects(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      throw new NotImplementedException();
+      var plane1 = RefPlane();
+      var plane2 = other.RefPlane();
 
-      // var plane1 = RefPlane();
-      // var plane2 = other.RefPlane();
+      // check if planes intersect into a line
+      var plane_inter = plane1.Intersection(plane2, decimal_precision);
+      if (plane_inter.ValueType != typeof(Line3D)) {
+        return new IntersectionResult();
+      }
+      var plane_line = (Line3D)plane_inter.Value;
 
-      // Console.WriteLine("> polygon intersection");
+      // check if the line intersection of the two planes passes through both polygons
+      var mline1 = new List<LineSegment3D>();
+      {
+        //    intersection with polygon 1, in 2D
+        var line_inter_2D_on_poly1 = Line2D.FromPoints(plane1.ProjectInto(plane_line.Origin),
+                                                       plane1.ProjectInto(plane_line.Origin + plane_line.Direction),
+                                                       decimal_precision);
+        var poly1_2D = new Polygon2D(Vertices.Select(v => plane1.ProjectInto(v)));
 
-      //// check if planes intersect into a line
-      // var plane_intersection = plane1.Intersection(plane2, decimal_precision);
-      // if (plane_intersection.ValueType != typeof(Line3D)) {
-      //   Console.WriteLine("  x no intersection");
-      //   return new IntersectionResult();
-      // }
-      // var planes_line_inter = (Line3D)plane_intersection.Value;
+        var inter_on_poly1_2D = poly1_2D.Intersection(line_inter_2D_on_poly1, decimal_precision);
+        if (inter_on_poly1_2D.ValueType == typeof(NullValue)) {
+          return new IntersectionResult();
+        }
 
-      //// check if the line intersection of the two planes passes through both polygons
-      ////    intersection with polygon 1
-      // var line_inter_2D_on_poly1 =
-      //     Line2D.FromPoints(plane1.ProjectInto(planes_line_inter.Origin),
-      //                       plane1.ProjectInto(planes_line_inter.Origin + planes_line_inter.Direction),
-      //                       decimal_precision);
-      // var poly1_2D = new Polygon2D(Vertices.Select(v => plane1.ProjectInto(v)));
-      // var line_inter_on_poly1_2D = poly1_2D.Intersection(line_inter_2D_on_poly1, decimal_precision);
-      // if (line_inter_on_poly1_2D.ValueType != typeof(LineSegment2D)) {
-      //   Console.WriteLine("  x no line2D intersection with polygon 1: " +
-      //   line_inter_on_poly1_2D.ValueType.ToString()); return new IntersectionResult();
-      // }
-      // var seg_inter_on_poly1_2D = (LineSegment2D)line_inter_on_poly1_2D.Value;
-      ////          segment intersection poly 1, in 3D
-      // var seg_inter_poly1 = LineSegment3D.FromPoints(plane1.Evaluate(seg_inter_on_poly1_2D.P0),
-      //                                                plane1.Evaluate(seg_inter_on_poly1_2D.P1),
-      //                                                decimal_precision);
-      ////    intersection with polygon 2
-      // var line_inter_2D_on_poly2 =
-      //     Line2D.FromPoints(plane2.ProjectInto(planes_line_inter.Origin),
-      //                       plane2.ProjectInto(planes_line_inter.Origin + planes_line_inter.Direction),
-      //                       decimal_precision);
-      // var poly2_2D = new Polygon2D(other.Vertices.Select(v => plane2.ProjectInto(v)));
-      // var line_inter_on_poly2_2D = poly2_2D.Intersection(line_inter_2D_on_poly2, decimal_precision);
-      // if (line_inter_on_poly2_2D.ValueType != typeof(LineSegment2D)) {
-      //   Console.WriteLine("  x no line2D intersection with polygon 2: " +
-      //   line_inter_on_poly2_2D.ValueType.ToString()); return new IntersectionResult();
-      // }
-      // var seg_inter_on_poly2_2D = (LineSegment2D)line_inter_on_poly2_2D.Value;
-      ////          segment intersection poly 2, in 3D
-      // var seg_inter_poly2 = LineSegment3D.FromPoints(plane1.Evaluate(seg_inter_on_poly2_2D.P0),
-      //                                                plane1.Evaluate(seg_inter_on_poly2_2D.P1),
-      //                                                decimal_precision);
+        if (inter_on_poly1_2D.ValueType == typeof(LineSegment2D)) {
+          var inter_on_poly1_3D = (LineSegment2D)inter_on_poly1_2D.Value;
+          mline1.Add(LineSegment3D.FromPoints(plane1.Evaluate(inter_on_poly1_3D.P0),
+                                              plane1.Evaluate(inter_on_poly1_3D.P1),
+                                              decimal_precision));
+        } else if (inter_on_poly1_2D.ValueType == typeof(LineSegmentSet2D)) {
+          foreach (var ml_2D in (LineSegmentSet2D)inter_on_poly1_2D.Value) {
+            mline1.Add(
+                LineSegment3D.FromPoints(plane1.Evaluate(ml_2D.P0), plane1.Evaluate(ml_2D.P1), decimal_precision));
+          }
+        }
+      }
+      if (mline1.Count == 0) {
+        return new IntersectionResult();
+      }
 
-      ////    overlap between lines is the intersection
-      // var poly1_poly2_inter = seg_inter_poly1.Overlap(seg_inter_poly2, decimal_precision);
-      // if (poly1_poly2_inter.ValueType !=
-      //     typeof(LineSegment3D)) {  // just one point would be classified as a "touch" rather than an "intersection"
-      //   Console.WriteLine("  x no poly1_poly2_inter " + poly1_poly2_inter.ValueType.ToString() +
-      //                     "\n\tseg_inter_poly1=" + seg_inter_poly1.ToWkt() +
-      //                     "\n\tseg_inter_poly2=" + seg_inter_poly2.ToWkt());
-      //   return new IntersectionResult();
-      // }
+      // check if the line intersection of the two planes passes through both polygons
+      var mline2 = new List<LineSegment3D>();
+      {
+        //    intersection with polygon 1, in 2D
+        var line_inter_2D_on_poly2 = Line2D.FromPoints(plane2.ProjectInto(plane_line.Origin),
+                                                       plane2.ProjectInto(plane_line.Origin + plane_line.Direction),
+                                                       decimal_precision);
+        var poly2_2D = new Polygon2D(other.Vertices.Select(v => plane2.ProjectInto(v)));
+        var inter_on_poly2_2D = poly2_2D.Intersection(line_inter_2D_on_poly2, decimal_precision);
+        if (inter_on_poly2_2D.ValueType == typeof(NullValue)) {
+          return new IntersectionResult();
+        }
 
-      // Console.WriteLine("  > poly1_poly2_inter found" + poly1_poly2_inter.ValueType.ToString());
-      // return new IntersectionResult((LineSegment3D)poly1_poly2_inter.Value);
+        if (inter_on_poly2_2D.ValueType == typeof(LineSegment2D)) {
+          var inter_on_poly2_3D = (LineSegment2D)inter_on_poly2_2D.Value;
+          mline2.Add(LineSegment3D.FromPoints(plane2.Evaluate(inter_on_poly2_3D.P0),
+                                              plane2.Evaluate(inter_on_poly2_3D.P1),
+                                              decimal_precision));
+        } else if (inter_on_poly2_2D.ValueType == typeof(LineSegmentSet2D)) {
+          foreach (var ml_2D in (LineSegmentSet2D)inter_on_poly2_2D.Value) {
+            mline2.Add(
+                LineSegment3D.FromPoints(plane2.Evaluate(ml_2D.P0), plane2.Evaluate(ml_2D.P1), decimal_precision));
+          }
+        }
+      }
+      if (mline2.Count == 0) {
+        return new IntersectionResult();
+      }
+
+      var mlines = new List<LineSegment3D>();
+      foreach (var ml1 in mline1) {
+        foreach (var ml2 in mline2) {
+          var ml_ovp = ml1.Overlap(ml2, decimal_precision);
+          if (ml_ovp.ValueType != typeof(LineSegment3D)) {
+            continue;
+          }
+          mlines.Add((LineSegment3D)ml_ovp.Value);
+        }
+      }
+      if (mlines.Count == 0) {
+        return new IntersectionResult();
+      }
+
+      return new IntersectionResult(new LineSegmentSet3D(mlines));
     }
 
     /// <summary>
@@ -323,5 +346,4 @@ namespace GeomSharp {
                                 Vertices[0].Z) +
                   "))";
   }
-
 }

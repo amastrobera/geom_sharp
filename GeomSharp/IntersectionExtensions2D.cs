@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GeomSharp {
 
@@ -411,7 +412,8 @@ namespace GeomSharp {
       // test all edges intersections
       for (int i = 0; i < poly.Size; ++i) {
         try {
-          var poly_seg = LineSegment2D.FromPoints(poly[i], poly[(i + 1) % poly.Size], decimal_precision);
+          (int i1, int i2) = (i, (i + 1) % poly.Size);
+          var poly_seg = LineSegment2D.FromPoints(poly[i1], poly[i2], decimal_precision);
           var inter = line.Intersection(poly_seg, decimal_precision);
           if (inter.ValueType == typeof(Point2D)) {
             // do not add the point if it is only a "touch", that is if it the line strikes through a vertex of the
@@ -419,16 +421,21 @@ namespace GeomSharp {
             var p = (Point2D)inter.Value;
             var p0_loc = line.Location(poly_seg.P0, decimal_precision);
             var p1_loc = line.Location(poly_seg.P1, decimal_precision);
+
             // WARNING: the code below assumes the Polygon2D to be counter-clockwise sorted; if this is not the case,
             // the checks below should be the opposite (false/true)
-            if (p0_loc == Constants.Location.ON_SEGMENT || p1_loc == Constants.Location.ON_SEGMENT) {
+            if (p1_loc == Constants.Location.ON_SEGMENT || p1_loc == Constants.Location.ON_LINE) {
               continue;  // discard intersections with the first or last point, consider only pure intersection (segment
                          // split in two)
             }
-            if (p0_loc == Constants.Location.LEFT || p1_loc == Constants.Location.RIGHT) {
+            if ((p0_loc == Constants.Location.LEFT || p0_loc == Constants.Location.ON_SEGMENT ||
+                 p0_loc == Constants.Location.ON_LINE) &&
+                p1_loc == Constants.Location.RIGHT) {
               mpoint_pair.Add((true, p));  // open intersection segment
             }
-            if (p0_loc == Constants.Location.RIGHT || p1_loc == Constants.Location.LEFT) {
+            if ((p0_loc == Constants.Location.RIGHT || p0_loc == Constants.Location.ON_SEGMENT ||
+                 p0_loc == Constants.Location.ON_LINE) &&
+                p1_loc == Constants.Location.LEFT) {
               mpoint_pair.Add((false, p));  // close intersection segment
             }
           }
@@ -456,11 +463,17 @@ namespace GeomSharp {
       while (mpoint_pair.Count > 0) {
         int i_open = GetFirstIndex(true, 0);
         if (i_open == int.MinValue) {
-          throw new Exception("Polygon2D-Line Intersection: failed to find i_open index");
+          // this is just a touch point, not an intersection
+          Console.WriteLine("Polygon2D to Line intersection failed to find i_open" +
+                            "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" + line.ToWkt(decimal_precision));
+          return new IntersectionResult();
         }
         int i_closed = GetFirstIndex(false, i_open);
         if (i_closed == int.MinValue) {
-          throw new Exception("Polygon2D-Line Intersection: failed to find i_closed index");
+          // this is just a touch point, not an intersection
+          Console.WriteLine("Polygon2D to Line intersection failed to find i_closed" +
+                            "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" + line.ToWkt(decimal_precision));
+          return new IntersectionResult();
         }
         // use indices from the list
         multi_line_set.Add(LineSegment2D.FromPoints(mpoint_pair[i_open].Intersection,

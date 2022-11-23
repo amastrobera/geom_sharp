@@ -529,7 +529,7 @@ namespace GeomSharpTests {
     [RepeatedTestMethod(1)]
     public void PlaneToPolyline() {}
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(100)]
     public void PlaneToPolygon() {
       // 3D
       (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon3D();
