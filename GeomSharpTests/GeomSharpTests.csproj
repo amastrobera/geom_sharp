@@ -70,6 +70,9 @@
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\GeomSharp\GeomSharp.csproj">
       <Project>{de0de82a-1439-47f8-b57d-6116253d0a1f}</Project>
       <Name>GeomSharp</Name>

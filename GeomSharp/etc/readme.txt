@@ -34,7 +34,7 @@ For triangles and polygons, the Overlap also include cases of adjacency (one+ ed
 - Polyline
 - Polygon
 - PointSet
-- LineSet
+- (Line)SegmentSet
 ... in 2D or 3D 
 - (TODO) Surface
 - (TODO) Polyhedron
