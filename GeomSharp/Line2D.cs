@@ -73,6 +73,17 @@ namespace GeomSharp {
     public Point2D ProjectOnto(Point2D p) => Origin + (p - Origin).DotProduct(Direction) * Direction;
 
     /// <summary>
+    /// Projects a Point into a line (2D to 1D change)
+    /// The result is a double, indicating the distance of a point from the origin (along the line) - negative, if if
+    /// preceeds the Origin, positive, if it follows the origin
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public double ProjectInto(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ((Math.Round((P1 - P1).DotProduct(p - P0), decimal_precision) < 0) ? -1 : 1) *
+        ProjectOnto(p).DistanceTo(Origin);
+
+    /// <summary>
     /// Distance from a point
     /// In 3D the formula is d(p,L) = | Vl x W | / |Vl| = |vl x W|
     /// where Vl=P1-P0, vl = Vl/|Vl|, W=p-P0, and (P0,P1) are the points of the line

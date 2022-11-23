@@ -376,13 +376,37 @@ namespace GeomSharp {
                                                   int decimal_precision = Constants.THREE_DECIMALS) =>
         pline.Intersection(seg, decimal_precision);
 
+    // Triangle and Polyline
+    public static bool Intersects(this Polyline2D pline,
+                                  Triangle2D triangle,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(triangle, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline2D pline,
+                                                  Triangle2D triangle,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this Triangle2D triangle,
+                                  Polyline2D pline,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Triangle2D triangle,
+                                                  Polyline2D pline,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        pline.Intersection(triangle, decimal_precision);
+
     // Polygon to Line
     public static bool Intersects(this Polygon2D poly, Line2D line, int decimal_precision = Constants.THREE_DECIMALS) =>
         poly.Intersection(line, decimal_precision).ValueType != typeof(NullValue);
     public static IntersectionResult Intersection(this Polygon2D poly,
                                                   Line2D line,
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
-      var mpoint = new List<Point2D>();
+      var mpoint_pair =
+          new List<(bool EdgeState,
+                    Point2D Intersection)>();  // open-close + intersection point; the OPEN (or CLOSED) states cannot be
+                                               // represented by enum inside a method, therefore they are a boolean
 
       // test all edges intersections
       for (int i = 0; i < poly.Size; ++i) {
@@ -393,8 +417,19 @@ namespace GeomSharp {
             // do not add the point if it is only a "touch", that is if it the line strikes through a vertex of the
             // polygon
             var p = (Point2D)inter.Value;
-            if (!poly_seg.P0.AlmostEquals(p, decimal_precision) && !poly_seg.P1.AlmostEquals(p, decimal_precision)) {
-              mpoint.Add(p);
+            var p0_loc = line.Location(poly_seg.P0, decimal_precision);
+            var p1_loc = line.Location(poly_seg.P1, decimal_precision);
+            // WARNING: the code below assumes the Polygon2D to be counter-clockwise sorted; if this is not the case,
+            // the checks below should be the opposite (false/true)
+            if (p0_loc == Constants.Location.ON_SEGMENT || p1_loc == Constants.Location.ON_SEGMENT) {
+              continue;  // discard intersections with the first or last point, consider only pure intersection (segment
+                         // split in two)
+            }
+            if (p0_loc == Constants.Location.LEFT || p1_loc == Constants.Location.RIGHT) {
+              mpoint_pair.Add((true, p));  // open intersection segment
+            }
+            if (p0_loc == Constants.Location.RIGHT || p1_loc == Constants.Location.LEFT) {
+              mpoint_pair.Add((false, p));  // close intersection segment
             }
           }
         } catch (Exception ex) {
@@ -402,19 +437,54 @@ namespace GeomSharp {
         }
       }
 
-      if (mpoint.Count == 0) {
+      if (mpoint_pair.Count == 0) {
         return new IntersectionResult();
       }
 
-      if (mpoint.Count == 1) {
-        return new IntersectionResult(mpoint[0]);
+      var multi_line_set = new List<LineSegment2D>();
+
+      Func<bool, int, int> GetFirstIndex = (bool open_closed_state, int i_from) => {
+        for (int _i = i_from; _i < i_from + mpoint_pair.Count; ++_i) {
+          int _idx = (_i % mpoint_pair.Count);
+          if (mpoint_pair[_idx].EdgeState == open_closed_state) {
+            return _idx;
+          }
+        }
+        return int.MinValue;
+      };
+
+      while (mpoint_pair.Count > 0) {
+        int i_open = GetFirstIndex(true, 0);
+        if (i_open == int.MinValue) {
+          throw new Exception("Polygon2D-Line Intersection: failed to find i_open index");
+        }
+        int i_closed = GetFirstIndex(false, i_open);
+        if (i_closed == int.MinValue) {
+          throw new Exception("Polygon2D-Line Intersection: failed to find i_closed index");
+        }
+        // use indices from the list
+        multi_line_set.Add(LineSegment2D.FromPoints(mpoint_pair[i_open].Intersection,
+                                                    mpoint_pair[i_closed].Intersection,
+                                                    decimal_precision));
+        // pop indices out of the list
+        if (i_open > i_closed) {
+          mpoint_pair.RemoveAt(i_open);
+          mpoint_pair.RemoveAt(i_closed);
+        } else {
+          mpoint_pair.RemoveAt(i_closed);
+          mpoint_pair.RemoveAt(i_open);
+        }
       }
 
-      // TODO: verify what intersection is a point (Point or PointSet), and what is is a line (LineSegment or
-      // LineSegmentSet)
+      if (multi_line_set.Count == 1) {
+        return new IntersectionResult(multi_line_set[0]);
+      }
 
-      // more than 3, in case of an irregular polygon (with self-intersections, or holes)
-      return new IntersectionResult(new PointSet2D(mpoint));
+      // sort the segments by appearence (of their first point, P0) on the line's direction
+      multi_line_set.Sort(
+          (s1, s2) => line.ProjectInto(s1.P0, decimal_precision).CompareTo(line.ProjectInto(s2.P0, decimal_precision)));
+
+      return new IntersectionResult(new LineSegmentSet2D(multi_line_set));
     }
 
     public static bool Intersects(this Line2D line, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -433,9 +503,44 @@ namespace GeomSharp {
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
       var line_inter = ray.ToLine().Intersection(poly, decimal_precision);
 
-      // TODO: verify that the points are all ahead of the ray
+      if (line_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
 
-      throw new NotImplementedException();
+      Func<LineSegment2D, IntersectionResult> GetResultFromSegment = (LineSegment2D seg_inter) => {
+        (bool p0_in, bool p1_in) =
+            (ray.IsAhead(seg_inter.P0, decimal_precision), ray.IsAhead(seg_inter.P1, decimal_precision));
+
+        if (p0_in && p1_in) {
+          return new IntersectionResult(seg_inter);
+        }
+        if (!p0_in && p1_in) {
+          return new IntersectionResult(LineSegment2D.FromPoints(ray.Origin, seg_inter.P1, decimal_precision));
+        }
+        if (p0_in && !p1_in) {
+          return new IntersectionResult(LineSegment2D.FromPoints(ray.Origin, seg_inter.P0, decimal_precision));
+        }
+        return new IntersectionResult();
+      };
+
+      if (line_inter.ValueType == typeof(LineSegment2D)) {
+        return GetResultFromSegment((LineSegment2D)line_inter.Value);
+      }
+
+      if (line_inter.ValueType == typeof(LineSegmentSet2D)) {
+        var mline = new List<LineSegment2D>();
+        foreach (var seg in (LineSegmentSet2D)line_inter.Value) {
+          var seg_res = GetResultFromSegment(seg);
+          if (seg_res.ValueType == typeof(LineSegment2D)) {
+            mline.Add((LineSegment2D)seg_res.Value);
+          }
+        }
+        if (mline.Count > 0) {
+          return new IntersectionResult(new LineSegmentSet2D(mline));
+        }
+      }
+
+      return new IntersectionResult();
     }
 
     public static bool Intersects(this Ray2D ray, Polygon2D poly, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -456,9 +561,53 @@ namespace GeomSharp {
                                                   int decimal_precision = Constants.THREE_DECIMALS) {
       var line_inter = seg.ToLine().Intersection(poly, decimal_precision);
 
-      // TODO: verify that the points are all ahead of the ray
+      if (line_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
 
-      throw new NotImplementedException();
+      Func<LineSegment2D, IntersectionResult> GetResultFromSegment = (LineSegment2D seg_inter) => {
+        (bool p0_in, bool p1_in) =
+            (seg.Contains(seg_inter.P0, decimal_precision), seg.Contains(seg_inter.P1, decimal_precision));
+
+        (bool this_p0_in, bool this_p1_in) =
+            (seg_inter.Contains(seg.P0, decimal_precision), seg_inter.Contains(seg.P1, decimal_precision));
+
+        // case 1: intersection segment is all contained in the segment
+        if (p0_in && p1_in) {
+          return new IntersectionResult(seg_inter);
+        }
+        // case 2: the segment is all contained in the intersection segment
+        if (this_p0_in && this_p1_in) {
+          return new IntersectionResult(seg);
+        }
+        // case 3-4: only a portion of the intersection segment is contained in the segment
+        if (!p0_in && p1_in) {
+          return new IntersectionResult(LineSegment2D.FromPoints(seg.P0, seg_inter.P1, decimal_precision));
+        }
+        if (p0_in && !p1_in) {
+          return new IntersectionResult(LineSegment2D.FromPoints(seg_inter.P0, seg.P1, decimal_precision));
+        }
+        return new IntersectionResult();
+      };
+
+      if (line_inter.ValueType == typeof(LineSegment2D)) {
+        return GetResultFromSegment((LineSegment2D)line_inter.Value);
+      }
+
+      if (line_inter.ValueType == typeof(LineSegmentSet2D)) {
+        var mline = new List<LineSegment2D>();
+        foreach (var lseg in (LineSegmentSet2D)line_inter.Value) {
+          var seg_res = GetResultFromSegment(lseg);
+          if (seg_res.ValueType == typeof(LineSegment2D)) {
+            mline.Add((LineSegment2D)seg_res.Value);
+          }
+        }
+        if (mline.Count > 0) {
+          return new IntersectionResult(new LineSegmentSet2D(mline));
+        }
+      }
+
+      return new IntersectionResult();
     }
 
     public static bool Intersects(this LineSegment2D seg,
@@ -503,5 +652,35 @@ namespace GeomSharp {
 
       return new IntersectionResult(new PointSet2D(mpoint));
     }
+
+    public static bool Intersects(this Polyline2D pline,
+                                  Polygon2D poly,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(pline, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polyline2D pline,
+                                                  Polygon2D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(pline, decimal_precision);
+
+    // Triangle and Polygon
+    public static bool Intersects(this Polygon2D poly,
+                                  Triangle2D triangle,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(triangle, decimal_precision).ValueType != typeof(NullValue);
+    public static IntersectionResult Intersection(this Polygon2D poly,
+                                                  Triangle2D triangle,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) {
+      throw new NotImplementedException();
+    }
+
+    public static bool Intersects(this Triangle2D triangle,
+                                  Polygon2D poly,
+                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        triangle.Intersection(poly, decimal_precision).ValueType != typeof(NullValue);
+
+    public static IntersectionResult Intersection(this Triangle2D triangle,
+                                                  Polygon2D poly,
+                                                  int decimal_precision = Constants.THREE_DECIMALS) =>
+        poly.Intersection(triangle, decimal_precision);
   }
 }

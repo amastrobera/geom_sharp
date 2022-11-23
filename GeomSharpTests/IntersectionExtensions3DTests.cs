@@ -301,6 +301,19 @@ namespace GeomSharpTests {
                      "not intersect (p1+)" + "\ns1=" + segment.ToWkt() + ", s2=" + ray.ToWkt());
     }
 
+    // Polyline with other primitives
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineToPolyline() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void RayToPolyline() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineSegmentToPolyline() {}
+
     // Plane with other basic primitives
     [RepeatedTestMethod(100)]
     public void PlaneToLine() {
@@ -514,6 +527,9 @@ namespace GeomSharpTests {
 
     [Ignore]
     [RepeatedTestMethod(1)]
+    public void PlaneToPolyline() {}
+
+    [RepeatedTestMethod(1)]
     public void PlaneToPolygon() {
       // 3D
       (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon3D();
@@ -525,19 +541,42 @@ namespace GeomSharpTests {
 
       // cache varibles
       Plane other_plane;
-      var plane = poly.RefPlane();
-      var plane_norm = plane.Normal;
-      var plane_axis_u = plane.AxisU;
-      var plane_axis_v = plane.AxisV;
+      var poly_plane = poly.RefPlane();
+      var poly_plane_norm = poly_plane.Normal;
+      var poly_plane_axis_u = poly_plane.AxisU;
+      var poly_plane_axis_v = poly_plane.AxisV;
 
       cm = poly.CenterOfMass();
       n = poly.Size;
 
       // test 1: a plane parallel to the polygon does not intersect
-      other_plane = Plane.FromPointAndNormal(cm + 2 * plane_norm, plane_norm);
+      other_plane = Plane.FromPointAndNormal(cm + 2 * poly_plane_norm, poly_plane_norm);
       Assert.IsFalse(other_plane.Intersects(poly),
                      "a plane parallel to the polygon does not intersect, \n\tplane = " + other_plane.ToWkt() +
                          "\n\tpoly=" + poly.ToWkt());
+
+      // test 2: a plane perpendicular to the polygon intersects
+      for (int i = 0; i < n; ++i) {
+        var p = poly[i];
+        var p_axis = (p - cm).Normalize();
+
+        other_plane = Plane.FromPointAndNormal(cm, p_axis);
+        Assert.IsTrue(other_plane.Intersects(poly),
+                      "a plane perpendicular to the polygon intersects, iter " + i.ToString() + "/" + n.ToString() +
+                          "\n\tplane = " + other_plane.ToWkt() + "\n\tpoly=" + poly.ToWkt());
+      }
+
+      // test 3: a plane perpendicular to the polygon, but outside the polygon, does not intersect
+      for (int i = 0; i < n; ++i) {
+        var p = poly[i];
+        var p_axis = (p - cm).Normalize();
+
+        other_plane = Plane.FromPointAndNormal(p + 2 * p_axis, p_axis);
+        Assert.IsFalse(other_plane.Intersects(poly),
+                       "a plane perpendicular to the polygon, but outside the polygon, does not intersect, iter " +
+                           i.ToString() + "/" + n.ToString() + "\n\tplane = " + other_plane.ToWkt() +
+                           "\n\tpoly=" + poly.ToWkt());
+      }
     }
 
     // Triangle with other basic primitives
@@ -870,5 +909,25 @@ namespace GeomSharpTests {
       Assert.IsFalse(segment.Intersects(t),
                      "segment contained in the triangle t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
     }
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void RayToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineSegmentToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void PolylineToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void TriangleToPolygon() {}
   }
 }
