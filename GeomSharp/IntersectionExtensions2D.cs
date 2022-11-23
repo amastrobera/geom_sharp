@@ -409,6 +409,8 @@ namespace GeomSharp {
                     Point2D Intersection)>();  // open-close + intersection point; the OPEN (or CLOSED) states cannot be
                                                // represented by enum inside a method, therefore they are a boolean
 
+      // Console.WriteLine("\n\tline=" + line.ToWkt(decimal_precision) + "\n\tpoly=" + poly.ToWkt(decimal_precision));
+
       // test all edges intersections
       for (int i = 0; i < poly.Size; ++i) {
         try {
@@ -422,20 +424,26 @@ namespace GeomSharp {
             var p0_loc = line.Location(poly_seg.P0, decimal_precision);
             var p1_loc = line.Location(poly_seg.P1, decimal_precision);
 
+            // Console.WriteLine("\n\t(" + i1.ToString() + "," + i2.ToString() + ") point intersection on " +
+            //                   p.ToWkt(decimal_precision) + "\n\t\tp0_loc=" + p0_loc + ", p1_loc=" + p1_loc);
+
             // WARNING: the code below assumes the Polygon2D to be counter-clockwise sorted; if this is not the case,
             // the checks below should be the opposite (false/true)
             if (p1_loc == Constants.Location.ON_SEGMENT || p1_loc == Constants.Location.ON_LINE) {
+              // Console.WriteLine("\n\t\t x rejected");
               continue;  // discard intersections with the first or last point, consider only pure intersection (segment
                          // split in two)
             }
             if ((p0_loc == Constants.Location.LEFT || p0_loc == Constants.Location.ON_SEGMENT ||
                  p0_loc == Constants.Location.ON_LINE) &&
                 p1_loc == Constants.Location.RIGHT) {
+              // Console.WriteLine("\n\t\t - accepted, open");
               mpoint_pair.Add((true, p));  // open intersection segment
             }
             if ((p0_loc == Constants.Location.RIGHT || p0_loc == Constants.Location.ON_SEGMENT ||
                  p0_loc == Constants.Location.ON_LINE) &&
                 p1_loc == Constants.Location.LEFT) {
+              // Console.WriteLine("\n\t\t - accepted, close");
               mpoint_pair.Add((false, p));  // close intersection segment
             }
           }
@@ -464,15 +472,17 @@ namespace GeomSharp {
         int i_open = GetFirstIndex(true, 0);
         if (i_open == int.MinValue) {
           // this is just a touch point, not an intersection
-          Console.WriteLine("Polygon2D to Line intersection failed to find i_open" +
-                            "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" + line.ToWkt(decimal_precision));
+          // Console.WriteLine("Polygon2D to Line intersection failed to find i_open" +
+          //                  "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" +
+          //                  line.ToWkt(decimal_precision));
           return new IntersectionResult();
         }
         int i_closed = GetFirstIndex(false, i_open);
         if (i_closed == int.MinValue) {
           // this is just a touch point, not an intersection
-          Console.WriteLine("Polygon2D to Line intersection failed to find i_closed" +
-                            "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" + line.ToWkt(decimal_precision));
+          // Console.WriteLine("Polygon2D to Line intersection failed to find i_closed" +
+          //                  "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" +
+          //                  line.ToWkt(decimal_precision));
           return new IntersectionResult();
         }
         // use indices from the list
