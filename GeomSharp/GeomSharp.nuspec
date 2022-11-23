@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -24,14 +24,14 @@
         -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
-    <releaseNotes>Developed and tested primitives up to Triangles and functions Intersection/Overlap/Touch/Adjacency</releaseNotes>
+    <releaseNotes>Added LineSegmentSet (2D/3D) classes to handle the return type of Polygon3D intersections. Added Polygon3D Intersection and tests</releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
         -->
     <description>Core utility functions for web applications</description>
     <!-- Copyright information -->
-    <copyright>Copyright (c) 2022 Angelo Mastro</copyright>
+    <copyright>Copyright (c) 2022 Angelo Mastroberardino</copyright>
     <!-- Tags appear in the gallery and can be used for tag searches -->
     <tags>geometry 3d 2d intersection triangle line vector point polygon polyhedron</tags>
     <!-- Dependencies are automatically installed when the package is installed -->

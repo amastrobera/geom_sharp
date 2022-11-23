@@ -298,6 +298,18 @@ namespace GeomSharpTests {
                      "not intersect (p1+)" + "\ns1=" + segment.ToWkt() + ", s2=" + ray.ToWkt());
     }
 
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineToPolyline() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void RayToPolyline() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineSegmentToPolyline() {}
+
     // Triangle with other basic primitives
 
     [RepeatedTestMethod(100)]
@@ -624,5 +636,25 @@ namespace GeomSharpTests {
       Assert.IsFalse(segment.Intersects(t),
                      "segment contained in the triangle t=" + t.ToWkt() + ", segment=" + segment.ToWkt());
     }
-  }
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void RayToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void LineSegmentToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void PolylineToPolygon() {}
+
+    [Ignore]
+    [RepeatedTestMethod(1)]
+    public void TriangleToPolygon() {}
+    }
 }
