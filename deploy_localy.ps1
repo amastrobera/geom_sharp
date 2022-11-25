@@ -2,7 +2,7 @@
 
 Write-Host "===== local deployment ======"
 
-$local_repo = "local"
+$target_repo = "local"
 
 Write-Host "   > available sources"
 $repos = $(nuget sources list)
@@ -31,5 +31,5 @@ Write-Host "package = $(ls $pkg_out_file)"
 $pkg_out_sym = $(ls $(Join-Path $pkg_out_dir *$xml_version.symbols.nupkg))[0].FullName
 Write-Host "symbols = $(ls $pkg_out_sym)"
 
-nuget push $pkg_out_file -Source $local_repo -SkipDuplicate
-nuget push $pkg_out_sym -Source $local_repo -SymbolSource $local_repo -SkipDuplicate
+nuget push $pkg_out_file -Source $target_repo -SkipDuplicate
+nuget push $pkg_out_sym -Source $target_repo -SymbolSource $target_repo -SkipDuplicate
