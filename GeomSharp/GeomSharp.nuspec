@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -35,11 +35,15 @@
     <!-- Tags appear in the gallery and can be used for tag searches -->
     <tags>geometry 3d 2d intersection triangle line vector point polygon polyhedron</tags>
     <!-- Dependencies are automatically installed when the package is installed -->
-    <dependencies />
+    <dependencies/>
   </metadata>
   <!-- A readme.txt to display when the package is installed -->
   <files>
     <file src="etc\readme.txt" target="" />
     <file src="etc\icon.png" target="" />
+    
+    <file src="bin\Release\*.dll" target="lib/net48" /> <!-- nuget pack seems unable copy this DLL, here explicitely copied -->
+    <file src="bin\Release\*.pdb" target="lib/net48" />
+    
   </files>
 </package>
