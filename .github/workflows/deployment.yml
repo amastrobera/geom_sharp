@@ -33,7 +33,11 @@ jobs:
         [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
         $xml_version = $xmlElm.package.metadata.version
         echo "version = $xml_version"
-        nuget pack $pkg_spec_path -Properties Configuration=Release -OutputDirectory $pkg_out_dir
-        echo "pkg_out_files = $(ls $pkg_out_dir)"
-        nuget push "$pkg_out_dir\*.nupkg" -Source 'https://api.nuget.org/v3/index.json' -SkipDuplicate
+        nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir
+        $pkg_out_file = $(ls $(Join-Path $pkg_out_dir *$version.nupkg))[0].FullName
+        echo "package = $(ls $pkg_out_file)"
+        $pkg_out_sym = $(ls $(Join-Path $pkg_out_dir *$version.symbols.nupkg))[0].FullName
+        echo "symbols = $(ls $pkg_out_sym)"
+        nuget push $pkg_out_file -Source nuget.org -SkipDuplicate
+        nuget push $pkg_out_sym -Source nuget.org -SymbolSource nuget.org -SkipDuplicate
       shell: pwsh
