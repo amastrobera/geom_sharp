@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
 
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
-  public class LineSegmentSet2D : IEquatable<LineSegmentSet2D>, IEnumerable<LineSegment2D> {
+  [Serializable]
+  public class LineSegmentSet2D : IEquatable<LineSegmentSet2D>, IEnumerable<LineSegment2D>, ISerializable {
     private List<LineSegment2D> Items;
     public readonly int Size;
 
@@ -108,5 +113,39 @@ namespace GeomSharp {
                                              s.P1.V) +
                                ")")) +
                   ")";
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Items", Items, typeof(List<LineSegment2D>));
+    }
+    // The special constructor is used to deserialize values.
+    public LineSegmentSet2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Items = (List<LineSegment2D>)info.GetValue("Items", typeof(List<LineSegment2D>));
+    }
+
+    public static LineSegmentSet2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (LineSegmentSet2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 }

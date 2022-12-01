@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
 
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
-  public class LineSegmentSet3D : IEquatable<LineSegmentSet3D>, IEnumerable<LineSegment3D> {
+  [Serializable]
+  public class LineSegmentSet3D : IEquatable<LineSegmentSet3D>, IEnumerable<LineSegment3D>, ISerializable {
     private List<LineSegment3D> Items;
     public readonly int Size;
 
@@ -115,5 +120,39 @@ namespace GeomSharp {
                                    s.P1.Z) +
                                ")")) +
                   ")";
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Items", Items, typeof(List<LineSegment3D>));
+    }
+    // The special constructor is used to deserialize values.
+    public LineSegmentSet3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Items = (List<LineSegment3D>)info.GetValue("Items", typeof(List<LineSegment3D>));
+    }
+
+    public static LineSegmentSet3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (LineSegmentSet3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 }

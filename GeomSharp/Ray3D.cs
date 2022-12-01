@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace GeomSharp {
   /// <summary>
   /// A Ray on an arbitrary 3D plane
   /// </summary>
-  public class Ray3D : IEquatable<Ray3D> {
+  [Serializable]
+  public class Ray3D : IEquatable<Ray3D>, ISerializable {
     public Point3D Origin { get; }
     public UnitVector3D Direction { get; }
 
@@ -166,6 +169,40 @@ namespace GeomSharp {
           Origin.X + Direction.X,
           Origin.Y + Direction.Y,
           Origin.Z + Direction.Z);
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Origin", Origin, typeof(Point3D));
+      info.AddValue("Direction", Direction, typeof(UnitVector3D));
+    }
+    // The special constructor is used to deserialize values.
+    public Ray3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Origin = (Point3D)info.GetValue("Origin", typeof(Point3D));
+      Direction = (UnitVector3D)info.GetValue("Direction", typeof(UnitVector3D));
+    }
+
+    public static Ray3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Ray3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 

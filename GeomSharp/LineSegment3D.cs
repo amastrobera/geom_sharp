@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace GeomSharp {
   /// <summary>
   /// A LineSegment on an arbitrary 3D plane
   /// </summary>
-  public class LineSegment3D : IEquatable<LineSegment3D> {
+  [Serializable]
+  public class LineSegment3D : IEquatable<LineSegment3D>, ISerializable {
     public Point3D P0 { get; }
     public Point3D P1 { get; }
 
@@ -177,6 +180,39 @@ namespace GeomSharp {
                            P1.Z) +
              ")";
     }
-  }
 
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point3D));
+      info.AddValue("P1", P1, typeof(Point3D));
+    }
+    // The special constructor is used to deserialize values.
+    public LineSegment3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
+      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
+    }
+
+    public static LineSegment3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (LineSegment3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
+  }
 }

@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
 
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
-  public class Polygon3D : IEquatable<Polygon3D>, IEnumerable<Point3D> {
+  [Serializable]
+  public class Polygon3D : IEquatable<Polygon3D>, IEnumerable<Point3D>, ISerializable {
     public List<Point3D> Vertices { get; }
     public readonly int Size;
     public UnitVector3D Normal { get; }
@@ -345,5 +350,39 @@ namespace GeomSharp {
                                 Vertices[0].Y,
                                 Vertices[0].Z) +
                   "))";
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Vertices", Vertices, typeof(List<Point3D>));
+    }
+    // The special constructor is used to deserialize values.
+    public Polygon3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Vertices = (List<Point3D>)info.GetValue("Vertices", typeof(List<Point3D>));
+    }
+
+    public static Polygon3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Polygon3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 }

@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
 
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
-  public class PointSet3D : IEquatable<PointSet3D>, IEnumerable<Point3D> {
+  [Serializable]
+  public class PointSet3D : IEquatable<PointSet3D>, IEnumerable<Point3D>, ISerializable {
     private List<Point3D> Vertices;
     public readonly int Size;
 
@@ -98,5 +103,39 @@ namespace GeomSharp {
                                                          v.Y,
                                                          v.Z))) +
                   ")";
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Vertices", Vertices, typeof(List<Point3D>));
+    }
+    // The special constructor is used to deserialize values.
+    public PointSet3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Vertices = (List<Point3D>)info.GetValue("Vertices", typeof(List<Point3D>));
+    }
+
+    public static PointSet3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (PointSet3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 }
