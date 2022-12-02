@@ -66,15 +66,15 @@ namespace GeomSharp {
         return new List<Point3D>();
       }
 
-      var key_dictionary = new Dictionary<string, Point3D>();
-      foreach (var p in point_list) {
-        string key = p.ToWkt(decimal_precision);
+      var key_dictionary = new Dictionary<string, int>();
+      for (int i = 0; i < point_list.Count; ++i) {
+        string key = point_list[i].ToWkt(decimal_precision);
         if (!key_dictionary.ContainsKey(key)) {
-          key_dictionary.Add(key, p);
+          key_dictionary.Add(key, i);
         }
       }
 
-      return key_dictionary.Select(pr => pr.Value).ToList();
+      return key_dictionary.OrderBy(kv => kv.Value).Select(kv => point_list[kv.Value]).ToList();
     }
 
     /// <summary>
@@ -146,14 +146,15 @@ namespace GeomSharp {
         return new List<Point2D>();
       }
 
-      var key_dictionary = new Dictionary<string, Point2D>();
-      foreach (var p in point_list) {
-        string key = p.ToWkt(decimal_precision);
+      var key_dictionary = new Dictionary<string, int>();
+      for (int i = 0; i < point_list.Count; ++i) {
+        string key = point_list[i].ToWkt(decimal_precision);
         if (!key_dictionary.ContainsKey(key)) {
-          key_dictionary.Add(key, p);
+          key_dictionary.Add(key, i);
         }
       }
-      return key_dictionary.Select(pr => pr.Value).ToList();
+
+      return key_dictionary.OrderBy(kv => kv.Value).Select(kv => point_list[kv.Value]).ToList();
     }
 
     /// <summary>

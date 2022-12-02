@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace GeomSharp {
 
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
-  public class Triangle2D : IEquatable<Triangle2D> {
+  [Serializable]
+  public class Triangle2D : IEquatable<Triangle2D>, ISerializable {
     public Point2D P0 { get; }
     public Point2D P1 { get; }
     public Point2D P2 { get; }
@@ -383,6 +387,50 @@ namespace GeomSharp {
                            P1.V,
                            P2.U,
                            P2.V);
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point2D));
+      info.AddValue("P1", P1, typeof(Point2D));
+      info.AddValue("P2", P2, typeof(Point2D));
+
+      info.AddValue("Orientation", Orientation, typeof(Constants.Orientation));
+      info.AddValue("U", U, typeof(UnitVector2D));
+      info.AddValue("V", V, typeof(UnitVector2D));
+    }
+    // The special constructor is used to deserialize values.
+    public Triangle2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
+      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
+      P2 = (Point2D)info.GetValue("P2", typeof(Point2D));
+
+      Orientation = (Constants.Orientation)info.GetValue("Orientation", typeof(Constants.Orientation));
+      U = (UnitVector2D)info.GetValue("U", typeof(UnitVector2D));
+      V = (UnitVector2D)info.GetValue("V", typeof(UnitVector2D));
+    }
+
+    public static Triangle2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Triangle2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 }

@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
   /// <summary>
   /// A Geometrical Vector of two coordinates (X,Y,Z) on an arbitrary 3D plane
   /// </summary>
-  public class Vector3D : IEquatable<Vector3D> {
+  [Serializable]
+  public class Vector3D : IEquatable<Vector3D>, ISerializable {
     public double X { get; }
     public double Y { get; }
     public double Z { get; }
@@ -168,6 +173,42 @@ namespace GeomSharp {
           Y,
           Z);
     }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("X", X, typeof(double));
+      info.AddValue("Y", Y, typeof(double));
+      info.AddValue("Z", Z, typeof(double));
+    }
+    // The special constructor is used to deserialize values.
+    public Vector3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      X = (double)info.GetValue("X", typeof(double));
+      Y = (double)info.GetValue("Y", typeof(double));
+      Z = (double)info.GetValue("Z", typeof(double));
+    }
+
+    public static Vector3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Vector3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 
   /// <summary>
@@ -193,5 +234,19 @@ namespace GeomSharp {
             : new UnitVector3D(v);
 
     public static UnitVector3D operator -(UnitVector3D a) => FromDoubles(-a.X, -a.Y, -a.Z);
+
+    // The special constructor is used to deserialize values.
+    public UnitVector3D(SerializationInfo info, StreamingContext context) => FromVector(new Vector3D(info, context));
+
+    public static UnitVector3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (UnitVector3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
   }
 }

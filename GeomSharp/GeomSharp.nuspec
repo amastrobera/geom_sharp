@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -24,7 +24,7 @@
         -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
-    <releaseNotes>Added LineSegmentSet (2D/3D) classes to handle the return type of Polygon3D intersections. Added Polygon3D Intersection and tests</releaseNotes>
+    <releaseNotes>reset order in RemoveDuplicate(2D,3D) function, made all classes serializable/de-serializable to binary</releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 

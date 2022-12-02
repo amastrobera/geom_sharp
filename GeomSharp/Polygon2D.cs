@@ -2,12 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
 
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
-  public class Polygon2D : IEquatable<Polygon2D>, IEnumerable<Point2D> {
+  [Serializable]
+  public class Polygon2D : IEquatable<Polygon2D>, IEnumerable<Point2D>, ISerializable {
     private List<Point2D> Vertices;
     public readonly int Size;
 
@@ -296,5 +301,39 @@ namespace GeomSharp {
                                 Vertices[0].U,
                                 Vertices[0].V) +
                   "))";
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Vertices", Vertices, typeof(List<Point2D>));
+    }
+    // The special constructor is used to deserialize values.
+    public Polygon2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Vertices = (List<Point2D>)info.GetValue("Vertices", typeof(List<Point2D>));
+    }
+
+    public static Polygon2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Polygon2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 }

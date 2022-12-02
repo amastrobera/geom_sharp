@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
+
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace GeomSharp {
   /// <summary>
   /// A Mathematical Vector containing any number of double
   /// </summary>
-  public class Vector : IEquatable<Vector> {
+  [Serializable]
+  public class Vector : IEquatable<Vector>, ISerializable {
     private double[] _values;
     public readonly int Size;
 
@@ -214,6 +218,40 @@ namespace GeomSharp {
              string.Join(",",
                          _values.Select(v => string.Format(String.Format("{0}0:F{1:D}{2}", "{", precision, "}"), v))) +
              ")";
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("size", Size, typeof(int));
+      info.AddValue("values", _values, typeof(double[]));
+    }
+    // The special constructor is used to deserialize values.
+    public Vector(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("size", typeof(int));
+      _values = (double[])info.GetValue("values", typeof(double[]));
+    }
+
+    public static Vector FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Vector)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 

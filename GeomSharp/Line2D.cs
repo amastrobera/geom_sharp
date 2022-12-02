@@ -1,12 +1,17 @@
 ﻿using System;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
   /// <summary>
   /// A Line on an arbitrary 2D plane
   /// It's either defined as an infinite straight line passing by two points
   /// or an infinite straight line passing by a point, with a given direction
   /// </summary>
-  public class Line2D : IEquatable<Line2D> {
+  [Serializable]
+  public class Line2D : IEquatable<Line2D>, ISerializable {
     public Point2D P0 { get; }
     public Point2D P1 { get; }
     public Point2D Origin { get; }
@@ -191,6 +196,44 @@ namespace GeomSharp {
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), p2.U, p2.V) + ")" +
 
              ")";
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point2D));
+      info.AddValue("P1", P1, typeof(Point2D));
+      info.AddValue("Origin", Origin, typeof(Point2D));
+      info.AddValue("Direction", Direction, typeof(UnitVector2D));
+    }
+    // The special constructor is used to deserialize values.
+    public Line2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
+      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
+      Origin = (Point2D)info.GetValue("Origin", typeof(Point2D));
+      Direction = (UnitVector2D)info.GetValue("Direction", typeof(UnitVector2D));
+    }
+
+    public static Line2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Line2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 

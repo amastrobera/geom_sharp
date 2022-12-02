@@ -1,12 +1,17 @@
 ﻿using System;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
   /// <summary>
   /// A Line on an arbitrary 3D plane
   /// It's either defined as an infinite straight line passing by two points
   /// or an infinite straight line passing by a point, with a given direction
   /// </summary>
-  public class Line3D : IEquatable<Line3D> {
+  [Serializable]
+  public class Line3D : IEquatable<Line3D>, ISerializable {
     public Point3D P0 { get; }
     public Point3D P1 { get; }
     public Point3D Origin { get; }
@@ -114,8 +119,8 @@ namespace GeomSharp {
       (var p1, var other_p1) = (plane_2d.ProjectInto(Origin), plane_2d.ProjectInto(other.Origin));
       (var p2, var other_p2) =
           (plane_2d.ProjectInto(Origin + 2 * Direction), plane_2d.ProjectInto(other.Origin + 2 * other.Direction));
-      (var line_2d, var other_line_2d) = (Line2D.FromPoints(p1, p2, decimal_precision),
-                                          Line2D.FromPoints(other_p1, other_p2, decimal_precision));
+      (var line_2d, var other_line_2d) =
+          (Line2D.FromPoints(p1, p2, decimal_precision), Line2D.FromPoints(other_p1, other_p2, decimal_precision));
 
       var inter_res = line_2d.Intersection(other_line_2d, decimal_precision);
       if (inter_res.ValueType == typeof(NullValue)) {
@@ -194,6 +199,44 @@ namespace GeomSharp {
              ")" +
 
              ")";
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point3D));
+      info.AddValue("P1", P1, typeof(Point3D));
+      info.AddValue("Origin", Origin, typeof(Point3D));
+      info.AddValue("Direction", Direction, typeof(UnitVector3D));
+    }
+    // The special constructor is used to deserialize values.
+    public Line3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
+      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
+      Origin = (Point3D)info.GetValue("Origin", typeof(Point3D));
+      Direction = (UnitVector3D)info.GetValue("Direction", typeof(UnitVector3D));
+    }
+
+    public static Line3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Line3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 }

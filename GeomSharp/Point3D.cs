@@ -2,11 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
   /// <summary>
   /// A Point of two coordinates (X,Y,Z) on an arbitrary 3D plane
   /// </summary>
-  public class Point3D : IEquatable<Point3D> {
+
+  [Serializable]
+  public class Point3D : IEquatable<Point3D>, ISerializable {
     public double X { get; }
     public double Y { get; }
     public double Z { get; }
@@ -98,6 +104,42 @@ namespace GeomSharp {
           X,
           Y,
           Z);
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("X", X, typeof(double));
+      info.AddValue("Y", Y, typeof(double));
+      info.AddValue("Z", Z, typeof(double));
+    }
+    // The special constructor is used to deserialize values.
+    public Point3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      X = (double)info.GetValue("X", typeof(double));
+      Y = (double)info.GetValue("Y", typeof(double));
+      Z = (double)info.GetValue("Z", typeof(double));
+    }
+
+    public static Point3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Point3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 

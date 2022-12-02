@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Linq;
 
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
+
 namespace GeomSharp {
   /// <summary>
   /// A Geometrical Vector of two coordinates (U,V) on an arbitrary 2D plane
   /// </summary>
-  public class Vector2D : IEquatable<Vector2D> {
+  [Serializable]
+  public class Vector2D : IEquatable<Vector2D>, ISerializable {
     public double U { get; }
     public double V { get; }
 
@@ -156,6 +161,40 @@ namespace GeomSharp {
                            U,
                            V);
     }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("U", U, typeof(double));
+      info.AddValue("V", V, typeof(double));
+    }
+    // The special constructor is used to deserialize values.
+    public Vector2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      U = (double)info.GetValue("U", typeof(double));
+      V = (double)info.GetValue("V", typeof(double));
+    }
+
+    public static Vector2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Vector2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+    }
   }
 
   /// <summary>
@@ -181,5 +220,20 @@ namespace GeomSharp {
             : new UnitVector2D(v);
 
     public static UnitVector2D operator -(UnitVector2D a) => FromDoubles(-a.U, -a.V);
+
+    // The special constructor is used to deserialize values.
+    public UnitVector2D(SerializationInfo info, StreamingContext context) => FromVector(new Vector2D(info, context));
+
+    public static UnitVector2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (UnitVector2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
   }
+
 }

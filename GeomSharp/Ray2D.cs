@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace GeomSharp {
   /// <summary>
   /// A Ray on an arbitrary 2D plane
   /// </summary>
-  public class Ray2D : IEquatable<Ray2D> {
+  [Serializable]
+  public class Ray2D : IEquatable<Ray2D>, ISerializable {
     public Point2D Origin { get; }
     public UnitVector2D Direction { get; }
 
@@ -162,6 +165,40 @@ namespace GeomSharp {
                            Origin.V,
                            Origin.U + Direction.U,
                            Origin.V + Direction.V);
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Origin", Origin, typeof(Point2D));
+      info.AddValue("Direction", Direction, typeof(UnitVector2D));
+    }
+    // The special constructor is used to deserialize values.
+    public Ray2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Origin = (Point2D)info.GetValue("Origin", typeof(Point2D));
+      Direction = (UnitVector2D)info.GetValue("Direction", typeof(UnitVector2D));
+    }
+
+    public static Ray2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Ray2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 

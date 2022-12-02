@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace GeomSharp {
   /// <summary>
   /// A LineSegment on an arbitrary 2D plane
   /// </summary>
-  public class LineSegment2D : IEquatable<LineSegment2D> {
+  [Serializable]
+  public class LineSegment2D : IEquatable<LineSegment2D>, ISerializable {
     public Point2D P0 { get; }
     public Point2D P1 { get; }
 
@@ -239,6 +242,40 @@ namespace GeomSharp {
       return "LINESTRING (" +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P0.U, P0.V) + "," +
              string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P1.U, P1.V) + ")";
+    }
+
+    // serialization functions
+    // Implement this method to serialize data. The method is called on serialization.
+    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point2D));
+      info.AddValue("P1", P1, typeof(Point2D));
+    }
+    // The special constructor is used to deserialize values.
+    public LineSegment2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
+      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
+    }
+
+    public static LineSegment2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (LineSegment2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    public void ToBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Create);
+        (new BinaryFormatter()).Serialize(fs, this);
+        fs.Close();
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
     }
   }
 }
