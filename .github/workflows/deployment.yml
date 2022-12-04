@@ -39,6 +39,6 @@ jobs:
         $pkg_out_sym = $(ls $(Join-Path $pkg_out_dir *$xml_version.symbols.nupkg))[0].FullName
         Write-Host "symbols = $(ls $pkg_out_sym)"
         $target_repo = "nuget.org"
-        nuget push $pkg_out_file -Source $target_repo -SkipDuplicate
+        #nuget push $pkg_out_file -Source $target_repo -SkipDuplicate # publish only the symbols
         nuget push $pkg_out_sym -Source $target_repo -SymbolSource $target_repo -SkipDuplicate       
       shell: pwsh

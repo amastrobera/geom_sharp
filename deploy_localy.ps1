@@ -11,7 +11,7 @@ for($i=1; $i -lt $repos.Count; $i++){
         Write-Host "   "  $repos[$i]
     }
 }
-Write-Host "   > selected repo: $local_repo"
+Write-Host "   > selected repo: $target_repo"
 
 $proj_dir = $(Join-Path $pwd GeomSharp)
 $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
@@ -31,5 +31,5 @@ Write-Host "package = $(ls $pkg_out_file)"
 $pkg_out_sym = $(ls $(Join-Path $pkg_out_dir *$xml_version.symbols.nupkg))[0].FullName
 Write-Host "symbols = $(ls $pkg_out_sym)"
 
-nuget push $pkg_out_file -Source $target_repo -SkipDuplicate
+#nuget push $pkg_out_file -Source $target_repo -SkipDuplicate
 nuget push $pkg_out_sym -Source $target_repo -SymbolSource $target_repo -SkipDuplicate
