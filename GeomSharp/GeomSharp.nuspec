@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -24,7 +24,7 @@
         -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
-    <releaseNotes>reset order in RemoveDuplicate(2D,3D) function, made all classes serializable/de-serializable to binary</releaseNotes>
+    <releaseNotes>released symbols for debugging</releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
@@ -35,7 +35,10 @@
     <!-- Tags appear in the gallery and can be used for tag searches -->
     <tags>geometry 3d 2d intersection triangle line vector point polygon polyhedron</tags>
     <!-- Dependencies are automatically installed when the package is installed -->
-    <dependencies/>
+    <dependencies>
+        <group targetFramework=".NETFramework4.8">
+        </group>
+    </dependencies>
   </metadata>
   <!-- A readme.txt to display when the package is installed -->
   <files>
