@@ -1,5 +1,6 @@
 ﻿// internal
 using GeomSharp;
+using GeomSharp.Algebra;
 
 // external
 using System.Collections.Generic;
@@ -11,6 +12,61 @@ namespace GeomSharpTests {
 
   [TestClass]
   public class Polygon2DTests {
+    // several tests in 2D
+
+    [RepeatedTestMethod(100)]
+    public void CenterOfMass() {
+      // 2D
+
+      // temporary data
+      Polygon2D poly;
+      Point2D cm = null;
+      Point2D exp_cm = null;
+
+      // test 1: triangle
+      poly = RandomGenerator.MakeTrianglePolygon2D();
+      if (poly is null) {
+        return;
+      }
+      exp_cm = Point2D.FromVector((poly[0].ToVector() + poly[1].ToVector() + poly[2].ToVector()) / 3);
+      cm = poly.CenterOfMass();
+      Assert.IsTrue(cm.AlmostEquals(exp_cm, Constants.THREE_DECIMALS),
+                    String.Format("area of square different, \n\texp={0}\n\tact={1}", exp_cm.ToWkt(), cm.ToWkt()));
+    }
+
+    [RepeatedTestMethod(100)]
+    public void Area() {
+      // 2D
+
+      // temporary data
+      Polygon2D poly;
+      double area = 0;
+      double exp_area = 0;
+      LineSegmentSet2D segments = null;
+
+      // test 1: square
+      poly = RandomGenerator.MakeSquare2D();
+      if (poly is null) {
+        return;
+      }
+      segments = poly.ToSegments();
+      exp_area = Math.Pow(segments[0].Length(), 2);
+      area = poly.Area();
+      Assert.IsTrue(Math.Round(area - exp_area, Constants.THREE_DECIMALS) == 0,
+                    String.Format("area of square different, \n\texp={0:F3}\n\tact={1:F3}" + exp_area, area));
+
+      // test 2: rectangle
+      poly = RandomGenerator.MakeSquare2D();
+      if (poly is null) {
+        return;
+      }
+      segments = poly.ToSegments();
+      exp_area = segments[0].Length() * segments[1].Length();
+      area = poly.Area();
+      Assert.IsTrue(Math.Round(area - exp_area, Constants.THREE_DECIMALS) == 0,
+                    String.Format("area of rectangle different, \n\texp={0:F3}\n\tact={1:F3}" + exp_area, area));
+    }
+
     [RepeatedTestMethod(100)]
     public void Containment() {
       // 2D

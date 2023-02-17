@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
+using GeomSharp.Comparison;
+
 namespace GeomSharp {
   /// <summary>
   /// A Line on an arbitrary 3D plane

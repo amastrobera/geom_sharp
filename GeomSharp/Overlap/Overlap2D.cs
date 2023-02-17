@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeomSharp {
+namespace GeomSharp.Overlap {
 
-  public static class OverlapExtensions2D {
+  public static class Overlap2D {
     // intersection functions among different objects
 
     // LineSegment and Line 2D

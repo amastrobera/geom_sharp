@@ -1,5 +1,6 @@
 ﻿// internal
 using GeomSharp;
+using GeomSharp.Overlap;
 
 // external
 using System;

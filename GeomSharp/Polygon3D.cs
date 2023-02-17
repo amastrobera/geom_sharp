@@ -6,6 +6,9 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
+using GeomSharp.Algebra;
+using GeomSharp.Intersection;
+
 namespace GeomSharp {
 
   /// <summary>
@@ -18,13 +21,13 @@ namespace GeomSharp {
     public UnitVector3D Normal { get; }
 
     private Polygon3D(Point3D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (points.Length < 4) {
-        throw new ArgumentException("tried to initialize a polygon with less than 4 points");
+      if (points.Length < 3) {
+        throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
       Vertices = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
-      if (Vertices.Count < 4) {
-        throw new ArgumentException("tried to initialize a polygon with less than 4 non-collinear points");
+      if (Vertices.Count < 3) {
+        throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
       }
       // adding the size
       Size = Vertices.Count;
@@ -43,6 +46,9 @@ namespace GeomSharp {
         }
       }
     }
+
+    public Polygon3D(Triangle3D triangle, int decimal_precision = Constants.THREE_DECIMALS)
+        : this(new Point3D[3] { triangle.P0, triangle.P1, triangle.P2 }, decimal_precision) {}
 
     public Polygon3D(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
@@ -63,8 +69,12 @@ namespace GeomSharp {
       return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
     }
 
-    public Point3D CenterOfMass() =>
-        Point3D.FromVector(Vertices.Select(v => v.ToVector()).Aggregate((v1, v2) => v1 + v2) / Size);
+    public Point3D CenterOfMass() {
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return plane.Evaluate(new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).CenterOfMass());
+    }
 
     public bool AlmostEquals(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       // different number of points, different polygon (we assume they have been built removing collinear points and
@@ -126,6 +136,27 @@ namespace GeomSharp {
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
       return this.GetEnumerator();
+    }
+
+    public LineSegmentSet3D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
+      var lineset = new List<LineSegment3D>();
+
+      for (int i = 0; i < Vertices.Count; i++) {
+        int j = (1 + i) % Vertices.Count;
+        lineset.Add(LineSegment3D.FromPoints(Vertices[i], Vertices[j], decimal_precision));
+      }
+
+      return new LineSegmentSet3D(lineset);
+    }
+
+    public List<Triangle3D> Triangulate() {
+      // TODO: add this function
+
+      if (Vertices.Count == 3) {
+        return new List<Triangle3D> { Triangle3D.FromPoints(Vertices[0], Vertices[1], Vertices[2]) };
+      }
+
+      throw new NotImplementedException("triangulation not implemented yet");
     }
 
     public (Point3D Min, Point3D Max)

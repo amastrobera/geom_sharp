@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using GeomSharp;
+using GeomSharp.Algebra;
+using GeomSharp.Transformation;
 
 namespace GeomSharpTests {
 
@@ -61,6 +64,62 @@ namespace GeomSharpTests {
       } catch (Exception) {
       }
       return (null, p0, p1, p2);
+    }
+
+    public static Polygon2D MakeTrianglePolygon2D(int IMin = -10, int IMax = 10) {
+      // construct polygon based on a center and radius, and number of points to approximate a circle
+      try {
+        var t = MakeTriangle2D(IMin, IMax);
+        if (t.Triangle is null) {
+          return null;
+        }
+        return new Polygon2D(t.Triangle);
+      } catch (Exception) {
+      }
+      return null;
+    }
+
+    public static Polygon2D MakeSquare2D(int IMin = -10, int IMax = 10, Point2D Center = null) {
+      // construct polygon based on a center and radius, and number of points to approximate a circle
+      try {
+        var c = (Center is null) ? new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax)) : Center;
+        double radius = seed.NextDouble() * (IMax - IMin);
+
+        var start_angle = Angle.FromRadians(seed.NextDouble());
+        var start_vector = new Vector2D(Math.Cos(start_angle.Radians), Math.Sin(start_angle.Radians));
+
+        var angle_shift = Angle.FromRadians(Math.PI / 2);
+
+        return new Polygon2D(new Point2D[4] { c + start_vector * radius,
+                                              c + start_vector.Rotate(1 * angle_shift) * radius,
+                                              c + start_vector.Rotate(2 * angle_shift) * radius,
+                                              c + start_vector.Rotate(3 * angle_shift) * radius });
+
+      } catch (Exception) {
+      }
+      return null;
+    }
+
+    public static Polygon2D MakeRectangle2D(int IMin = -10, int IMax = 10, Point2D Center = null) {
+      // construct polygon based on a center and radius, and number of points to approximate a circle
+      try {
+        var c = (Center is null) ? new Point2D(seed.Next(IMin, IMax), seed.Next(IMin, IMax)) : Center;
+        double b = seed.NextDouble() * (IMax - IMin);
+        double h = seed.NextDouble() * (IMax - IMin);
+
+        var start_angle = Angle.FromRadians(seed.NextDouble());
+        var start_vector = new Vector2D(Math.Cos(start_angle.Radians), Math.Sin(start_angle.Radians));
+
+        var angle_shift = Angle.FromRadians(Math.PI / 2);
+
+        return new Polygon2D(new Point2D[4] { c + start_vector * b,
+                                              c + start_vector.Rotate(1 * angle_shift) * h,
+                                              c + start_vector.Rotate(2 * angle_shift) * b,
+                                              c + start_vector.Rotate(3 * angle_shift) * h });
+
+      } catch (Exception) {
+      }
+      return null;
     }
 
     public static (Polygon2D Polygon, Point2D Center, double Radius, int Size)
