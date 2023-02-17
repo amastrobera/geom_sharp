@@ -40,4 +40,7 @@ For triangles and polygons, the Overlap also include cases of adjacency (one+ ed
 - (TODO) Polyhedron
 
 - Plane
-- (TODO) Rotation, Shift, Transformation of Coordinates
+- Rotation, Shift
+- (TODO) Transformation of Coordinates
+
+

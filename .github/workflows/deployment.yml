@@ -25,20 +25,5 @@ jobs:
 
     - name: Nuget Pack and Push
       run: |
-        $proj_dir = $(Join-Path $pwd GeomSharp)
-        $pkg_spec_path = $(Join-Path $proj_dir GeomSharp.nuspec)
-        Write-Host "pkg_spec_path = $pkg_spec_path"
-        $pkg_out_dir = $(Join-Path $proj_dir nupkg)
-        Write-Host "pkg_out_dir = $pkg_out_dir"
-        [xml]$xmlElm = Get-Content -Path $pkg_spec_path 
-        $xml_version = $xmlElm.package.metadata.version
-        Write-Host "version = $xml_version"
-        nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir -IncludeReferencedProjects
-        $pkg_out_file = $(ls $(Join-Path $pkg_out_dir *$xml_version.nupkg))[0].FullName
-        Write-Host "package = $(ls $pkg_out_file)"
-        $pkg_out_sym = $(ls $(Join-Path $pkg_out_dir *$xml_version.symbols.nupkg))[0].FullName
-        Write-Host "symbols = $(ls $pkg_out_sym)"
-        $target_repo = "nuget.org"
-        #nuget push $pkg_out_file -Source $target_repo -SkipDuplicate # publish only the symbols
-        nuget push $pkg_out_sym -Source $target_repo -SymbolSource $target_repo -SkipDuplicate       
+        .\deploy_to_nuget.ps1
       shell: pwsh

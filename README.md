@@ -124,6 +124,10 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | Adjacency | |
 | | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | Convex Hull | |
+| | | :heavy_check_mark: Polygon | 
+| | Triangulation | |
+| | | :x: Polygon | 
 | 3D | | |
 | | Containment | |
 | | | :heavy_check_mark: :test_tube: Line/Point| 
@@ -196,10 +200,12 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :x: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
 | | Touch | |
-| | | :x: :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | Adjacency | |
-| | | :x: :heavy_check_mark: :test_tube: Triangle/Triangle | 
-
-
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | Convex Hull | |
+| | | :heavy_check_mark: :test_tube: Polygon | 
+| | Triangulation | |
+| | | :x: Polygon | 
 
 
