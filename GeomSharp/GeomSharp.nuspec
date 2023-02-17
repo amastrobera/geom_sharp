@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.8</version>
+    <version>1.0.9</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -24,7 +24,14 @@
         -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
-    <releaseNotes>fixed outstanding issues with Area and CenterOfMass and wrote Tests, added Rotation/Shift, refactored extension modules, Polygon constructed from Triangle and outputable to Triangle, Polyline and Polygon .ToSegments() function.</releaseNotes>
+    <releaseNotes>
+      - deployment script bugfix
+      - fixed outstanding issues with Area and CenterOfMass and wrote Tests, 
+      - added Rotation/Shift, 
+      - refactored extension modules, 
+      - Polygon constructed from Triangle and outputable to Triangle, 
+      - Polyline and Polygon .ToSegments() function.
+    </releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
@@ -40,9 +47,12 @@
         </group>
     </dependencies>
   </metadata>
-  <!-- A readme.txt to display when the package is installed -->
   <files>
-    <file src="etc\readme.txt" target="" />
+    <file src="..\README.md" target="" />
+    <file src="..\etc\containment.png" target="etc\" />
+    <file src="..\etc\intersection.png" target="etc\" />
+    <file src="..\etc\overlap.png" target="etc\" />
+    <file src="..\etc\test_run.png" target="etc\" />
     <file src="etc\icon.png" target="" />
     
     <file src="bin\Release\*.dll" target="lib/net48" /> <!-- nuget pack seems unable copy this DLL, here explicitely copied -->
