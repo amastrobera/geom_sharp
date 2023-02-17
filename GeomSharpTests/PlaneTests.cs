@@ -1,5 +1,6 @@
 ﻿// internal
 using GeomSharp;
+using GeomSharp.Comparison;
 
 // external
 using Microsoft.VisualStudio.TestTools.UnitTesting;

@@ -1,5 +1,6 @@
 ﻿// internal
 using GeomSharp;
+using GeomSharp.Intersection;
 
 // external
 using System;
@@ -656,5 +657,5 @@ namespace GeomSharpTests {
     [Ignore]
     [RepeatedTestMethod(1)]
     public void TriangleToPolygon() {}
-    }
+  }
 }

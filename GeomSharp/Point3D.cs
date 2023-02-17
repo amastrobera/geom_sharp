@@ -6,6 +6,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
+using GeomSharp.Algebra;
+
 namespace GeomSharp {
   /// <summary>
   /// A Point of two coordinates (X,Y,Z) on an arbitrary 3D plane

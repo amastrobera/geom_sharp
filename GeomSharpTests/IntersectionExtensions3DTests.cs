@@ -1,5 +1,6 @@
 ﻿// internal
 using GeomSharp;
+using GeomSharp.Intersection;
 
 // external
 using System;

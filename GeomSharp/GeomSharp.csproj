@@ -44,21 +44,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Algebra\Extensions.cs" />
     <Compile Include="Angle.cs" />
-    <Compile Include="ComparisonExtensions3D.cs" />
+    <Compile Include="Comparison\Comparison3D.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="IntersectionExtensions2D.cs" />
-    <Compile Include="IntersectionExtensions3D.cs" />
+    <Compile Include="Intersection\Intersection2D.cs" />
+    <Compile Include="Intersection\Intersection3D.cs" />
     <Compile Include="IntersectionResult.cs" />
     <Compile Include="Line2D.cs" />
     <Compile Include="Line3D.cs" />
     <Compile Include="LineSegment2D.cs" />
     <Compile Include="LineSegment3D.cs" />
     <Compile Include="NullValue.cs" />
-    <Compile Include="OverlapExtensions2D.cs" />
-    <Compile Include="OverlapExtensions3D.cs" />
+    <Compile Include="Overlap\Overlap2D.cs" />
+    <Compile Include="Overlap\Overlap3D.cs" />
     <Compile Include="Plane.cs" />
     <Compile Include="Point2D.cs" />
     <Compile Include="Point3D.cs" />
@@ -73,9 +74,14 @@
     <Compile Include="ProjectionResult.cs" />
     <Compile Include="Ray2D.cs" />
     <Compile Include="Ray3D.cs" />
+    <Compile Include="Transformation\Shift2D.cs" />
+    <Compile Include="Transformation\Shift3D.cs" />
+    <Compile Include="Transformation\Rotation3D.cs" />
+    <Compile Include="Transformation\Rotation2D.cs" />
     <Compile Include="Triangle2D.cs" />
     <Compile Include="Triangle3D.cs" />
-    <Compile Include="Vector.cs" />
+    <Compile Include="Algebra\Matrix.cs" />
+    <Compile Include="Algebra\Vector.cs" />
     <Compile Include="Vector2D.cs" />
     <Compile Include="Vector3D.cs" />
   </ItemGroup>

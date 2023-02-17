@@ -6,6 +6,9 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
+using GeomSharp.Intersection;
+using System.ComponentModel;
+
 namespace GeomSharp {
   /// <summary>
   /// A Curve made of straight lines in 2D, each line bound by a pair of vertices
@@ -80,11 +83,20 @@ namespace GeomSharp {
 
     public double Length() {
       double d = 0;
-      for (int i1 = 0; i1 < Nodes.Count - 1; i1++) {
-        int i2 = i1 + 1;
-        d += Nodes[i2].DistanceTo(Nodes[i1]);
+      foreach (var line_piece in ToSegments()) {
+        d += line_piece.Length();
       }
       return d;
+    }
+
+    public LineSegmentSet2D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
+      var lineset = new List<LineSegment2D>();
+
+      for (int i = 0; i < Nodes.Count - 1; i++) {
+        lineset.Add(LineSegment2D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision));
+      }
+
+      return new LineSegmentSet2D(lineset);
     }
 
     /// <summary>
@@ -105,8 +117,7 @@ namespace GeomSharp {
 
       var mpoints = new List<Point2D>();
 
-      for (int i = 0; i < Nodes.Count - 1; i++) {
-        var seg = LineSegment2D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision);
+      foreach (var seg in ToSegments(decimal_precision)) {
         var inter = seg.Intersection(other, decimal_precision);
         if (inter.ValueType == typeof(Point2D)) {
           mpoints.Add((Point2D)inter.Value);
@@ -122,12 +133,11 @@ namespace GeomSharp {
 
     private int IndexOfNearestSegmentToPoint(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       (int i_min, double d_min) = (-1, double.MaxValue);
-      for (int i1 = 0; i1 < Nodes.Count - 1; i1++) {
-        int i2 = i1 + 1;
-        var d = Line2D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision).DistanceTo(point);
+      foreach ((int idx, var seg) in ToSegments(decimal_precision).Select((v, i) => (i, v))) {
+        double d = seg.DistanceTo(point);
         if (d < d_min) {
           d_min = d;
-          i_min = i1;
+          i_min = idx;
         }
       }
       if (i_min < 0) {
@@ -138,9 +148,7 @@ namespace GeomSharp {
     }
 
     public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
-      for (int i1 = 0; i1 < Nodes.Count - 1; ++i1) {
-        int i2 = i1 + 1;
-        var piece_line = LineSegment2D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
+      foreach (var piece_line in ToSegments(decimal_precision)) {
         if (piece_line.Contains(point, decimal_precision)) {
           return true;
         }
@@ -165,9 +173,7 @@ namespace GeomSharp {
     public double LocationPct(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       double curve_len = Length();
       double len_done = 0;
-      for (int i1 = 0; i1 < Nodes.Count - 1; ++i1) {
-        int i2 = i1 + 1;
-        var piece_line = LineSegment2D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
+      foreach (var piece_line in ToSegments(decimal_precision)) {
         double piece_len = piece_line.Length();
         if (piece_line.Contains(point, decimal_precision)) {
           double t = Math.Round(piece_line.P0.DistanceTo(point) / Length(), decimal_precision);
@@ -200,9 +206,7 @@ namespace GeomSharp {
       double curve_todo = Math.Round(pct * curve_len, decimal_precision);
       double len_done = 0;
       double pct_done = 0;
-      int n = Nodes.Count;
-      for (int i = 0; i < n - 1; ++i) {
-        var piece_line = LineSegment2D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision);
+      foreach (var piece_line in ToSegments(decimal_precision)) {
         double piece_len = piece_line.Length();
         if (Math.Round(len_done + piece_len, decimal_precision) >= curve_todo) {
           // found segment containing the point
