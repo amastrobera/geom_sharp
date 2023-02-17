@@ -50,7 +50,7 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | :heavy_check_mark: :test_tube: Point | :heavy_check_mark: :test_tube: Point | :heavy_check_mark: Angle | 
 | :heavy_check_mark: :test_tube: Vector | :heavy_check_mark: :test_tube: Vector | :x: Rotation | 
 | :heavy_check_mark: :test_tube: Line | :heavy_check_mark: :test_tube: Line | :x: Translation | 
-| :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Transformation | 
+| :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Coordinate Transformation | 
 | :heavy_check_mark: :test_tube: LineSegment | :heavy_check_mark: :test_tube: LineSegment |  | 
 | :arrow_forward: PointSet | :arrow_forward: PointSet |  | 
 | :heavy_check_mark: LineSet | :heavy_check_mark: LineSet |  | 
@@ -124,6 +124,10 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | Adjacency | |
 | | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | Convex Hull | |
+| | | :heavy_check_mark: Polygon | 
+| | Triangulation | |
+| | | :x: Polygon | 
 | 3D | | |
 | | Containment | |
 | | | :heavy_check_mark: :test_tube: Line/Point| 
@@ -196,10 +200,12 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | | | :x: Polygon/Polygon | 
 | | | :x: Polygon/Triangle | 
 | | Touch | |
-| | | :x: :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
 | | Adjacency | |
-| | | :x: :heavy_check_mark: :test_tube: Triangle/Triangle | 
-
-
+| | | :heavy_check_mark: :test_tube: Triangle/Triangle | 
+| | Convex Hull | |
+| | | :heavy_check_mark: :test_tube: Polygon | 
+| | Triangulation | |
+| | | :x: Polygon | 
 
 

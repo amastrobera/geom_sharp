@@ -1,8 +1,11 @@
+param([parameter()] [validateset("local")] [string] $target) 
 
 
-Write-Host "===== local deployment ======"
+Write-Host "===== deployment ======"
 
-$target_repo = "local"
+$target_repo = If ($target -ieq "local") { "local" } Else {"nuget.org"}
+Write-Host "   > selected repo: $target_repo"
+
 
 Write-Host "   > available sources"
 $repos = $(nuget sources list)
