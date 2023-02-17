@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-namespace GeomSharp {
+namespace GeomSharp.Algebra {
   /// <summary>
   /// A Mathematical Vector containing any number of double
   /// </summary>
@@ -30,7 +30,7 @@ namespace GeomSharp {
       }
     }
 
-    private Vector(int n) {
+    public Vector(int n) {
       Size = n;
       if (Size <= 0) {
         throw new ArgumentException("init vector with Size <= 0");
@@ -173,6 +173,8 @@ namespace GeomSharp {
       }
       return v;
     }
+
+    public static Vector operator*(Vector v, Matrix m) => v.DotProduct(m);
 
     public static Vector operator*(Vector a, double k) {
       var v = new Vector(a.Size);

@@ -6,6 +6,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
+using GeomSharp.Algebra;
+
 namespace GeomSharp {
 
   /// <summary>
@@ -17,18 +19,21 @@ namespace GeomSharp {
     public readonly int Size;
 
     public Polygon2D(Point2D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (points.Length < 4) {
-        throw new ArgumentException("tried to initialize a polygon with less than 4 points");
+      if (points.Length < 3) {
+        throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
 
       Vertices = (new List<Point2D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
-      if (Vertices.Count < 4) {
-        throw new ArgumentException("tried to initialize a polygon with less than 4 non-collinear points");
+      if (Vertices.Count < 3) {
+        throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
       }
 
       Size = Vertices.Count;
     }
+
+    public Polygon2D(Triangle2D triangle, int decimal_precision = Constants.THREE_DECIMALS)
+        : this(new Point2D[3] { triangle.P0, triangle.P1, triangle.P2 }, decimal_precision) {}
 
     public Polygon2D(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
@@ -100,15 +105,55 @@ namespace GeomSharp {
     public double Area() {
       double a = 0;  // risk of overflow ...
 
-      for (int i = 0; i < Vertices.Count - 1; i++) {
-        a += Vertices[i].ToVector2D().PerpProduct(Vertices[i + 1].ToVector2D());
+      for (int i = 0; i < Vertices.Count; i++) {
+        int j = (i + 1) % Vertices.Count;
+        a += Vertices[i].ToVector2D().PerpProduct(Vertices[j].ToVector2D());
       }
 
       return a / 2;
     }
 
-    public Point2D CenterOfMass() =>
-        Point2D.FromVector(Vertices.Select(v => v.ToVector()).Aggregate((v1, v2) => v1 + v2) / Size);
+    public LineSegmentSet2D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
+      var lineset = new List<LineSegment2D>();
+
+      for (int i = 0; i < Vertices.Count; i++) {
+        int j = (1 + i) % Vertices.Count;
+        lineset.Add(LineSegment2D.FromPoints(Vertices[i], Vertices[j], decimal_precision));
+      }
+
+      return new LineSegmentSet2D(lineset);
+    }
+
+    /// <summary>
+    /// Center of mass of a non self-intersecting polygon
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="ArithmeticException"></exception>
+    public Point2D CenterOfMass() {
+      // TODO: add function of polygon triangularization to handle the case of self-intersecting polygon
+      (double cx, double cy) = (0, 0);
+
+      double signed_area = 0;
+      for (int i = 0; i < Vertices.Count; i++) {
+        int j = (i + 1) % Vertices.Count;
+
+        double a_piece = Vertices[i].ToVector2D().PerpProduct(Vertices[j].ToVector2D());  // same maths for Area()
+        signed_area += a_piece;
+
+        cx += (Vertices[i].U + Vertices[j].U) * a_piece;
+        cy += (Vertices[i].V + Vertices[j].V) * a_piece;
+      }
+
+      if (Math.Round(signed_area, Constants.THREE_DECIMALS) == 0) {
+        throw new ArithmeticException("CenterOfMass failed, area = 0 (3 decimal precisions)");
+      }
+
+      signed_area /= 2;
+      cx /= (6 * signed_area);
+      cy /= (6 * signed_area);
+
+      return new Point2D(cx, cy);
+    }
 
     public (Point2D Min, Point2D Max) BoundingBox() => (new Point2D(Vertices.Min(v => v.U), Vertices.Min(v => v.V)),
                                                         new Point2D(Vertices.Max(v => v.U), Vertices.Max(v => v.V)));
@@ -165,6 +210,16 @@ namespace GeomSharp {
       }
 
       return !(wn == 0);
+    }
+
+    public List<Triangle2D> Triangulate() {
+      // TODO: add this function
+
+      if (Vertices.Count == 3) {
+        return new List<Triangle2D> { Triangle2D.FromPoints(Vertices[0], Vertices[1], Vertices[2]) };
+      }
+
+      throw new NotImplementedException("triangulation not implemented yet");
     }
 
     public bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>

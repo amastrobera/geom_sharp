@@ -1,6 +1,6 @@
-﻿namespace GeomSharp {
+﻿namespace GeomSharp.Comparison {
 
-  public static class ComparisonExtensions3D {
+  public static class Comparison3D {
     public static bool IsPerpendicular(this Plane plane,
                                        Vector3D vec,
                                        int decimal_precision = Constants.THREE_DECIMALS) =>

@@ -48,9 +48,9 @@ Legend: :heavy_check_mark: done, :arrow_forward: in progress, :x: not done, :tes
 | 2D | 3D | Utils | 
 | - | - | - | 
 | :heavy_check_mark: :test_tube: Point | :heavy_check_mark: :test_tube: Point | :heavy_check_mark: Angle | 
-| :heavy_check_mark: :test_tube: Vector | :heavy_check_mark: :test_tube: Vector | :x: Rotation | 
-| :heavy_check_mark: :test_tube: Line | :heavy_check_mark: :test_tube: Line | :x: Translation | 
-| :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Coordinate Transformation | 
+| :heavy_check_mark: :test_tube: Vector | :heavy_check_mark: :test_tube: Vector | :heavy_check_mark: Rotation | 
+| :heavy_check_mark: :test_tube: Line | :heavy_check_mark: :test_tube: Line | :heavy_check_mark: Translation | 
+| :heavy_check_mark: :test_tube: Ray | :heavy_check_mark: :test_tube: Ray | :x: Transformation | 
 | :heavy_check_mark: :test_tube: LineSegment | :heavy_check_mark: :test_tube: LineSegment |  | 
 | :arrow_forward: PointSet | :arrow_forward: PointSet |  | 
 | :heavy_check_mark: LineSet | :heavy_check_mark: LineSet |  | 

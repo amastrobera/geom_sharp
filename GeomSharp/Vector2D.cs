@@ -5,6 +5,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
+using GeomSharp.Algebra;
+
 namespace GeomSharp {
   /// <summary>
   /// A Geometrical Vector of two coordinates (U,V) on an arbitrary 2D plane

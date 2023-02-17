@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeomSharp {
+using GeomSharp.Intersection;
 
-  public static class OverlapExtensions3D {
+namespace GeomSharp.Overlap {
+
+  public static class Overlap3D {
     // intersection functions among different objects
 
     // LineSegment and Line 3D
@@ -216,7 +218,7 @@ namespace GeomSharp {
                                               ref_plane.ProjectInto(triangle.P2));
 
       var line_2D = Line2D.FromPoints(ref_plane.ProjectInto(line.Origin),
-                                         ref_plane.ProjectInto(line.Origin + 2 * line.Direction));
+                                      ref_plane.ProjectInto(line.Origin + 2 * line.Direction));
 
       // from 2D back to 3D
       // if intersection in 2D, return it
