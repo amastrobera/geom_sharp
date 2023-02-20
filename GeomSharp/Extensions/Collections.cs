@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GeomSharp {
+namespace GeomSharp.Extensions {
 
-  public static class Extensions {
+  public static class Collections {
     /// <summary>
     /// Purely a helper function for other routines. Calling (publicly) a sum of points makes no sense
     /// </summary>

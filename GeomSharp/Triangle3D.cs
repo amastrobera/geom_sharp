@@ -7,7 +7,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-using GeomSharp.Overlap;
+using GeomSharp.Extensions;
 
 namespace GeomSharp {
 

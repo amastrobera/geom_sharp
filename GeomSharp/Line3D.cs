@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-using GeomSharp.Comparison;
+using GeomSharp.Extensions;
 
 namespace GeomSharp {
   /// <summary>

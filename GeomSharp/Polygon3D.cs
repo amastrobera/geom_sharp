@@ -7,7 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
 using GeomSharp.Algebra;
-using GeomSharp.Intersection;
+using GeomSharp.Extensions;
 
 namespace GeomSharp {
 

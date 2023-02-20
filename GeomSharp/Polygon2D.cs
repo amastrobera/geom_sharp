@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-using GeomSharp.Algebra;
+using GeomSharp.Extensions;
 
 namespace GeomSharp {
 
@@ -221,6 +221,15 @@ namespace GeomSharp {
 
       throw new NotImplementedException("triangulation not implemented yet");
     }
+
+    // all extensions here
+    public IntersectionResult Intersection(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Extensions.Intersection2D.Intersection(this, other, decimal_precision);
+
+    public bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Extensions.Intersection2D.Intersects(this, other, decimal_precision);
+
+    // its own intersection functions
 
     public bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
