@@ -32,9 +32,8 @@ namespace GeomSharp {
       return new Angle(Math.PI * degs / 180);
     }
 
-    public bool AlmostEquals(Angle other,
-                             int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(_Radians - other.Radians,
-                                                                                             decimal_precision) == 0;
+    public bool AlmostEquals(Angle other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        !(other is null) && Math.Round(_Radians - other.Radians, decimal_precision) == 0;
 
     public bool Equals(Angle other) => this.AlmostEquals(other);
 

@@ -45,6 +45,9 @@ namespace GeomSharp {
     public IntersectionResult(LineSegmentSet3D v) => (Value, ValueType) = (v, v.GetType());
 
     public bool AlmostEquals(IntersectionResult other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
       if (!ValueType.Equals(other.ValueType)) {
         return false;
       }

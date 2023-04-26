@@ -161,6 +161,9 @@ namespace GeomSharp.Algebra {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public bool AlmostEquals(Matrix other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
       if (!IsSameSize(other)) {
         return false;
       }

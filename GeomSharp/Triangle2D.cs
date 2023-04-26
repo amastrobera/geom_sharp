@@ -99,6 +99,9 @@ namespace GeomSharp {
     }
 
     public bool AlmostEquals(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
       if (Orientation != other.Orientation) {
         return false;
       }

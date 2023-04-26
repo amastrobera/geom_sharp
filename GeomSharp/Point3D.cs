@@ -54,8 +54,8 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public bool AlmostEquals(Point3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Math.Round(this.X - other.X, decimal_precision) == 0 && Math.Round(this.Y - other.Y, decimal_precision) == 0 &&
-        Math.Round(this.Z - other.Z, decimal_precision) == 0;
+        !(other is null) && Math.Round(this.X - other.X, decimal_precision) == 0 &&
+        Math.Round(this.Y - other.Y, decimal_precision) == 0 && Math.Round(this.Z - other.Z, decimal_precision) == 0;
 
     public bool Equals(Point3D other) => this.AlmostEquals(other);
 
