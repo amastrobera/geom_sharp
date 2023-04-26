@@ -39,7 +39,7 @@ namespace GeomSharp {
     }
 
     public bool AlmostEquals(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Direction.AlmostEquals(other.Direction, decimal_precision);
+        !(other is null) && Direction.AlmostEquals(other.Direction, decimal_precision);
 
     public bool Equals(Line2D other) => this.AlmostEquals(other);
 
