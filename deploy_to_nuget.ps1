@@ -29,6 +29,8 @@ Write-Host "id = $xml_id"
 $xml_version = $xmlElm.package.metadata.version
 Write-Host "version = $xml_version"
 
+MSBuild.exe $proj_dir -property:Configuration=Release
+
 nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir -IncludeReferencedProjects
 
 $pkg_out_sym = $(Join-Path $pkg_out_dir "$xml_id.$xml_version.symbols.nupkg")
