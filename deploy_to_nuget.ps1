@@ -31,11 +31,7 @@ Write-Host "version = $xml_version"
 
 nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir -IncludeReferencedProjects
 
-# $pkg_out_file = $(Join-Path $pkg_out_dir $xml_id.$xml_version.nupkg)
-# Write-Host "package = $(ls $pkg_out_file)"
-#nuget push $pkg_out_file -Source $target_repo -SkipDuplicate
-
-$pkg_out_sym = $(Join-Path $pkg_out_dir $xml_id.$xml_version.symbols.nupkg)
-Write-Host "package w/symbols = $(ls $pkg_out_sym)"
+$pkg_out_sym = $(Join-Path $pkg_out_dir "$xml_id.$xml_version.symbols.nupkg")
+Write-Host "package w/symbols = $pkg_out_sym"
 
 nuget push $pkg_out_sym -Source $target_repo -SymbolSource $target_repo -SkipDuplicate
