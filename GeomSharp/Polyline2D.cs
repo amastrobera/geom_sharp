@@ -6,8 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-using GeomSharp.Intersection;
-using System.ComponentModel;
+using GeomSharp.Extensions;
 
 namespace GeomSharp {
   /// <summary>

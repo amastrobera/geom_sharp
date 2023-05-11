@@ -1,4 +1,4 @@
-﻿namespace GeomSharp.Comparison {
+﻿namespace GeomSharp.Extensions {
 
   public static class Comparison3D {
     public static bool IsPerpendicular(this Plane plane,

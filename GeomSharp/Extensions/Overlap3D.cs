@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using GeomSharp.Intersection;
-
-namespace GeomSharp.Overlap {
+namespace GeomSharp.Extensions {
 
   public static class Overlap3D {
     // intersection functions among different objects

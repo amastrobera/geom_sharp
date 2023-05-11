@@ -1,7 +1,6 @@
 ﻿// internal
 using GeomSharp;
-using GeomSharp.Intersection;
-using GeomSharp.Overlap;
+using GeomSharp.Extensions;
 
 // external
 using System;
