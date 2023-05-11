@@ -17,6 +17,9 @@ jobs:
     - name: Checkout geom_sharp
       uses: actions/checkout@v2
 
+    - name: Set up MSVC compiler
+      uses: microsoft/setup-msbuild@v1.0.2
+
     - name: Setup NuGet
       uses: nuget/setup-nuget@v1
       with:
