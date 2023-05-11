@@ -124,13 +124,6 @@ namespace GeomSharp {
             ? throw new Exception("LocationPct called with Point2D that does not belong to the line")
             : Math.Round(P0.DistanceTo(point) / Length(), decimal_precision);
 
-    // all extensions here
-    public IntersectionResult Intersection(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Extensions.Intersection2D.Intersection(this, other, decimal_precision);
-
-    public bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Extensions.Intersection2D.Intersects(this, other, decimal_precision);
-
     /// <summary>
     /// Tells whether two line segments intersect.
     /// First the parallelism is tested. Then the crossing. Then, the intersection point being contained inside both

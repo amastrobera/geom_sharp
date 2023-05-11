@@ -226,13 +226,6 @@ namespace GeomSharp {
       throw new NotImplementedException("triangulation not implemented yet");
     }
 
-    // all extensions here
-    public IntersectionResult Intersection(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Extensions.Intersection2D.Intersection(this, other, decimal_precision);
-
-    public bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Extensions.Intersection2D.Intersects(this, other, decimal_precision);
-
     // its own intersection functions
 
     public bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>

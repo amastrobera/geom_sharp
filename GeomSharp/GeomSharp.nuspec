@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.13</version>
+    <version>1.0.14</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -27,7 +27,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
     <releaseNotes>
-      - upped the version to republish
+      - refactored the extensions module
     </releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
