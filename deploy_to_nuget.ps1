@@ -29,11 +29,9 @@ Write-Host "id = $xml_id"
 $xml_version = $xmlElm.package.metadata.version
 Write-Host "version = $xml_version"
 
-nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir -IncludeReferencedProjects 
+msbuild $proj_dir -t:build -property:Configuration=Release -restore
 
-# $pkg_out_file = $(Join-Path $pkg_out_dir "$xml_id.$xml_version.nupkg")
-# Write-Host "package = $pkg_out_file"
-#nuget push $pkg_out_file -Source $target_repo -SkipDuplicate
+nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir -IncludeReferencedProjects
 
 $pkg_out_sym = $(Join-Path $pkg_out_dir "$xml_id.$xml_version.symbols.nupkg")
 Write-Host "package w/symbols = $pkg_out_sym"

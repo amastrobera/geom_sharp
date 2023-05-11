@@ -88,6 +88,9 @@ namespace GeomSharp {
     }
 
     public bool AlmostEquals(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
       if (!Normal.AlmostEquals(other.Normal, decimal_precision)) {
         return false;
       }

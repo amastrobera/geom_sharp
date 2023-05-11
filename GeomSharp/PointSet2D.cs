@@ -34,6 +34,9 @@ namespace GeomSharp {
     }
 
     public bool AlmostEquals(PointSet2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
       if (other.Size != Size) {
         return false;
       }

@@ -77,6 +77,9 @@ namespace GeomSharp {
     }
 
     public bool AlmostEquals(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
       // different number of points, different polygon (we assume they have been built removing collinear points and
       // duplicates (constructor guarantees that)
       if (other.Size != Size) {

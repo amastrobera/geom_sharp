@@ -21,8 +21,8 @@ namespace GeomSharp {
     }
 
     public bool AlmostEquals(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Origin.AlmostEquals(other.Origin, decimal_precision) && Direction.AlmostEquals(other.Direction,
-                                                                                       decimal_precision);
+        !(other is null) && Origin.AlmostEquals(other.Origin, decimal_precision) &&
+        Direction.AlmostEquals(other.Direction, decimal_precision);
 
     public bool Equals(Ray2D other) => this.AlmostEquals(other);
     public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);

@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.10</version>
+    <version>1.0.13</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -27,13 +27,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
     <releaseNotes>
-      - deployment script bugfix
-      - visibility of the nested GeomSharp namespaces (.Extensions, .Algebra, .Transformation)
-      - fixed outstanding issues with Area and CenterOfMass and wrote Tests, 
-      - added Rotation/Shift, 
-      - refactored extension modules, 
-      - Polygon constructed from Triangle and outputable to Triangle, 
-      - Polyline and Polygon .ToSegments() function.
+      - upped the version to republish
     </releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
