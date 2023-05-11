@@ -29,7 +29,7 @@ Write-Host "id = $xml_id"
 $xml_version = $xmlElm.package.metadata.version
 Write-Host "version = $xml_version"
 
-MSBuild.exe $proj_dir -property:Configuration=Release
+msbuild $proj_dir -t:build -property:Configuration=Release -restore
 
 nuget pack $pkg_spec_path -Build -Symbols -Properties Configuration=Release -OutputDirectory $pkg_out_dir -IncludeReferencedProjects
 
