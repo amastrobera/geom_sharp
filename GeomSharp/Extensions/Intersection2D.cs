@@ -604,10 +604,10 @@ namespace GeomSharp.Extensions {
           return new IntersectionResult(seg);
         }
         // case 3-4: only a portion of the intersection segment is contained in the segment
-        if (!p0_in && p1_in) {
+        if (!p0_in && p1_in && !seg.P0.AlmostEquals(seg_inter.P1, decimal_precision)) {
           return new IntersectionResult(LineSegment2D.FromPoints(seg.P0, seg_inter.P1, decimal_precision));
         }
-        if (p0_in && !p1_in) {
+        if (p0_in && !p1_in && !seg_inter.P0.AlmostEquals(seg.P1, decimal_precision)) {
           return new IntersectionResult(LineSegment2D.FromPoints(seg_inter.P0, seg.P1, decimal_precision));
         }
         return new IntersectionResult();

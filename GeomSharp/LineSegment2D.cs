@@ -11,10 +11,11 @@ namespace GeomSharp {
   /// A LineSegment on an arbitrary 2D plane
   /// </summary>
   [Serializable]
-  public class LineSegment2D : IEquatable<LineSegment2D>, ISerializable {
+  public class LineSegment2D : Geometry2D, IEquatable<LineSegment2D>, ISerializable {
     public Point2D P0 { get; }
     public Point2D P1 { get; }
 
+    // constructors
     private LineSegment2D(Point2D p0, Point2D p1) => (P0, P1) = (p0, p1);
 
     public static LineSegment2D FromPoints(Point2D p0, Point2D p1, int decimal_precision = Constants.THREE_DECIMALS) {
@@ -24,9 +25,69 @@ namespace GeomSharp {
       return new LineSegment2D(p0, p1);
     }
 
+    // generic overrides from object class
+    public override int GetHashCode() => ToWkt().GetHashCode();
+    public override string ToString() => base.ToString();
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is LineSegment2D &&
+                                                 this.Equals((LineSegment2D)other);
+    public override bool Equals(Geometry2D other) => other.GetType() == typeof(LineSegment2D) &&
+                                                     this.Equals(other as LineSegment2D);
+
+    public bool Equals(LineSegment2D other) => this.AlmostEquals(other);
+
+    public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(LineSegment2D) && this.AlmostEquals(other as LineSegment2D, decimal_precision);
+
     public bool AlmostEquals(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) && P0.AlmostEquals(other.P0, decimal_precision) &&
         P1.AlmostEquals(other.P1, decimal_precision);
+
+    // comparison operators
+    public static bool operator ==(LineSegment2D a, LineSegment2D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(LineSegment2D a, LineSegment2D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point2D));
+      info.AddValue("P1", P1, typeof(Point2D));
+    }
+
+    public LineSegment2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
+      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
+    }
+
+    public static LineSegment2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (LineSegment2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      return "LINESTRING (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P0.U, P0.V) + "," +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P1.U, P1.V) + ")";
+    }
+
+    public override Geometry2D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
 
     /// <summary>
     /// Almost equals from a to b, or from b to a
@@ -37,21 +98,6 @@ namespace GeomSharp {
     public bool IsSameSegment(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         P0.AlmostEquals(other.P0, decimal_precision) && P1.AlmostEquals(other.P1, decimal_precision) ||
         P1.AlmostEquals(other.P0, decimal_precision) && P0.AlmostEquals(other.P1, decimal_precision);
-
-    public bool Equals(LineSegment2D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is LineSegment2D &&
-                                                 this.Equals((LineSegment2D)other);
-
-    public override int GetHashCode() => ToWkt().GetHashCode();
-
-    public static bool operator ==(LineSegment2D a, LineSegment2D b) {
-      return a.AlmostEquals(b);
-    }
-
-    public static bool operator !=(LineSegment2D a, LineSegment2D b) {
-      return !a.AlmostEquals(b);
-    }
 
     public Line2D ToLine() => Line2D.FromPoints(P0, P1);
 
@@ -132,13 +178,7 @@ namespace GeomSharp {
     /// <param name="other"></param>
     /// <returns></returns>
     public bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      // overlaps or parallel
-      if (IsParallel(other, decimal_precision)) {
-        return false;
-      }
-
-      // overlaps (second case)
-      if (Contains(other.P0, decimal_precision) && Contains(other.P1, decimal_precision)) {
+      if (Overlaps(other, decimal_precision)) {  // avoiding rewriting the same code
         return false;
       }
 
@@ -236,47 +276,6 @@ namespace GeomSharp {
       // if (p0_in && p1_in && !other_p0_in && !other_p1_in)
       //  the segment is contained in the other
       return new IntersectionResult(this);
-    }
-
-    // text / deugging
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return "LINESTRING (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P0.U, P0.V) + "," +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), P1.U, P1.V) + ")";
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("P0", P0, typeof(Point2D));
-      info.AddValue("P1", P1, typeof(Point2D));
-    }
-    // The special constructor is used to deserialize values.
-    public LineSegment2D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
-      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
-    }
-
-    public static LineSegment2D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (LineSegment2D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
     }
   }
 }

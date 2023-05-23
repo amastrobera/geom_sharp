@@ -15,11 +15,12 @@ namespace GeomSharp {
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
   [Serializable]
-  public class Polygon3D : IEquatable<Polygon3D>, IEnumerable<Point3D>, ISerializable {
+  public class Polygon3D : Geometry3D, IEquatable<Polygon3D>, IEnumerable<Point3D>, ISerializable {
     public List<Point3D> Vertices { get; }
     public readonly int Size;
     public UnitVector3D Normal { get; }
 
+    // constructors
     private Polygon3D(Point3D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
@@ -53,28 +54,35 @@ namespace GeomSharp {
     public Polygon3D(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
 
+    // enumeration interface implementation
     public Point3D this[int i] {
       // IndexOutOfRangeException already managed by the List class
       get {
         return Vertices[i];
       }
     }
-
-    public Plane RefPlane() => Plane.FromPointAndNormal(Vertices[0], Normal);
-
-    public double Area() {
-      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
-
-      // transform the problem into a 2D one (a polygon is a planar geometry after all)
-      return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
+    public IEnumerator<Point3D> GetEnumerator() {
+      return Vertices.GetEnumerator();
     }
 
-    public Point3D CenterOfMass() {
-      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
-
-      // transform the problem into a 2D one (a polygon is a planar geometry after all)
-      return plane.Evaluate(new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).CenterOfMass());
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
     }
+
+    // generic overrides from object class
+    public override string ToString() => (Vertices.Count == 0)
+                                             ? "{}"
+                                             : "{" + string.Join(",", Vertices.Select(v => v.ToString())) +
+                                                   "," + Vertices[0].ToString() + "}";
+    public override int GetHashCode() => ToWkt().GetHashCode();
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Polygon3D && this.Equals((Polygon3D)other);
+    public override bool Equals(Geometry3D other) => other.GetType() == typeof(Polygon3D) &&
+                                                     this.Equals(other as Polygon3D);
+    public bool Equals(Polygon3D other) => this.AlmostEquals(other);
+    public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Polygon3D) && this.AlmostEquals(other as Polygon3D, decimal_precision);
 
     public bool AlmostEquals(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other is null) {
@@ -120,11 +128,8 @@ namespace GeomSharp {
 
       return true;
     }
-    public bool Equals(Polygon3D other) => this.AlmostEquals(other);
-    public override bool Equals(object other) => other != null && other is Polygon3D && this.Equals((Polygon3D)other);
 
-    public override int GetHashCode() => base.GetHashCode();
-
+    // comparison operators
     public static bool operator ==(Polygon3D a, Polygon3D b) {
       return a.AlmostEquals(b);
     }
@@ -133,12 +138,69 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    public IEnumerator<Point3D> GetEnumerator() {
-      return Vertices.GetEnumerator();
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Vertices", Vertices, typeof(List<Point3D>));
     }
 
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-      return this.GetEnumerator();
+    public Polygon3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Vertices = (List<Point3D>)info.GetValue("Vertices", typeof(List<Point3D>));
+    }
+
+    public static Polygon3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Polygon3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) =>
+        (Vertices.Count == 0)
+            ? "POLYGON EMPTY"
+            : "POLYGON ((" +
+                  string.Join(
+                      ",",
+                      Vertices.Select(v => string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}",
+                                                                       "{",
+                                                                       precision,
+                                                                       "}"),
+                                                         v.X,
+                                                         v.Y,
+                                                         v.Z))) +
+                  ", " +
+                  string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                                Vertices[0].X,
+                                Vertices[0].Y,
+                                Vertices[0].Z) +
+                  "))";
+
+    public override Geometry3D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
+    public Plane RefPlane() => Plane.FromPointAndNormal(Vertices[0], Normal);
+
+    public double Area() {
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
+    }
+
+    public Point3D CenterOfMass() {
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return plane.Evaluate(new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).CenterOfMass());
     }
 
     public LineSegmentSet3D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
@@ -357,66 +419,6 @@ namespace GeomSharp {
       var poly_2d = Polygon2D.ConvexHull(points.Select(p => plane.ProjectInto(p)).ToList(), decimal_precision);
 
       return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)));
-    }
-
-    // special formatting
-    public override string ToString() => (Vertices.Count == 0)
-                                             ? "{}"
-                                             : "{" + string.Join(",", Vertices.Select(v => v.ToString())) +
-                                                   "," + Vertices[0].ToString() + "}";
-
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
-        (Vertices.Count == 0)
-            ? "POLYGON EMPTY"
-            : "POLYGON ((" +
-                  string.Join(
-                      ",",
-                      Vertices.Select(v => string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}",
-                                                                       "{",
-                                                                       precision,
-                                                                       "}"),
-                                                         v.X,
-                                                         v.Y,
-                                                         v.Z))) +
-                  ", " +
-                  string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                                Vertices[0].X,
-                                Vertices[0].Y,
-                                Vertices[0].Z) +
-                  "))";
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("Size", Size, typeof(int));
-      info.AddValue("Vertices", Vertices, typeof(List<Point3D>));
-    }
-    // The special constructor is used to deserialize values.
-    public Polygon3D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      Size = (int)info.GetValue("Size", typeof(int));
-      Vertices = (List<Point3D>)info.GetValue("Vertices", typeof(List<Point3D>));
-    }
-
-    public static Polygon3D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Polygon3D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
     }
   }
 }

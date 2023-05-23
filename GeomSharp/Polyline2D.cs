@@ -13,10 +13,11 @@ namespace GeomSharp {
   /// A Curve made of straight lines in 2D, each line bound by a pair of vertices
   /// </summary>
   [Serializable]
-  public class Polyline2D : IEquatable<Polyline2D>, IEnumerable<Point2D>, ISerializable {
+  public class Polyline2D : Geometry2D, IEquatable<Polyline2D>, IEnumerable<Point2D>, ISerializable {
     public List<Point2D> Nodes { get; }
     public readonly int Size;
 
+    // constructors
     public Polyline2D(Point2D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 2) {
         throw new ArgumentException("tried to initialize a polyline with less than 2 points");
@@ -34,12 +35,35 @@ namespace GeomSharp {
     public Polyline2D(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
 
+    // enumeration interface implementation
     public Point2D this[int i] {
       // IndexOutOfRangeException already managed by the List class
       get {
         return Nodes[i];
       }
     }
+
+    public IEnumerator<Point2D> GetEnumerator() {
+      return Nodes.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
+    }
+
+    // generic overrides from object class
+    public override int GetHashCode() => ToWkt().GetHashCode();
+    public override string ToString() => "{" + string.Join(",", Nodes.Select(v => v.ToString())) + "}";
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Polyline2D && this.Equals((Polyline2D)other);
+    public override bool Equals(Geometry2D other) => other.GetType() == typeof(Polyline2D) &&
+                                                     this.Equals(other as Polyline2D);
+
+    public bool Equals(Polyline2D other) => this.AlmostEquals(other);
+
+    public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Polyline2D) && this.AlmostEquals(other as Polyline2D, decimal_precision);
 
     public bool AlmostEquals(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other is null) {
@@ -62,11 +86,7 @@ namespace GeomSharp {
       return true;
     }
 
-    public bool Equals(Polyline2D other) => this.AlmostEquals(other);
-    public override bool Equals(object other) => other != null && other is Polyline2D && this.Equals((Polyline2D)other);
-
-    public override int GetHashCode() => base.GetHashCode();
-
+    // comparison operators
     public static bool operator ==(Polyline2D a, Polyline2D b) {
       return a.AlmostEquals(b);
     }
@@ -75,14 +95,43 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    public IEnumerator<Point2D> GetEnumerator() {
-      return Nodes.GetEnumerator();
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Nodes", Nodes, typeof(List<Point2D>));
+    }
+    public Polyline2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Nodes = (List<Point2D>)info.GetValue("Nodes", typeof(List<Point2D>));
+    }
+    public static Polyline2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Polyline2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
     }
 
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-      return this.GetEnumerator();
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) =>
+        (Nodes.Count == 0)
+            ? "LINESTRING EMPTY"
+            : "LINESTRING (" +
+                  string.Join(",",
+                              Nodes.Select(
+                                  v => string.Format(
+                                      String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), v.U, v.V))) +
+
+                  ")";
+    public override Geometry2D FromWkt(string wkt) {
+      throw new NotImplementedException();
     }
 
+    // own functions
     public double Length() {
       double d = 0;
       foreach (var line_piece in ToSegments()) {
@@ -222,54 +271,6 @@ namespace GeomSharp {
 
       // string.Format("GetPointOnPolyline did not find the point on the curve for {0:F4}%", pct)
       return null;
-    }
-
-    // special formatting
-    public override string ToString() => "{" + string.Join(",", Nodes.Select(v => v.ToString())) + "}";
-
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
-        (Nodes.Count == 0)
-            ? "LINESTRING EMPTY"
-            : "LINESTRING (" +
-                  string.Join(",",
-                              Nodes.Select(
-                                  v => string.Format(
-                                      String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), v.U, v.V))) +
-
-                  ")";
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("Size", Size, typeof(int));
-      info.AddValue("Nodes", Nodes, typeof(List<Point2D>));
-    }
-    // The special constructor is used to deserialize values.
-    public Polyline2D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      Size = (int)info.GetValue("Size", typeof(int));
-      Nodes = (List<Point2D>)info.GetValue("Nodes", typeof(List<Point2D>));
-    }
-
-    public static Polyline2D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Polyline2D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
     }
   }
 

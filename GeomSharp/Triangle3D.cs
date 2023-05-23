@@ -15,7 +15,7 @@ namespace GeomSharp {
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
   [Serializable]
-  public class Triangle3D : IEquatable<Triangle3D>, ISerializable {
+  public class Triangle3D : Geometry3D, IEquatable<Triangle3D>, ISerializable {
     public Point3D P0 { get; }
     public Point3D P1 { get; }
     public Point3D P2 { get; }
@@ -24,6 +24,7 @@ namespace GeomSharp {
     public UnitVector3D U { get; }
     public UnitVector3D V { get; }
 
+    // constructors
     private Triangle3D(Point3D p0, Point3D p1, Point3D p2) {
       P0 = p0;
       P1 = p1;
@@ -53,6 +54,112 @@ namespace GeomSharp {
       return t;
     }
 
+    // generic overrides from object class
+    public override string ToString() {
+      return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
+    }
+    public override int GetHashCode() => new { P0, P1, P2, Normal }.GetHashCode();
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Triangle3D && this.Equals((Triangle3D)other);
+    public override bool Equals(Geometry3D other) => other.GetType() == typeof(Triangle3D) &&
+                                                     this.Equals(other as Triangle3D);
+    public bool Equals(Triangle3D other) => this.AlmostEquals(other);
+    public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Triangle3D) && this.AlmostEquals(other as Triangle3D, decimal_precision);
+
+    public bool AlmostEquals(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
+      if (!Normal.AlmostEquals(other.Normal, decimal_precision)) {
+        return false;
+      }
+
+      Func<Triangle3D, Point3D, bool> TriangleContainsPoint = (Triangle3D t, Point3D p) => {
+        return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
+               t.P2.AlmostEquals(p, decimal_precision);
+      };
+
+      if (!TriangleContainsPoint(this, other.P0)) {
+        return false;
+      }
+
+      if (!TriangleContainsPoint(this, other.P1)) {
+        return false;
+      }
+
+      if (!TriangleContainsPoint(this, other.P2)) {
+        return false;
+      }
+
+      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
+      // by points, and therefore incorporates this information
+      return true;
+    }
+
+    // comparison operators
+    public static bool operator ==(Triangle3D a, Triangle3D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(Triangle3D a, Triangle3D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point3D));
+      info.AddValue("P1", P1, typeof(Point3D));
+      info.AddValue("P2", P2, typeof(Point3D));
+
+      info.AddValue("Normal", Normal, typeof(Constants.Orientation));
+      info.AddValue("U", U, typeof(UnitVector3D));
+      info.AddValue("V", V, typeof(UnitVector3D));
+    }
+
+    public Triangle3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
+      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
+      P2 = (Point3D)info.GetValue("P2", typeof(Point3D));
+
+      Normal = (UnitVector3D)info.GetValue("Normal", typeof(UnitVector3D));
+      U = (UnitVector3D)info.GetValue("U", typeof(UnitVector3D));
+      V = (UnitVector3D)info.GetValue("V", typeof(UnitVector3D));
+    }
+
+    public static Triangle3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Triangle3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
+      return string.Format(
+          "POLYGON (({0:F2} {1:F2} {2:F2}, {3:F2} {4:F2} {5:F2}, {6:F2} {7:F2} {8:F2}, {0:F2} {1:F2} {2:F2}))",
+          P0.X,
+          P0.Y,
+          P0.Z,
+          P1.X,
+          P1.Y,
+          P1.Z,
+          P2.X,
+          P2.Y,
+          P2.Z);
+    }
+
+    public override Geometry3D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
     public double Area() => (P1 - P0).CrossProduct(P2 - P0).Length() / 2;
 
     public Point3D CenterOfMass() => Point3D.FromVector((P0.ToVector() + P1.ToVector() + P2.ToVector()) / 3);
@@ -85,50 +192,6 @@ namespace GeomSharp {
       var point_2d = plane.ProjectInto(point);
 
       return triangle_2d.Contains(point_2d, decimal_precision);
-    }
-
-    public bool AlmostEquals(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (other is null) {
-        return false;
-      }
-      if (!Normal.AlmostEquals(other.Normal, decimal_precision)) {
-        return false;
-      }
-
-      Func<Triangle3D, Point3D, bool> TriangleContainsPoint = (Triangle3D t, Point3D p) => {
-        return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
-               t.P2.AlmostEquals(p, decimal_precision);
-      };
-
-      if (!TriangleContainsPoint(this, other.P0)) {
-        return false;
-      }
-
-      if (!TriangleContainsPoint(this, other.P1)) {
-        return false;
-      }
-
-      if (!TriangleContainsPoint(this, other.P2)) {
-        return false;
-      }
-
-      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
-      // by points, and therefore incorporates this information
-      return true;
-    }
-
-    public bool Equals(Triangle3D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is Triangle3D && this.Equals((Triangle3D)other);
-
-    public override int GetHashCode() => new { P0, P1, P2, Normal }.GetHashCode();
-
-    public static bool operator ==(Triangle3D a, Triangle3D b) {
-      return a.AlmostEquals(b);
-    }
-
-    public static bool operator !=(Triangle3D a, Triangle3D b) {
-      return !a.AlmostEquals(b);
     }
 
     public bool Intersects(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -338,67 +401,5 @@ namespace GeomSharp {
         LineSegment3D.FromPoints(P0, P1, decimal_precision).Contains(point) ||
         LineSegment3D.FromPoints(P1, P2, decimal_precision).Contains(point) ||
         LineSegment3D.FromPoints(P2, P0, decimal_precision).Contains(point);
-
-    public override string ToString() {
-      return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
-    }
-
-    public string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
-      return string.Format(
-          "POLYGON (({0:F2} {1:F2} {2:F2}, {3:F2} {4:F2} {5:F2}, {6:F2} {7:F2} {8:F2}, {0:F2} {1:F2} {2:F2}))",
-          P0.X,
-          P0.Y,
-          P0.Z,
-          P1.X,
-          P1.Y,
-          P1.Z,
-          P2.X,
-          P2.Y,
-          P2.Z);
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("P0", P0, typeof(Point3D));
-      info.AddValue("P1", P1, typeof(Point3D));
-      info.AddValue("P2", P2, typeof(Point3D));
-
-      info.AddValue("Normal", Normal, typeof(Constants.Orientation));
-      info.AddValue("U", U, typeof(UnitVector3D));
-      info.AddValue("V", V, typeof(UnitVector3D));
-    }
-    // The special constructor is used to deserialize values.
-    public Triangle3D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
-      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
-      P2 = (Point3D)info.GetValue("P2", typeof(Point3D));
-
-      Normal = (UnitVector3D)info.GetValue("Normal", typeof(UnitVector3D));
-      U = (UnitVector3D)info.GetValue("U", typeof(UnitVector3D));
-      V = (UnitVector3D)info.GetValue("V", typeof(UnitVector3D));
-    }
-
-    public static Triangle3D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Triangle3D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-    }
   }
 }

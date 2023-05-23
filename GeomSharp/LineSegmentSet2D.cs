@@ -12,10 +12,11 @@ namespace GeomSharp {
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
   [Serializable]
-  public class LineSegmentSet2D : IEquatable<LineSegmentSet2D>, IEnumerable<LineSegment2D>, ISerializable {
+  public class LineSegmentSet2D : Geometry2D, IEquatable<LineSegmentSet2D>, IEnumerable<LineSegment2D>, ISerializable {
     private List<LineSegment2D> Items;
     public readonly int Size;
 
+    // constructors
     public LineSegmentSet2D(LineSegment2D[] segments, int decimal_precision = Constants.THREE_DECIMALS) {
       {
         // dictionary of strings to verify unique inclusion
@@ -35,12 +36,38 @@ namespace GeomSharp {
     public LineSegmentSet2D(IEnumerable<LineSegment2D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
 
+    // enumeration interface implementation
     public LineSegment2D this[int i] {
       // IndexOutOfRangeException already managed by the List class
       get {
         return Items[i];
       }
     }
+
+    public IEnumerator<LineSegment2D> GetEnumerator() {
+      return Items.GetEnumerator();
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
+    }
+
+    // generic overrides from object class
+    public override int GetHashCode() => ToWkt().GetHashCode();
+    public override string ToString() => (Items.Count == 0) ? "{}"
+                                                            : "{" + string.Join(",", Items.Select(v => v.ToString())) +
+                                                                  "," + Items[0].ToString() + "}";
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is LineSegmentSet2D &&
+                                                 this.Equals((LineSegmentSet2D)other);
+    public override bool Equals(Geometry2D other) => other.GetType() == typeof(LineSegmentSet2D) &&
+                                                     this.Equals(other as LineSegmentSet2D);
+
+    public bool Equals(LineSegmentSet2D other) => this.AlmostEquals(other);
+
+    public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(LineSegmentSet2D) && this.AlmostEquals(other as LineSegmentSet2D, decimal_precision);
 
     public bool AlmostEquals(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other is null) {
@@ -62,12 +89,7 @@ namespace GeomSharp {
       return true;
     }
 
-    public bool Equals(LineSegmentSet2D other) => this.AlmostEquals(other);
-    public override bool Equals(object other) => other != null && other is LineSegmentSet2D &&
-                                                 this.Equals((LineSegmentSet2D)other);
-
-    public override int GetHashCode() => base.GetHashCode();
-
+    // comparison operators
     public static bool operator ==(LineSegmentSet2D a, LineSegmentSet2D b) {
       return a.AlmostEquals(b);
     }
@@ -76,54 +98,12 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    public IEnumerator<LineSegment2D> GetEnumerator() {
-      return Items.GetEnumerator();
-    }
-
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-      return this.GetEnumerator();
-    }
-
-    public Point2D CenterOfMass() => Point2D.FromVector(
-        Items.Select(s => (s.P0.ToVector() + s.P1.ToVector()) / 2.0).Aggregate((v1, v2) => v1 + v2) / Size);
-
-    public (Point2D Min, Point2D Max) BoundingBox() =>
-        (new Point2D(Items.Min(s => Math.Min(s.P0.U, s.P1.U)), Items.Min(s => Math.Min(s.P0.V, s.P1.V))),
-         new Point2D(Items.Max(s => Math.Max(s.P0.U, s.P1.U)), Items.Max(s => Math.Max(s.P0.V, s.P1.V))));
-
-    // formatting functions
-
-    public List<LineSegment2D> ToList() => Items.ToList();
-
-    public override string ToString() => (Items.Count == 0) ? "{}"
-                                                            : "{" + string.Join(",", Items.Select(v => v.ToString())) +
-                                                                  "," + Items[0].ToString() + "}";
-
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
-        (Items.Count == 0)
-            ? "MULTILINESTRING EMPTY"
-            : "MULTILINESTRING (" +
-                  string.Join(
-                      ",",
-                      Items.Select(
-                          s => "(" +
-                               string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"),
-                                             s.P0.U,
-                                             s.P0.V) +
-                               "," +
-                               string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"),
-                                             s.P1.U,
-                                             s.P1.V) +
-                               ")")) +
-                  ")";
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
       info.AddValue("Size", Size, typeof(int));
       info.AddValue("Items", Items, typeof(List<LineSegment2D>));
     }
-    // The special constructor is used to deserialize values.
+    
     public LineSegmentSet2D(SerializationInfo info, StreamingContext context) {
       // Reset the property value using the GetValue method.
       Size = (int)info.GetValue("Size", typeof(int));
@@ -141,14 +121,39 @@ namespace GeomSharp {
       return null;
     }
 
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) =>
+        (Items.Count == 0)
+            ? "MULTILINESTRING EMPTY"
+            : "MULTILINESTRING (" +
+                  string.Join(
+                      ",",
+                      Items.Select(
+                          s => "(" +
+                               string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"),
+                                             s.P0.U,
+                                             s.P0.V) +
+                               "," +
+                               string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"),
+                                             s.P1.U,
+                                             s.P1.V) +
+                               ")")) +
+                  ")";
+
+    public override Geometry2D FromWkt(string wkt) {
+      throw new NotImplementedException();
     }
+
+    // own functions
+    public Point2D CenterOfMass() => Point2D.FromVector(
+        Items.Select(s => (s.P0.ToVector() + s.P1.ToVector()) / 2.0).Aggregate((v1, v2) => v1 + v2) / Size);
+
+    public (Point2D Min, Point2D Max) BoundingBox() =>
+        (new Point2D(Items.Min(s => Math.Min(s.P0.U, s.P1.U)), Items.Min(s => Math.Min(s.P0.V, s.P1.V))),
+         new Point2D(Items.Max(s => Math.Max(s.P0.U, s.P1.U)), Items.Max(s => Math.Max(s.P0.V, s.P1.V))));
+
+    // formatting functions
+
+    public List<LineSegment2D> ToList() => Items.ToList();
   }
 }

@@ -13,12 +13,13 @@ namespace GeomSharp {
   /// or an infinite straight line passing by a point, with a given direction
   /// </summary>
   [Serializable]
-  public class Line3D : IEquatable<Line3D>, ISerializable {
+  public class Line3D : Geometry3D, IEquatable<Line3D>, ISerializable {
     public Point3D P0 { get; }
     public Point3D P1 { get; }
     public Point3D Origin { get; }
     public UnitVector3D Direction { get; }
 
+    // constructors
     public static Line3D FromPoints(Point3D p0, Point3D p1, int decimal_precision = Constants.THREE_DECIMALS) =>
         (p0.AlmostEquals(p1, decimal_precision))
             ? throw new NullLengthException("trying to initialize a line with two identical points")
@@ -40,15 +41,20 @@ namespace GeomSharp {
       P1 = Origin + 1 * Direction;  // simbolic
     }
 
+    // generic overrides from object class
+    public override string ToString() => base.ToString();
+    public override int GetHashCode() => Direction.ToWkt().GetHashCode();
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Line3D && this.Equals((Line3D)other);
+    public override bool Equals(Geometry3D other) => other.GetType() == typeof(Line3D) && this.Equals(other as Line3D);
+    public bool Equals(Line3D other) => this.AlmostEquals(other);
+    public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Line3D) && this.AlmostEquals(other as Line3D, decimal_precision);
     public bool AlmostEquals(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) && Direction.AlmostEquals(other.Direction, decimal_precision);
 
-    public bool Equals(Line3D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is Line3D && this.Equals((Line3D)other);
-
-    public override int GetHashCode() => Direction.ToWkt().GetHashCode();
-
+    // comparison operators
     public static bool operator ==(Line3D a, Line3D b) {
       return a.AlmostEquals(b);
     }
@@ -57,6 +63,66 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point3D));
+      info.AddValue("P1", P1, typeof(Point3D));
+      info.AddValue("Origin", Origin, typeof(Point3D));
+      info.AddValue("Direction", Direction, typeof(UnitVector3D));
+    }
+
+    public Line3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
+      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
+      Origin = (Point3D)info.GetValue("Origin", typeof(Point3D));
+      Direction = (UnitVector3D)info.GetValue("Direction", typeof(UnitVector3D));
+    }
+
+    public static Line3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Line3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);
+      return "GEOMETRYCOLLECTION (" +
+
+             "POINT (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                           Origin.X,
+                           Origin.Y,
+                           Origin.Z) +
+             ")"
+
+             + "," +
+
+             "LINESTRING (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                           p1.X,
+                           p1.Y,
+                           p1.Z) +
+             "," +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                           p2.X,
+                           p2.Y,
+                           p2.Z) +
+             ")" +
+
+             ")";
+    }
+    public override Geometry3D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
     public bool IsParallel(Line3D other,
                            int decimal_precision = Constants.THREE_DECIMALS) => Direction.IsParallel(other.Direction,
                                                                                                      decimal_precision);
@@ -173,72 +239,5 @@ namespace GeomSharp {
     /// <returns></returns>
     public IntersectionResult Overlap(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
-
-    // text / deugging
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);
-      return "GEOMETRYCOLLECTION (" +
-
-             "POINT (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           Origin.X,
-                           Origin.Y,
-                           Origin.Z) +
-             ")"
-
-             + "," +
-
-             "LINESTRING (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           p1.X,
-                           p1.Y,
-                           p1.Z) +
-             "," +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           p2.X,
-                           p2.Y,
-                           p2.Z) +
-             ")" +
-
-             ")";
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("P0", P0, typeof(Point3D));
-      info.AddValue("P1", P1, typeof(Point3D));
-      info.AddValue("Origin", Origin, typeof(Point3D));
-      info.AddValue("Direction", Direction, typeof(UnitVector3D));
-    }
-    // The special constructor is used to deserialize values.
-    public Line3D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
-      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
-      Origin = (Point3D)info.GetValue("Origin", typeof(Point3D));
-      Direction = (UnitVector3D)info.GetValue("Direction", typeof(UnitVector3D));
-    }
-
-    public static Line3D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Line3D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-    }
   }
 }

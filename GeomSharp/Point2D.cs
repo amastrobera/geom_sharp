@@ -12,12 +12,13 @@ namespace GeomSharp {
   /// A Point of two coordinates (U,V) on an arbitrary 2D plane
   /// </summary>
   [Serializable]
-  public class Point2D : IEquatable<Point2D>, ISerializable {
+  public class Point2D : Geometry2D, IEquatable<Point2D>, ISerializable {
     public double U { get; }
     public double V { get; }
 
     public static Point2D Zero => new Point2D(0, 0);
 
+    // constructors
     public Point2D(double u = 0, double v = 0) => (U, V) = (u, v);
 
     public Point2D(Point2D copy) => (U, V) = (copy.U, copy.V);
@@ -31,7 +32,65 @@ namespace GeomSharp {
       V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
     }
 
-    // unary operations
+    // generic overrides from object class
+    public override int GetHashCode() => ToWkt().GetHashCode();
+    public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
+    public override bool Equals(Geometry2D other) => other.GetType() == typeof(Point2D) &&
+                                                     this.Equals(other as Point2D);
+
+    public bool Equals(Point2D other) => this.AlmostEquals(other);
+
+    public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Point2D) && this.AlmostEquals(other as Point2D, decimal_precision);
+
+    public bool AlmostEquals(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        !(other is null) && Math.Round(this.U - other.U, decimal_precision) == 0 &&
+        Math.Round(this.V - other.V, decimal_precision) == 0;
+
+    // comparison operators
+    public static bool operator ==(Point2D a, Point2D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(Point2D a, Point2D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("U", U, typeof(double));
+      info.AddValue("V", V, typeof(double));
+    }
+    
+    public Point2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      U = (double)info.GetValue("U", typeof(double));
+      V = (double)info.GetValue("V", typeof(double));
+    }
+
+    public static Point2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Point2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) =>
+        string.Format("POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")", U, V);
+
+    public override Geometry2D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
     public static Point2D FromVector(Vector v) {
       return new Point2D(v);
     }
@@ -42,30 +101,6 @@ namespace GeomSharp {
 
     public Vector2D ToVector2D() {
       return new Vector2D(U, V);
-    }
-
-    /// <summary>
-    /// Equality check with custom tolerance adjustment
-    /// </summary>
-    /// <param name="other"></param>
-    /// <param name="decimal_precision"></param>
-    /// <returns></returns>
-    public bool AlmostEquals(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        !(other is null) && Math.Round(this.U - other.U, decimal_precision) == 0 &&
-        Math.Round(this.V - other.V, decimal_precision) == 0;
-
-    public bool Equals(Point2D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is Point2D && this.Equals((Point2D)other);
-
-    public override int GetHashCode() => ToWkt().GetHashCode();
-
-    public static bool operator ==(Point2D a, Point2D b) {
-      return a.AlmostEquals(b);
-    }
-
-    public static bool operator !=(Point2D a, Point2D b) {
-      return !a.AlmostEquals(b);
     }
 
     // arithmetics with Points
@@ -91,46 +126,6 @@ namespace GeomSharp {
     public static Point2D operator /(Point2D b, double k) => FromVector(b.ToVector() / k);
 
     public double DistanceTo(Point2D p) => (p - this).Length();
-
-    // special formatting functions
-    public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
-
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
-        string.Format("POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")", U, V);
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("U", U, typeof(double));
-      info.AddValue("V", V, typeof(double));
-    }
-    // The special constructor is used to deserialize values.
-    public Point2D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      U = (double)info.GetValue("U", typeof(double));
-      V = (double)info.GetValue("V", typeof(double));
-    }
-
-    public static Point2D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Point2D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-    }
   }
 
 }

@@ -14,10 +14,11 @@ namespace GeomSharp {
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
   [Serializable]
-  public class Polygon2D : IEquatable<Polygon2D>, IEnumerable<Point2D>, ISerializable {
+  public class Polygon2D : Geometry2D, IEquatable<Polygon2D>, IEnumerable<Point2D>, ISerializable {
     private List<Point2D> Vertices;
     public readonly int Size;
 
+    // constructors
     public Polygon2D(Point2D[] points, int decimal_precision = Constants.THREE_DECIMALS) {
       if (points.Length < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
@@ -38,13 +39,37 @@ namespace GeomSharp {
     public Polygon2D(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS)
         : this(points.ToArray(), decimal_precision) {}
 
+    // enumeration interface implementation
     public Point2D this[int i] {
       // IndexOutOfRangeException already managed by the List class
       get {
         return Vertices[i];
       }
     }
+    public IEnumerator<Point2D> GetEnumerator() {
+      return Vertices.GetEnumerator();
+    }
 
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
+    }
+
+    // generic overrides from object class
+    public override int GetHashCode() => ToWkt().GetHashCode();
+    public override string ToString() => (Vertices.Count == 0)
+                                             ? "{}"
+                                             : "{" + string.Join(",", Vertices.Select(v => v.ToString())) +
+                                                   "," + Vertices[0].ToString() + "}";
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Polygon2D && this.Equals((Polygon2D)other);
+    public override bool Equals(Geometry2D other) => other.GetType() == typeof(Polygon2D) &&
+                                                     this.Equals(other as Polygon2D);
+
+    public bool Equals(Polygon2D other) => this.AlmostEquals(other);
+
+    public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Polygon2D) && this.AlmostEquals(other as Polygon2D, decimal_precision);
     public bool AlmostEquals(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other is null) {
         return false;
@@ -85,11 +110,7 @@ namespace GeomSharp {
       return true;
     }
 
-    public bool Equals(Polygon2D other) => this.AlmostEquals(other);
-    public override bool Equals(object other) => other != null && other is Polygon2D && this.Equals((Polygon2D)other);
-
-    public override int GetHashCode() => base.GetHashCode();
-
+    // comparison operators
     public static bool operator ==(Polygon2D a, Polygon2D b) {
       return a.AlmostEquals(b);
     }
@@ -98,14 +119,48 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
-    public IEnumerator<Point2D> GetEnumerator() {
-      return Vertices.GetEnumerator();
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Size", Size, typeof(int));
+      info.AddValue("Vertices", Vertices, typeof(List<Point2D>));
     }
 
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
-      return this.GetEnumerator();
+    public Polygon2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Size = (int)info.GetValue("Size", typeof(int));
+      Vertices = (List<Point2D>)info.GetValue("Vertices", typeof(List<Point2D>));
     }
 
+    public static Polygon2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Polygon2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) =>
+        (Vertices.Count == 0)
+            ? "POLYGON EMPTY"
+            : "POLYGON ((" +
+                  string.Join(",",
+                              Vertices.Select(
+                                  v => string.Format(
+                                      String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), v.U, v.V))) +
+                  ", " +
+                  string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"),
+                                Vertices[0].U,
+                                Vertices[0].V) +
+                  "))";
+    public override Geometry2D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
     public double Area() {
       double a = 0;  // risk of overflow ...
 
@@ -341,60 +396,6 @@ namespace GeomSharp {
       }
 
       return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints);
-    }
-
-    // formatting functions
-    public override string ToString() => (Vertices.Count == 0)
-                                             ? "{}"
-                                             : "{" + string.Join(",", Vertices.Select(v => v.ToString())) +
-                                                   "," + Vertices[0].ToString() + "}";
-
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
-        (Vertices.Count == 0)
-            ? "POLYGON EMPTY"
-            : "POLYGON ((" +
-                  string.Join(",",
-                              Vertices.Select(
-                                  v => string.Format(
-                                      String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), v.U, v.V))) +
-                  ", " +
-                  string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"),
-                                Vertices[0].U,
-                                Vertices[0].V) +
-                  "))";
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("Size", Size, typeof(int));
-      info.AddValue("Vertices", Vertices, typeof(List<Point2D>));
-    }
-    // The special constructor is used to deserialize values.
-    public Polygon2D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      Size = (int)info.GetValue("Size", typeof(int));
-      Vertices = (List<Point2D>)info.GetValue("Vertices", typeof(List<Point2D>));
-    }
-
-    public static Polygon2D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Polygon2D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
     }
   }
 }

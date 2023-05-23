@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeomSharp {
 
@@ -44,6 +40,9 @@ namespace GeomSharp {
     public IntersectionResult(LineSegmentSet2D v) => (Value, ValueType) = (v, v.GetType());
     public IntersectionResult(LineSegmentSet3D v) => (Value, ValueType) = (v, v.GetType());
 
+    public IntersectionResult(GeometryCollection2D v) => (Value, ValueType) = (v, v.GetType());
+    public IntersectionResult(GeometryCollection3D v) => (Value, ValueType) = (v, v.GetType());
+
     public bool AlmostEquals(IntersectionResult other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other is null) {
         return false;
@@ -80,6 +79,9 @@ namespace GeomSharp {
       if (ValueType == typeof(Polygon2D)) {
         return ((Polygon2D)Value).AlmostEquals((Polygon2D)other.Value, decimal_precision);
       }
+      if (ValueType == typeof(GeometryCollection2D)) {
+        return ((GeometryCollection2D)Value).AlmostEquals((GeometryCollection2D)other.Value, decimal_precision);
+      }
 
       // 3D
       if (ValueType == typeof(Point3D)) {
@@ -108,6 +110,9 @@ namespace GeomSharp {
       }
       if (ValueType == typeof(Polygon3D)) {
         return ((Polygon3D)Value).AlmostEquals((Polygon3D)other.Value, decimal_precision);
+      }
+      if (ValueType == typeof(GeometryCollection3D)) {
+        return ((GeometryCollection3D)Value).AlmostEquals((GeometryCollection3D)other.Value, decimal_precision);
       }
 
       // other (exception)
@@ -165,6 +170,9 @@ namespace GeomSharp {
       if (ValueType == typeof(Polygon2D)) {
         return ((Polygon2D)Value).ToWkt(decimal_precision);
       }
+      if (ValueType == typeof(GeometryCollection2D)) {
+        return ((GeometryCollection2D)Value).ToWkt(decimal_precision);
+      }
 
       // 3D
       if (ValueType == typeof(Point3D)) {
@@ -193,6 +201,9 @@ namespace GeomSharp {
       }
       if (ValueType == typeof(Polygon3D)) {
         return ((Polygon3D)Value).ToWkt(decimal_precision);
+      }
+      if (ValueType == typeof(GeometryCollection3D)) {
+        return ((GeometryCollection3D)Value).ToWkt(decimal_precision);
       }
 
       throw new Exception("ToWkt unmanaged value type " + ValueType.ToString());

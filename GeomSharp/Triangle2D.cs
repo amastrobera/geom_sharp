@@ -14,7 +14,7 @@ namespace GeomSharp {
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>
   [Serializable]
-  public class Triangle2D : IEquatable<Triangle2D>, ISerializable {
+  public class Triangle2D : Geometry2D, IEquatable<Triangle2D>, ISerializable {
     public Point2D P0 { get; }
     public Point2D P1 { get; }
     public Point2D P2 { get; }
@@ -23,6 +23,7 @@ namespace GeomSharp {
     public UnitVector2D U { get; }
     public UnitVector2D V { get; }
 
+    // constructors
     private Triangle2D(Point2D p0, Point2D p1, Point2D p2) {
       P0 = p0;
       P1 = p1;
@@ -51,6 +52,110 @@ namespace GeomSharp {
 
       return t;
     }
+
+    // generic overrides from object class
+    public override int GetHashCode() => new { P0, P1, P2, Orientation }.GetHashCode();
+    public override string ToString() {
+      return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
+    }
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Triangle2D && this.Equals((Triangle2D)other);
+    public override bool Equals(Geometry2D other) => other.GetType() == typeof(Triangle2D) &&
+                                                     this.Equals(other as Triangle2D);
+
+    public bool Equals(Triangle2D other) => this.AlmostEquals(other);
+
+    public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Triangle2D) && this.AlmostEquals(other as Triangle2D, decimal_precision);
+
+    public bool AlmostEquals(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (other is null) {
+        return false;
+      }
+      if (Orientation != other.Orientation) {
+        return false;
+      }
+
+      Func<Triangle2D, Point2D, bool> TriangleContainsPoint = (Triangle2D t, Point2D p) => {
+        return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
+               t.P2.AlmostEquals(p, decimal_precision);
+      };
+
+      if (!TriangleContainsPoint(this, other.P0)) {
+        return false;
+      }
+
+      if (!TriangleContainsPoint(this, other.P1)) {
+        return false;
+      }
+
+      if (!TriangleContainsPoint(this, other.P2)) {
+        return false;
+      }
+
+      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
+      // by points, and therefore incorporates this information
+      return true;
+    }
+
+    // comparison operators
+    public static bool operator ==(Triangle2D a, Triangle2D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(Triangle2D a, Triangle2D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point2D));
+      info.AddValue("P1", P1, typeof(Point2D));
+      info.AddValue("P2", P2, typeof(Point2D));
+
+      info.AddValue("Orientation", Orientation, typeof(Constants.Orientation));
+      info.AddValue("U", U, typeof(UnitVector2D));
+      info.AddValue("V", V, typeof(UnitVector2D));
+    }
+
+    public Triangle2D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
+      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
+      P2 = (Point2D)info.GetValue("P2", typeof(Point2D));
+
+      Orientation = (Constants.Orientation)info.GetValue("Orientation", typeof(Constants.Orientation));
+      U = (UnitVector2D)info.GetValue("U", typeof(UnitVector2D));
+      V = (UnitVector2D)info.GetValue("V", typeof(UnitVector2D));
+    }
+
+    public static Triangle2D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Triangle2D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
+      return string.Format("POLYGON (({0:F2} {1:F2}, {2:F2} {3:F2},{4:F2} {5:F2},{0:F2} {1:F2}))",
+                           P0.U,
+                           P0.V,
+                           P1.U,
+                           P1.V,
+                           P2.U,
+                           P2.V);
+    }
+    public override Geometry2D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
 
     public double Area() => Math.Round((P1 - P0).CrossProduct(P2 - P0) / 2, Constants.NINE_DECIMALS);
 
@@ -96,49 +201,6 @@ namespace GeomSharp {
       return (loc_01 == Constants.Location.RIGHT || loc_01 == Constants.Location.ON_SEGMENT) &&
              (loc_12 == Constants.Location.RIGHT || loc_12 == Constants.Location.ON_SEGMENT) &&
              (loc_20 == Constants.Location.RIGHT || loc_20 == Constants.Location.ON_SEGMENT);
-    }
-
-    public bool AlmostEquals(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (other is null) {
-        return false;
-      }
-      if (Orientation != other.Orientation) {
-        return false;
-      }
-
-      Func<Triangle2D, Point2D, bool> TriangleContainsPoint = (Triangle2D t, Point2D p) => {
-        return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
-               t.P2.AlmostEquals(p, decimal_precision);
-      };
-
-      if (!TriangleContainsPoint(this, other.P0)) {
-        return false;
-      }
-
-      if (!TriangleContainsPoint(this, other.P1)) {
-        return false;
-      }
-
-      if (!TriangleContainsPoint(this, other.P2)) {
-        return false;
-      }
-
-      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
-      // by points, and therefore incorporates this information
-      return true;
-    }
-    public bool Equals(Triangle2D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is Triangle2D && this.Equals((Triangle2D)other);
-
-    public override int GetHashCode() => new { P0, P1, P2, Orientation }.GetHashCode();
-
-    public static bool operator ==(Triangle2D a, Triangle2D b) {
-      return a.AlmostEquals(b);
-    }
-
-    public static bool operator !=(Triangle2D a, Triangle2D b) {
-      return !a.AlmostEquals(b);
     }
 
     public bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -378,64 +440,5 @@ namespace GeomSharp {
         LineSegment2D.FromPoints(P0, P1, decimal_precision).Contains(point) ||
         LineSegment2D.FromPoints(P1, P2, decimal_precision).Contains(point) ||
         LineSegment2D.FromPoints(P2, P0, decimal_precision).Contains(point);
-
-    // special formatting
-    public override string ToString() {
-      return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
-    }
-
-    public string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
-      return string.Format("POLYGON (({0:F2} {1:F2}, {2:F2} {3:F2},{4:F2} {5:F2},{0:F2} {1:F2}))",
-                           P0.U,
-                           P0.V,
-                           P1.U,
-                           P1.V,
-                           P2.U,
-                           P2.V);
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("P0", P0, typeof(Point2D));
-      info.AddValue("P1", P1, typeof(Point2D));
-      info.AddValue("P2", P2, typeof(Point2D));
-
-      info.AddValue("Orientation", Orientation, typeof(Constants.Orientation));
-      info.AddValue("U", U, typeof(UnitVector2D));
-      info.AddValue("V", V, typeof(UnitVector2D));
-    }
-    // The special constructor is used to deserialize values.
-    public Triangle2D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      P0 = (Point2D)info.GetValue("P0", typeof(Point2D));
-      P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
-      P2 = (Point2D)info.GetValue("P2", typeof(Point2D));
-
-      Orientation = (Constants.Orientation)info.GetValue("Orientation", typeof(Constants.Orientation));
-      U = (UnitVector2D)info.GetValue("U", typeof(UnitVector2D));
-      V = (UnitVector2D)info.GetValue("V", typeof(UnitVector2D));
-    }
-
-    public static Triangle2D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Triangle2D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-    }
   }
 }

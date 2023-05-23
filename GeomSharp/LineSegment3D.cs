@@ -11,10 +11,11 @@ namespace GeomSharp {
   /// A LineSegment on an arbitrary 3D plane
   /// </summary>
   [Serializable]
-  public class LineSegment3D : IEquatable<LineSegment3D>, ISerializable {
+  public class LineSegment3D : Geometry3D, IEquatable<LineSegment3D>, ISerializable {
     public Point3D P0 { get; }
     public Point3D P1 { get; }
 
+    // constructors
     private LineSegment3D(Point3D p0, Point3D p1) => (P0, P1) = (p0, p1);
 
     public static LineSegment3D FromPoints(Point3D p0, Point3D p1, int decimal_precision = Constants.THREE_DECIMALS) {
@@ -24,9 +25,76 @@ namespace GeomSharp {
       return new LineSegment3D(p0, p1);
     }
 
+    // generic overrides from object class
+    public override string ToString() => base.ToString();
+    public override int GetHashCode() => ToWkt().GetHashCode();
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is LineSegment3D &&
+                                                 this.Equals((LineSegment3D)other);
+    public override bool Equals(Geometry3D other) => other.GetType() == typeof(LineSegment3D) &&
+                                                     this.Equals(other as LineSegment3D);
+    public bool Equals(LineSegment3D other) => this.AlmostEquals(other);
+    public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(LineSegment3D) && this.AlmostEquals(other as LineSegment3D, decimal_precision);
     public bool AlmostEquals(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) && P0.AlmostEquals(other.P0, decimal_precision) &&
         P1.AlmostEquals(other.P1, decimal_precision);
+
+    // comparison operators
+    public static bool operator ==(LineSegment3D a, LineSegment3D b) {
+      return a.AlmostEquals(b);
+    }
+
+    public static bool operator !=(LineSegment3D a, LineSegment3D b) {
+      return !a.AlmostEquals(b);
+    }
+
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("P0", P0, typeof(Point3D));
+      info.AddValue("P1", P1, typeof(Point3D));
+    }
+
+    public LineSegment3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
+      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
+    }
+
+    public static LineSegment3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (LineSegment3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      return "LINESTRING (" +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                           P0.X,
+                           P0.Y,
+                           P0.Z) +
+             "," +
+             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
+                           P1.X,
+                           P1.Y,
+                           P1.Z) +
+             ")";
+    }
+
+    public override Geometry3D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
+    public Line3D ToLine() => Line3D.FromPoints(P0, P1);
+    public double Length() => (P1 - P0).Length();
 
     /// <summary>
     /// Almost equals from a to b, or from b to a
@@ -37,24 +105,6 @@ namespace GeomSharp {
     public bool IsSameSegment(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         P0.AlmostEquals(other.P0, decimal_precision) && P1.AlmostEquals(other.P1, decimal_precision) ||
         P1.AlmostEquals(other.P0, decimal_precision) && P0.AlmostEquals(other.P1, decimal_precision);
-
-    public bool Equals(LineSegment3D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is LineSegment3D &&
-                                                 this.Equals((LineSegment3D)other);
-
-    public override int GetHashCode() => ToWkt().GetHashCode();
-
-    public static bool operator ==(LineSegment3D a, LineSegment3D b) {
-      return a.AlmostEquals(b);
-    }
-
-    public static bool operator !=(LineSegment3D a, LineSegment3D b) {
-      return !a.AlmostEquals(b);
-    }
-
-    public Line3D ToLine() => Line3D.FromPoints(P0, P1);
-    public double Length() => (P1 - P0).Length();
 
     public double DistanceTo(Point3D p) {
       double line_d = ToLine().DistanceTo(p);
@@ -165,55 +215,6 @@ namespace GeomSharp {
       // if (p0_in && p1_in && !other_p0_in && !other_p1_in)
       //  the segment is contained in the other
       return new IntersectionResult(this);
-    }
-
-    // special formatting
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return "LINESTRING (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           P0.X,
-                           P0.Y,
-                           P0.Z) +
-             "," +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           P1.X,
-                           P1.Y,
-                           P1.Z) +
-             ")";
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("P0", P0, typeof(Point3D));
-      info.AddValue("P1", P1, typeof(Point3D));
-    }
-    // The special constructor is used to deserialize values.
-    public LineSegment3D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      P0 = (Point3D)info.GetValue("P0", typeof(Point3D));
-      P1 = (Point3D)info.GetValue("P1", typeof(Point3D));
-    }
-
-    public static LineSegment3D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (LineSegment3D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
     }
   }
 }
