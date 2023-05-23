@@ -11,25 +11,34 @@ namespace GeomSharp {
   /// A Ray on an arbitrary 3D plane
   /// </summary>
   [Serializable]
-  public class Ray3D : IEquatable<Ray3D>, ISerializable {
+  public class Ray3D : Geometry3D, IEquatable<Ray3D>, ISerializable {
     public Point3D Origin { get; }
     public UnitVector3D Direction { get; }
 
+    // constructors
     public Ray3D(Point3D origin, UnitVector3D direction) {
       Origin = origin;
       Direction = direction;
     }
 
+    // generic overrides from object class
+    public override string ToString() =>
+        "{" + String.Format("{0:F9} {1:F9} {2:F9}", Origin.X, Origin.Y, Origin.Z) +
+        " -> " + String.Format("{0:F9} {1:F9} {2:F9}", Direction.X, Direction.Y, Direction.Z) + "}";
+    public override int GetHashCode() => ToWkt().GetHashCode();
+
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Ray3D && this.Equals((Ray3D)other);
+    public override bool Equals(Geometry3D other) => other.GetType() == typeof(Ray3D) && this.Equals(other as Ray3D);
+    public bool Equals(Ray3D other) => this.AlmostEquals(other);
+    public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Ray3D) && this.AlmostEquals(other as Ray3D, decimal_precision);
+
     public bool AlmostEquals(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) && Origin.AlmostEquals(other.Origin, decimal_precision) &&
         Direction.AlmostEquals(other.Direction, decimal_precision);
 
-    public bool Equals(Ray3D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is Point3D && this.Equals((Point3D)other);
-
-    public override int GetHashCode() => base.GetHashCode();
-
+    // comparison operators
     public static bool operator ==(Ray3D a, Ray3D b) {
       return a.AlmostEquals(b);
     }
@@ -38,6 +47,49 @@ namespace GeomSharp {
       return !a.AlmostEquals(b);
     }
 
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("Origin", Origin, typeof(Point3D));
+      info.AddValue("Direction", Direction, typeof(UnitVector3D));
+    }
+
+    public Ray3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      Origin = (Point3D)info.GetValue("Origin", typeof(Point3D));
+      Direction = (UnitVector3D)info.GetValue("Direction", typeof(UnitVector3D));
+    }
+
+    public static Ray3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Ray3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      return string.Format(
+          "GEOMETRYCOLLECTION (" + "LINESTRING (" +
+              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
+              String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")" + ", POINT (" +
+              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" + ")",
+          Origin.X,
+          Origin.Y,
+          Origin.Z,
+          Origin.X + Direction.X,
+          Origin.Y + Direction.Y,
+          Origin.Z + Direction.Z);
+    }
+
+    public override Geometry3D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
     public Line3D ToLine() => Line3D.FromDirection(Origin, Direction);
 
     /// <summary>
@@ -152,57 +204,6 @@ namespace GeomSharp {
       //  the rays shoot towards each other
 
       return new IntersectionResult(LineSegment3D.FromPoints(Origin, other.Origin));
-    }
-
-    public override string ToString() =>
-        "{" + String.Format("{0:F9} {1:F9} {2:F9}", Origin.X, Origin.Y, Origin.Z) +
-        " -> " + String.Format("{0:F9} {1:F9} {2:F9}", Direction.X, Direction.Y, Direction.Z) + "}";
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return string.Format(
-          "GEOMETRYCOLLECTION (" + "LINESTRING (" +
-              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
-              String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")" + ", POINT (" +
-              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" + ")",
-          Origin.X,
-          Origin.Y,
-          Origin.Z,
-          Origin.X + Direction.X,
-          Origin.Y + Direction.Y,
-          Origin.Z + Direction.Z);
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("Origin", Origin, typeof(Point3D));
-      info.AddValue("Direction", Direction, typeof(UnitVector3D));
-    }
-    // The special constructor is used to deserialize values.
-    public Ray3D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      Origin = (Point3D)info.GetValue("Origin", typeof(Point3D));
-      Direction = (UnitVector3D)info.GetValue("Direction", typeof(UnitVector3D));
-    }
-
-    public static Ray3D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Ray3D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
     }
   }
 

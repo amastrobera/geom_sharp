@@ -183,7 +183,7 @@ namespace GeomSharp {
       info.AddValue("Y", Y, typeof(double));
       info.AddValue("Z", Z, typeof(double));
     }
-    // The special constructor is used to deserialize values.
+
     public Vector3D(SerializationInfo info, StreamingContext context) {
       // Reset the property value using the GetValue method.
       X = (double)info.GetValue("X", typeof(double));
@@ -237,10 +237,10 @@ namespace GeomSharp {
 
     public static UnitVector3D operator -(UnitVector3D a) => FromDoubles(-a.X, -a.Y, -a.Z);
 
-    // The special constructor is used to deserialize values.
     public UnitVector3D(SerializationInfo info, StreamingContext context) => FromVector(new Vector3D(info, context));
 
-    public static UnitVector3D FromBinary(string file_path) {
+    // clang-format off
+    public  static new UnitVector3D FromBinary(string file_path) {
       try {
         var fs = new FileStream(file_path, FileMode.Open);
         var output = (UnitVector3D)(new BinaryFormatter().Deserialize(fs));
@@ -250,5 +250,6 @@ namespace GeomSharp {
       }
       return null;
     }
-  }
+// clang-format on
+}
 }

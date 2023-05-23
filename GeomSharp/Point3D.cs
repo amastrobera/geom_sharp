@@ -14,13 +14,14 @@ namespace GeomSharp {
   /// </summary>
 
   [Serializable]
-  public class Point3D : IEquatable<Point3D>, ISerializable {
+  public class Point3D : Geometry3D, IEquatable<Point3D>, ISerializable {
     public double X { get; }
     public double Y { get; }
     public double Z { get; }
 
     public static Point3D Zero => new Point3D(0, 0, 0);
 
+    // constructors
     public Point3D(double x = 0, double y = 0, double z = 0) => (X, Y, Z) = (x, y, z);
 
     public Point3D(Point3D copy) => (X, Y, Z) = (copy.X, copy.Y, copy.Z);
@@ -35,40 +36,79 @@ namespace GeomSharp {
       Z = Math.Round(copy_raw[2], Constants.NINE_DECIMALS);
     }
 
-    // unary operations
     public static Point3D FromVector(Vector v) {
       return new Point3D(v);
     }
 
-    public double[] ToArray() => ToVector().ToArray();
+    // generic overrides from object class
+    public override string ToString() => "{" + String.Format("{0:F9} {1:F9} {2:F9}", X, Y, Z) + "}";
+    public override int GetHashCode() => ToWkt().GetHashCode();
 
-    public Vector ToVector() => new Vector(new double[] { X, Y, Z });
-    public Vector3D ToVector3D() {
-      return new Vector3D(X, Y, Z);
-    }
+    // equality interface, and base class overrides
+    public override bool Equals(object other) => other != null && other is Point3D && this.Equals((Point3D)other);
+    public override bool Equals(Geometry3D other) => other.GetType() == typeof(Point3D) &&
+                                                     this.Equals(other as Point3D);
+    public bool Equals(Point3D other) => this.AlmostEquals(other);
+    public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
+        other.GetType() == typeof(Point3D) && this.AlmostEquals(other as Point3D, decimal_precision);
 
-    /// <summary>
-    /// Equality check with custom tolerance adjustment
-    /// </summary>
-    /// <param name="other"></param>
-    /// <param name="decimal_precision"></param>
-    /// <returns></returns>
     public bool AlmostEquals(Point3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) && Math.Round(this.X - other.X, decimal_precision) == 0 &&
         Math.Round(this.Y - other.Y, decimal_precision) == 0 && Math.Round(this.Z - other.Z, decimal_precision) == 0;
 
-    public bool Equals(Point3D other) => this.AlmostEquals(other);
-
-    public override bool Equals(object other) => other != null && other is Point3D && this.Equals((Point3D)other);
-
-    public override int GetHashCode() => ToWkt().GetHashCode();
-
+    // comparison operators
     public static bool operator ==(Point3D a, Point3D b) {
       return a.AlmostEquals(b);
     }
 
     public static bool operator !=(Point3D a, Point3D b) {
       return !a.AlmostEquals(b);
+    }
+
+    // serialization interface implementation and base class overrides
+    public override void GetObjectData(SerializationInfo info, StreamingContext context) {
+      info.AddValue("X", X, typeof(double));
+      info.AddValue("Y", Y, typeof(double));
+      info.AddValue("Z", Z, typeof(double));
+    }
+
+    public Point3D(SerializationInfo info, StreamingContext context) {
+      // Reset the property value using the GetValue method.
+      X = (double)info.GetValue("X", typeof(double));
+      Y = (double)info.GetValue("Y", typeof(double));
+      Z = (double)info.GetValue("Z", typeof(double));
+    }
+
+    public static Point3D FromBinary(string file_path) {
+      try {
+        var fs = new FileStream(file_path, FileMode.Open);
+        var output = (Point3D)(new BinaryFormatter().Deserialize(fs));
+        return output;
+      } catch (Exception e) {
+        // warning failed to deserialize
+      }
+      return null;
+    }
+
+    // well known text base class overrides
+    public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
+      return string.Format(
+          "POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")",
+          X,
+          Y,
+          Z);
+    }
+
+    public override Geometry3D FromWkt(string wkt) {
+      throw new NotImplementedException();
+    }
+
+    // own functions
+    public double[] ToArray() => ToVector().ToArray();
+
+    public Vector ToVector() => new Vector(new double[] { X, Y, Z });
+    public Vector3D ToVector3D() {
+      return new Vector3D(X, Y, Z);
     }
 
     // arithmetics with Points
@@ -97,52 +137,6 @@ namespace GeomSharp {
     public static Point3D operator /(Point3D b, double k) => FromVector(b.ToVector() / k);
 
     public double DistanceTo(Point3D p) => (p - this).Length();
-
-    // special formatting functions
-    public override string ToString() => "{" + String.Format("{0:F9} {1:F9} {2:F9}", X, Y, Z) + "}";
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return string.Format(
-          "POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")",
-          X,
-          Y,
-          Z);
-    }
-
-    // serialization functions
-    // Implement this method to serialize data. The method is called on serialization.
-    public void GetObjectData(SerializationInfo info, StreamingContext context) {
-      info.AddValue("X", X, typeof(double));
-      info.AddValue("Y", Y, typeof(double));
-      info.AddValue("Z", Z, typeof(double));
-    }
-    // The special constructor is used to deserialize values.
-    public Point3D(SerializationInfo info, StreamingContext context) {
-      // Reset the property value using the GetValue method.
-      X = (double)info.GetValue("X", typeof(double));
-      Y = (double)info.GetValue("Y", typeof(double));
-      Z = (double)info.GetValue("Z", typeof(double));
-    }
-
-    public static Point3D FromBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Open);
-        var output = (Point3D)(new BinaryFormatter().Deserialize(fs));
-        return output;
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-      return null;
-    }
-
-    public void ToBinary(string file_path) {
-      try {
-        var fs = new FileStream(file_path, FileMode.Create);
-        (new BinaryFormatter()).Serialize(fs, this);
-        fs.Close();
-      } catch (Exception e) {
-        // warning failed to deserialize
-      }
-    }
   }
 
 }

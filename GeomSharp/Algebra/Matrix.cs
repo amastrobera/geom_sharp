@@ -291,7 +291,7 @@ namespace GeomSharp.Algebra {
       info.AddValue("cols", Columns, typeof(int));
       info.AddValue("values", _values, typeof(double[,]));
     }
-    // The special constructor is used to deserialize values.
+    
     public Matrix(SerializationInfo info, StreamingContext context) {
       // Reset the property value using the GetValue method.
       Rows = (int)info.GetValue("rows", typeof(int));

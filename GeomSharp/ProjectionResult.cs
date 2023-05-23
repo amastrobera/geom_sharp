@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeomSharp {
 
@@ -41,6 +37,8 @@ namespace GeomSharp {
     public ProjectionResult(Polyline3D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Polygon2D v) => (Value, ValueType) = (v, v.GetType());
     public ProjectionResult(Polygon3D v) => (Value, ValueType) = (v, v.GetType());
+    public ProjectionResult(GeometryCollection2D v) => (Value, ValueType) = (v, v.GetType());
+    public ProjectionResult(GeometryCollection3D v) => (Value, ValueType) = (v, v.GetType());
 
     public bool Equals(ProjectionResult other) => ValueType.Equals(other.ValueType) && Value.Equals(other.Value);
 
