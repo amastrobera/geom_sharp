@@ -43,6 +43,63 @@ namespace GeomSharp {
                                                             ? throw new ArgumentException("file " + wkt_file_path +
                                                                                           " does now exist")
                                                             : FromWkt(File.ReadAllText(wkt_file_path));
+
+    // relationship to all the other geometries
+    // point
+    public abstract bool Contains(Point2D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  geometry collection
+    public abstract bool Intersects(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(GeometryCollection2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(GeometryCollection2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  line
+    public abstract bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  line segment
+    public abstract bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(LineSegment2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  line segment set
+    public abstract bool Intersects(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(LineSegmentSet2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(LineSegmentSet2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  polygon
+    public abstract bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  polyline
+    public abstract bool Intersects(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  ray
+    public abstract bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    //  triangle
+    public abstract bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Intersection(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract bool Overlaps(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS);
+    public abstract IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS);
   }
 
 }
