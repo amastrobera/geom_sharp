@@ -3,6 +3,7 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using Microsoft.SqlServer.Server;
 
 namespace GeomSharp {
   /// <summary>
@@ -346,5 +347,10 @@ namespace GeomSharp {
         other.Overlaps(this, decimal_precision);
     public override IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         other.Overlap(this, decimal_precision);
+
+    // operations with plane
+    public bool IsPerpendicular(Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Normal.IsParallel(Direction, decimal_precision) && plane.AxisU.IsPerpendicular(Direction,
+                                                                                             decimal_precision);
   }
 }

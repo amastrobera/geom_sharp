@@ -46,8 +46,8 @@
   <ItemGroup>
     <Compile Include="Algebra\*.cs" />
     <Compile Include="*.cs" />
-    <Compile Include="ExtensionsCollections.cs" />
-    <Compile Include="ExtensionsComparison3D.cs" />
+    <Compile Include="Collections\Extensions.cs" />
+    <Compile Include="Transformation\Projections.cs" />
     <Compile Include="Transformation\*.cs" />
   </ItemGroup>
   <ItemGroup>

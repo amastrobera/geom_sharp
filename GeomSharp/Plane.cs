@@ -1,15 +1,10 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GeomSharp {
 
-  /// <summary>
-  /// A Mathematical Vector of N-dimentions
-  /// </summary>
   public class Plane : IEquatable<Plane> {
     public Point3D Origin { get; }
     public UnitVector3D Normal { get; }
@@ -22,6 +17,7 @@ namespace GeomSharp {
     public static Plane YZ => FromPointAndNormal(Point3D.Zero, Vector3D.AxisX);
     public static Plane ZX => FromPointAndNormal(Point3D.Zero, Vector3D.AxisY);
 
+    // constructors
     private Plane(Point3D origin,
                   UnitVector3D normal,
                   UnitVector3D u_axis,
@@ -146,11 +142,7 @@ namespace GeomSharp {
 
     public double Distance(Point3D p) => Math.Abs(SignedDistance(p));
 
-    /// <summary>
-    /// Tells if this plane contains the point p.
-    /// </summary>
-    /// <param name="p"></param>
-    /// <returns></returns>
+    // containment
     public bool Contains(Point3D p,
                          int decimal_precision = Constants.THREE_DECIMALS) => Math.Round(SignedDistance(p),
                                                                                          decimal_precision) == 0;
@@ -163,6 +155,8 @@ namespace GeomSharp {
 
     public bool Contains(LineSegment3D s, int decimal_precision = Constants.THREE_DECIMALS) =>
         Normal.IsPerpendicular(s.P1 - s.P0, decimal_precision) && Contains(s.P0, decimal_precision);
+
+    // projection (3D to 2D)
 
     /// <summary>
     /// Projects orthogonally the point on the plane
@@ -283,6 +277,8 @@ namespace GeomSharp {
       return new Point2D(B_cos, B_sin);
     }
 
+    // evaluation (2D to 3D)
+
     /// <summary>
     /// We transform a plane's 2D point to the 3D version of it.
     /// </summary>
@@ -301,38 +297,6 @@ namespace GeomSharp {
                                                                              Evaluate(shape_2d.P2));
 
     public Polygon3D Evaluate(Polygon2D shape_2d) => new Polygon3D(shape_2d.Select(p => Evaluate(p)));
-
-    public bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
-
-    /// <summary>
-    /// Tells if a plane intersects another and computes the Line intesection (or null if they don't intersect).
-    /// If first checks whther the plane is parallel to the other.
-    /// If not, it finds the direction line first, U = n1 x n2, and the origin point P = intersection of three planes.
-    /// The three planes involved are this plane, the other plane, and the plane with normal n3 = U and passing
-    /// through the origin O. 11 adds and 23 multiplies and always works (three planes linearly independent as they
-    /// are all perpendicular)
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (Normal.IsParallel(other.Normal, decimal_precision)) {
-        return new IntersectionResult();
-      }
-
-      // var plane3 = Plane.FromPointAndNormal(Point3D.Zero, Normal.CrossProduct(other.Normal).Normalize());
-      var U = Normal.CrossProduct(other.Normal);
-
-      (double d1, double d2) = (-Normal.DotProduct(Origin), -other.Normal.DotProduct(other.Origin));
-
-      var pI = Point3D.Zero + (d2 * Normal - d1 * other.Normal).CrossProduct(U) / U.DotProduct(U);
-
-      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
-        throw new Exception("plane.Intersection(plane) failed computation: pI does not belong to planes");
-      }
-
-      return new IntersectionResult(Line3D.FromDirection(pI, U.Normalize()));
-    }
 
     // special formatting
     public override string ToString() {
@@ -374,6 +338,39 @@ namespace GeomSharp {
     }
 
     // relationship to other geometries
+
+    //  plane
+    public bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
+    /// <summary>
+    /// Tells if a plane intersects another and computes the Line intesection (or null if they don't intersect).
+    /// If first checks whther the plane is parallel to the other.
+    /// If not, it finds the direction line first, U = n1 x n2, and the origin point P = intersection of three planes.
+    /// The three planes involved are this plane, the other plane, and the plane with normal n3 = U and passing
+    /// through the origin O. 11 adds and 23 multiplies and always works (three planes linearly independent as they
+    /// are all perpendicular)
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Normal.IsParallel(other.Normal, decimal_precision)) {
+        return new IntersectionResult();
+      }
+
+      // var plane3 = Plane.FromPointAndNormal(Point3D.Zero, Normal.CrossProduct(other.Normal).Normalize());
+      var U = Normal.CrossProduct(other.Normal);
+
+      (double d1, double d2) = (-Normal.DotProduct(Origin), -other.Normal.DotProduct(other.Origin));
+
+      var pI = Point3D.Zero + (d2 * Normal - d1 * other.Normal).CrossProduct(U) / U.DotProduct(U);
+
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        throw new Exception("plane.Intersection(plane) failed computation: pI does not belong to planes");
+      }
+
+      return new IntersectionResult(Line3D.FromDirection(pI, U.Normalize()));
+    }
 
     //  geometry collection
     public bool Intersects(GeometryCollection3D other,
@@ -474,5 +471,15 @@ namespace GeomSharp {
                          int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
     public IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         other.Overlap(this, decimal_precision);
+
+    // perpendicular to other geometries
+    public bool IsPerpendicular(Vector3D vec, int decimal_precision = Constants.THREE_DECIMALS) =>
+        vec.IsPerpendicular(this, decimal_precision);
+    public bool IsPerpendicular(Line3D line, int decimal_precision = Constants.THREE_DECIMALS) =>
+        line.IsPerpendicular(this, decimal_precision);
+    public bool IsPerpendicular(Ray3D ray, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ray.IsPerpendicular(this, decimal_precision);
+    public bool IsPerpendicular(LineSegment3D segment, int decimal_precision = Constants.THREE_DECIMALS) =>
+        segment.IsPerpendicular(this, decimal_precision);
   }
 }
