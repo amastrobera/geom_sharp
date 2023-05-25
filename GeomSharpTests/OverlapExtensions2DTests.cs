@@ -1,6 +1,6 @@
 ﻿// internal
 using GeomSharp;
-using GeomSharp.Extensions;
+
 
 // external
 using System;

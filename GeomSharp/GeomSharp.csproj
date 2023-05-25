@@ -46,10 +46,8 @@
   <ItemGroup>
     <Compile Include="Algebra\*.cs" />
     <Compile Include="*.cs" />
-    <Compile Include="Extensions\Collections.cs" />
-    <Compile Include="Extensions\Comparison3D.cs" />
-    <Compile Include="Extensions\Intersection3D.cs" />
-    <Compile Include="Extensions\Overlap3D.cs" />
+    <Compile Include="ExtensionsCollections.cs" />
+    <Compile Include="ExtensionsComparison3D.cs" />
     <Compile Include="Transformation\*.cs" />
   </ItemGroup>
   <ItemGroup>

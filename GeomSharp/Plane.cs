@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -371,5 +372,107 @@ namespace GeomSharp {
           AxisV.Y,
           AxisV.Z);
     }
+
+    // relationship to other geometries
+
+    //  geometry collection
+    public bool Intersects(GeometryCollection3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(GeometryCollection3D other,
+                                           int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(GeometryCollection3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(GeometryCollection3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  line
+    public bool Intersects(Line3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(Line3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  line segment
+    public bool Intersects(LineSegment3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(LineSegment3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  line segment set
+    public bool Intersects(LineSegmentSet3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(LineSegmentSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(LineSegmentSet3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(LineSegmentSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  point set
+    public bool Intersects(PointSet3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(PointSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(PointSet3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(PointSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  polygon
+    public bool Intersects(Polygon3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(Polygon3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  polyline
+    public bool Intersects(Polyline3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(Polyline3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  ray
+    public bool Intersects(Ray3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(Ray3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  triangle
+    public bool Intersects(Triangle3D other,
+                           int decimal_precision = Constants.THREE_DECIMALS) => other.Intersects(this,
+                                                                                                 decimal_precision);
+    public IntersectionResult Intersection(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public bool Overlaps(Triangle3D other,
+                         int decimal_precision = Constants.THREE_DECIMALS) => other.Overlaps(this, decimal_precision);
+    public IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
   }
 }
