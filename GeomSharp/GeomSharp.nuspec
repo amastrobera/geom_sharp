@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.15</version>
+    <version>1.0.16</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -27,10 +27,10 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
     <releaseNotes>
-      - created a base class Geometry (2D, 3D), and a common interface
-	  - created GeometryCollection (2D, 3D) inspired by the GIS data structure
-	  - bugfix: Intersection (LineSegment2D, Polygon2D) not according to the definition (one point on the polygon is overlap, not intersect)
-    </releaseNotes>
+		- removed Extensions, you no longer need to add "using GeomSharp.Extensions" to use all functions
+		- added Intersects/Intersection, Overlaps/Overlap with all geometries to the Geometry (2D, 3D) class
+		- added Intersects/Intersection, Overlaps/Overlap with the plane to Geometry3D class
+	</releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
