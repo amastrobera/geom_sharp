@@ -7,7 +7,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
 using GeomSharp.Algebra;
-using GeomSharp.Extensions;
+
+using System.Net.NetworkInformation;
 
 namespace GeomSharp {
 
@@ -186,70 +187,139 @@ namespace GeomSharp {
       throw new NotImplementedException();
     }
 
-    // own functions
-    public Plane RefPlane() => Plane.FromPointAndNormal(Vertices[0], Normal);
+    // relationship to all the other geometries
 
-    public double Area() {
-      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+    //  plane
+    public override bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var poly_plane = RefPlane();
+      var plane_inter = poly_plane.Intersection(other, decimal_precision);
+      if (plane_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+      var plane_line = (Line3D)plane_inter.Value;
 
-      // transform the problem into a 2D one (a polygon is a planar geometry after all)
-      return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
-    }
-
-    public Point3D CenterOfMass() {
-      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
-
-      // transform the problem into a 2D one (a polygon is a planar geometry after all)
-      return plane.Evaluate(new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).CenterOfMass());
-    }
-
-    public LineSegmentSet3D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
-      var lineset = new List<LineSegment3D>();
-
-      for (int i = 0; i < Vertices.Count; i++) {
-        int j = (1 + i) % Vertices.Count;
-        lineset.Add(LineSegment3D.FromPoints(Vertices[i], Vertices[j], decimal_precision));
+      // change the problem into a 2D one
+      //      intersect in 2D one polygon with the line, the result is either empty or a multi line set
+      var poly_2D = new Polygon2D(Vertices.Select(p => poly_plane.ProjectInto(p)), decimal_precision);
+      var plane_line_2D = Line2D.FromPoints(poly_plane.ProjectInto(plane_line.P0),
+                                            poly_plane.ProjectInto(plane_line.P1),
+                                            decimal_precision);
+      var poly_inter_set_2D = poly_2D.Intersection(plane_line_2D, decimal_precision);
+      if (poly_inter_set_2D.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
       }
 
-      return new LineSegmentSet3D(lineset);
-    }
-
-    public List<Triangle3D> Triangulate() {
-      // TODO: add this function
-
-      if (Vertices.Count == 3) {
-        return new List<Triangle3D> { Triangle3D.FromPoints(Vertices[0], Vertices[1], Vertices[2]) };
+      if (poly_inter_set_2D.ValueType == typeof(LineSegment2D)) {
+        return new IntersectionResult(poly_plane.Evaluate((LineSegment2D)poly_inter_set_2D.Value));
       }
 
-      throw new NotImplementedException("triangulation not implemented yet");
+      if (poly_inter_set_2D.ValueType == typeof(LineSegmentSet2D)) {
+        var mline = new List<LineSegment3D>();
+        foreach (var seg in (LineSegmentSet2D)poly_inter_set_2D.Value) {
+          mline.Add(poly_plane.Evaluate(seg));
+        }
+        return new IntersectionResult(new LineSegmentSet3D(mline));
+      }
+
+      throw new Exception("Plane to Polygon intersection, unkown return type " +
+                          poly_inter_set_2D.ValueType.ToString());
     }
+    public override bool Overlaps(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
 
-    public (Point3D Min, Point3D Max)
-        BoundingBox() => (new Point3D(Vertices.Min(v => v.X), Vertices.Min(v => v.Y), Vertices.Min(v => v.Z)),
-                          new Point3D(Vertices.Max(v => v.X), Vertices.Max(v => v.Y), Vertices.Max(v => v.Z)));
-
-    /// <summary>
-    /// The crossing number algorithm as described here: https://en.wikipedia.org/wiki/Point_in_polygon
-    /// </summary>
-    /// <param name="point"></param>
-    /// <param name="decimal_precision"></param>
-    /// <returns></returns>
-    public bool Contains(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) {
+    // point
+    public override bool Contains(Point3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       // first check to save time, if the point is outside the plane, then it's outside the polygon too
       // improvement to the algorithm's big-O
       var plane = Plane.FromPointAndNormal(Vertices[0], Normal, decimal_precision);
-      if (!plane.Contains(point, decimal_precision)) {
+      if (!plane.Contains(other, decimal_precision)) {
         return false;
       }
 
       // transform the problem into a 2D one (a polygon is a planar geometry after all)
       return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v)))
-          .Contains(plane.ProjectInto(point), decimal_precision);
+          .Contains(plane.ProjectInto(other), decimal_precision);
     }
 
-    public bool Intersects(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+    //  geometry collection
+    public override bool Intersects(GeometryCollection3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(GeometryCollection3D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(GeometryCollection3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(GeometryCollection3D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line
+    public override bool Intersects(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
-    public IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+    public override IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var ref_plane = RefPlane();
+      var plane_inter = ref_plane.Intersection(this, decimal_precision);
+      if (plane_inter.ValueType != typeof(Point3D)) {
+        return new IntersectionResult();
+      }
+
+      var plane_point_inter = (Point3D)plane_inter.Value;
+
+      if (Contains(plane_point_inter, decimal_precision)) {
+        return new IntersectionResult(plane_point_inter);
+      }
+
+      return new IntersectionResult();
+    }
+    public override bool Overlaps(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line segment
+    public override bool Intersects(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(LineSegment3D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) {
+      var ref_plane = RefPlane();
+      var plane_inter = ref_plane.Intersection(other, decimal_precision);
+      if (plane_inter.ValueType != typeof(Point3D)) {
+        return new IntersectionResult();
+      }
+
+      var plane_point_inter = (Point3D)plane_inter.Value;
+
+      if (Contains(plane_point_inter, decimal_precision)) {
+        return new IntersectionResult(plane_point_inter);
+      }
+
+      return new IntersectionResult();
+    }
+    public override bool Overlaps(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line segment set
+    public override bool Intersects(LineSegmentSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(LineSegmentSet3D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(LineSegmentSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegmentSet3D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polygon
+    public override bool Intersects(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var plane1 = RefPlane();
       var plane2 = other.RefPlane();
 
@@ -335,14 +405,127 @@ namespace GeomSharp {
 
       return new IntersectionResult(new LineSegmentSet3D(mlines));
     }
+    public override bool Overlaps(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
 
-    /// <summary>
-    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
-    /// average plane crossing all points
-    /// </summary>
-    /// <param name="points">any enumeration of 3D Points</param>
-    /// <param name="decimal_precision"></param>
-    /// <returns></returns>
+    //  polyline
+    public override bool Intersects(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Polyline3D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) {
+      var ref_plane = RefPlane();
+      var plane_inter = ref_plane.Intersection(other, decimal_precision);
+
+      if (plane_inter.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+
+      if (plane_inter.ValueType == typeof(Point3D)) {
+        var plane_point_inter = (Point3D)plane_inter.Value;
+
+        if (Contains(plane_point_inter, decimal_precision)) {
+          return new IntersectionResult(plane_point_inter);
+        }
+        return new IntersectionResult();
+      }
+
+      if (plane_inter.ValueType == typeof(PointSet3D)) {
+        var inter_set = (PointSet3D)plane_inter.Value;
+
+        var mpoint = inter_set.Where(p => Contains(p, decimal_precision));
+
+        if (mpoint.Count() == 0) {
+          return new IntersectionResult();
+        }
+
+        return new IntersectionResult(new PointSet3D(mpoint));
+      }
+
+      throw new ArithmeticException("unknown intsection type of polygon to polyline: " +
+                                    plane_inter.ValueType.ToString());
+    }
+    public override bool Overlaps(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  ray
+    public override bool Intersects(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var ref_plane = RefPlane();
+      var plane_inter = ref_plane.Intersection(other, decimal_precision);
+      if (plane_inter.ValueType != typeof(Point3D)) {
+        return new IntersectionResult();
+      }
+
+      var plane_point_inter = (Point3D)plane_inter.Value;
+
+      if (Contains(plane_point_inter, decimal_precision)) {
+        return new IntersectionResult(plane_point_inter);
+      }
+
+      return new IntersectionResult();
+    }
+    public override bool Overlaps(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  triangle
+    public override bool Intersects(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(
+        Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) => throw new NotImplementedException("");
+    public override bool Overlaps(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    // own functions
+    public Plane RefPlane() => Plane.FromPointAndNormal(Vertices[0], Normal);
+
+    public double Area() {
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).Area();
+    }
+
+    public Point3D CenterOfMass() {
+      var plane = Plane.FromPointAndNormal(Vertices[0], Normal);
+
+      // transform the problem into a 2D one (a polygon is a planar geometry after all)
+      return plane.Evaluate(new Polygon2D(Vertices.Select(v => plane.ProjectInto(v))).CenterOfMass());
+    }
+
+    public LineSegmentSet3D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
+      var lineset = new List<LineSegment3D>();
+
+      for (int i = 0; i < Vertices.Count; i++) {
+        int j = (1 + i) % Vertices.Count;
+        lineset.Add(LineSegment3D.FromPoints(Vertices[i], Vertices[j], decimal_precision));
+      }
+
+      return new LineSegmentSet3D(lineset);
+    }
+
+    public List<Triangle3D> Triangulate() {
+      // TODO: add this function
+
+      if (Vertices.Count == 3) {
+        return new List<Triangle3D> { Triangle3D.FromPoints(Vertices[0], Vertices[1], Vertices[2]) };
+      }
+
+      throw new NotImplementedException("triangulation not implemented yet");
+    }
+
+    public (Point3D Min, Point3D Max)
+        BoundingBox() => (new Point3D(Vertices.Min(v => v.X), Vertices.Min(v => v.Y), Vertices.Min(v => v.Z)),
+                          new Point3D(Vertices.Max(v => v.X), Vertices.Max(v => v.Y), Vertices.Max(v => v.Z)));
+
     public static Plane ApproxPlane(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS) {
       Func<Point3D> CenterOfMass = () => {
         var _v = new Vector(new double[] { 0, 0, 0 });
@@ -357,7 +540,8 @@ namespace GeomSharp {
         return Point3D.FromVector(_v);
       };
 
-      // TODO: pre-sort CCW on a given plane, so that the average normal computed below will go in the same direction!
+      // TODO: pre-sort CCW on a given plane, so that the average normal computed below will go in the same
+      // direction!
 
       var cm = CenterOfMass();
       int n = points.Count();
@@ -385,8 +569,8 @@ namespace GeomSharp {
 
     /// <summary>
     /// Sorts a list of points in CCW order and creates a polygon out of it
-    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
-    /// average plane crossing all points
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by
+    /// the average plane crossing all points
     /// </summary>
     /// <param name="points">any enumeration of 3D Points</param>
     /// <returns></returns>
@@ -404,8 +588,8 @@ namespace GeomSharp {
 
     /// <summary>
     /// Computes the convex hull of any point enumeration
-    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by the
-    /// average plane crossing all points
+    /// If the list of points is not all lying on a planar surface, this planar surface will be approximated by
+    /// the average plane crossing all points
     /// </summary>
     /// <param name="points"></param>
     /// <returns></returns>

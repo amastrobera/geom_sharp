@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-using GeomSharp.Extensions;
+
 
 namespace GeomSharp {
 
@@ -128,6 +128,106 @@ namespace GeomSharp {
     public override Geometry3D FromWkt(string wkt) {
       throw new NotImplementedException();
     }
+
+    // relationship to all the other geometries
+
+    //  plane
+    public override bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Vertices.Any(v => other.Contains(v, decimal_precision));
+    public override IntersectionResult Overlap(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  point
+    public override bool Contains(Point3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Vertices.Any(g => g.Contains(other, decimal_precision));
+
+    //  geometry collection
+    public override bool Intersects(GeometryCollection3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(GeometryCollection3D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(GeometryCollection3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(GeometryCollection3D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line
+    public override bool Intersects(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line segment
+    public override bool Intersects(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(
+        LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) => throw new NotImplementedException("");
+    public override bool Overlaps(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line segment set
+    public override bool Intersects(LineSegmentSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(LineSegmentSet3D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(LineSegmentSet3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegmentSet3D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polygon
+    public override bool Intersects(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(
+        Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) => throw new NotImplementedException("");
+    public override bool Overlaps(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polygon3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polyline
+    public override bool Intersects(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(
+        Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) => throw new NotImplementedException("");
+    public override bool Overlaps(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polyline3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  ray
+    public override bool Intersects(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  triangle
+    public override bool Intersects(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(
+        Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) => throw new NotImplementedException("");
+    public override bool Overlaps(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
 
     // own functions
     public Point3D CenterOfMass() =>

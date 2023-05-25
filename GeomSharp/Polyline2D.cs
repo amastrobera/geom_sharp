@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
-using GeomSharp.Extensions;
+
 
 namespace GeomSharp {
   /// <summary>
@@ -131,39 +131,109 @@ namespace GeomSharp {
       throw new NotImplementedException();
     }
 
-    // own functions
-    public double Length() {
-      double d = 0;
-      foreach (var line_piece in ToSegments()) {
-        d += line_piece.Length();
+    // relationship to all the other geometries
+
+    //  point
+    public override bool Contains(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      foreach (var piece_line in ToSegments(decimal_precision)) {
+        if (piece_line.Contains(other, decimal_precision)) {
+          return true;
+        }
       }
-      return d;
+      return false;
     }
 
-    public LineSegmentSet2D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
-      var lineset = new List<LineSegment2D>();
+    //  geometry collection
+    public override bool Intersects(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(GeometryCollection2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(GeometryCollection2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
 
-      for (int i = 0; i < Nodes.Count - 1; i++) {
-        lineset.Add(LineSegment2D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision));
+    //  line
+    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point2D>();
+      int n = Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg = LineSegment2D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
+        var inter = seg.Intersection(other, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoint.Add((Point2D)inter.Value);
+        }
       }
 
-      return new LineSegmentSet2D(lineset);
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet2D(mpoint)) : new IntersectionResult();
     }
 
-    /// <summary>
-    /// Tells if two polylines intersect (one of them cuts throw the other, splitting it in two)
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public bool Intersects(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+    public override bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line segment
+    public override bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
-    /// <summary>
-    /// If two Polyline2D intersect, this return the point in which one of the is stroke through
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public IntersectionResult Intersection(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+    public override IntersectionResult Intersection(LineSegment2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point2D>();
+      int n = Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg2 = LineSegment2D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
+        var inter = seg2.Intersection(other, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoint.Add((Point2D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet2D(mpoint)) : new IntersectionResult();
+    }
+
+    public override bool Overlaps(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line segment set
+    public override bool Intersects(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(LineSegmentSet2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegmentSet2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polygon
+    public override bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(Polygon2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public override bool Overlaps(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polyline
+    public override bool Intersects(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
+    public override IntersectionResult Intersection(Polyline2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) {
       // TODO: bounding box test improvement
 
       var mpoints = new List<Point2D>();
@@ -181,6 +251,62 @@ namespace GeomSharp {
 
       return (mpoints.Count > 0) ? new IntersectionResult(new PointSet2D(mpoints)) : new IntersectionResult();
     }
+    public override bool Overlaps(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  ray
+    public override bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var mpoint = new List<Point2D>();
+      int n = Size;
+      for (int i = 0; i < n - 1; ++i) {
+        int i1 = i;
+        int i2 = i + 1;
+        var seg = LineSegment2D.FromPoints(Nodes[i1], Nodes[i2], decimal_precision);
+        var inter = seg.Intersection(other, decimal_precision);
+        if (inter.ValueType == typeof(Point2D)) {
+          mpoint.Add((Point2D)inter.Value);
+        }
+      }
+
+      return (mpoint.Count > 0) ? new IntersectionResult(new PointSet2D(mpoint)) : new IntersectionResult();
+    }
+
+    public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  triangle
+    public override bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(
+        Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) => throw new NotImplementedException("");
+    public override bool Overlaps(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    // own functions
+    public double Length() {
+      double d = 0;
+      foreach (var line_piece in ToSegments()) {
+        d += line_piece.Length();
+      }
+      return d;
+    }
+    public LineSegmentSet2D ToSegments(int decimal_precision = Constants.THREE_DECIMALS) {
+      var lineset = new List<LineSegment2D>();
+
+      for (int i = 0; i < Nodes.Count - 1; i++) {
+        lineset.Add(LineSegment2D.FromPoints(Nodes[i], Nodes[i + 1], decimal_precision));
+      }
+
+      return new LineSegmentSet2D(lineset);
+    }
 
     private int IndexOfNearestSegmentToPoint(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       (int i_min, double d_min) = (-1, double.MaxValue);
@@ -196,15 +322,6 @@ namespace GeomSharp {
       }
 
       return i_min;
-    }
-
-    public bool Contains(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
-      foreach (var piece_line in ToSegments(decimal_precision)) {
-        if (piece_line.Contains(point, decimal_precision)) {
-          return true;
-        }
-      }
-      return false;
     }
 
     public Point2D ProjectOnto(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {

@@ -64,7 +64,7 @@ namespace GeomSharp {
       info.AddValue("U", U, typeof(double));
       info.AddValue("V", V, typeof(double));
     }
-    
+
     public Point2D(SerializationInfo info, StreamingContext context) {
       // Reset the property value using the GetValue method.
       U = (double)info.GetValue("U", typeof(double));
@@ -89,6 +89,88 @@ namespace GeomSharp {
     public override Geometry2D FromWkt(string wkt) {
       throw new NotImplementedException();
     }
+
+    // relationship to all the other geometries
+
+    //  point
+    public override bool Contains(Point2D other,
+                                  int decimal_precision = Constants.THREE_DECIMALS) => AlmostEquals(other,
+                                                                                                    decimal_precision);
+
+    //  geometry collection
+    public override bool Intersects(GeometryCollection2D other,
+                                    int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult Intersection(
+        GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS) => new IntersectionResult();
+    public override bool Overlaps(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(GeometryCollection2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  line
+    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        new IntersectionResult();
+    public override bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  line segment
+    public override bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult
+    Intersection(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) => new IntersectionResult();
+    public override bool Overlaps(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  line segment set
+    public override bool Intersects(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult
+    Intersection(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) => new IntersectionResult();
+    public override bool Overlaps(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(LineSegmentSet2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  polygon
+    public override bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult
+    Intersection(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) => new IntersectionResult();
+    public override bool Overlaps(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  polyline
+    public override bool Intersects(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult
+    Intersection(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) => new IntersectionResult();
+    public override bool Overlaps(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  ray
+    public override bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        new IntersectionResult();
+    public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    //  triangle
+    public override bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) => false;
+    public override IntersectionResult
+    Intersection(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) => new IntersectionResult();
+    public override bool Overlaps(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Contains(this, decimal_precision);
+    public override IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
 
     // own functions
     public static Point2D FromVector(Vector v) {

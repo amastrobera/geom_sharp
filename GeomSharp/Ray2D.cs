@@ -85,6 +85,146 @@ namespace GeomSharp {
       throw new NotImplementedException();
     }
 
+    // relationship to all the other geometries
+
+    //  point
+    public override bool Contains(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      // if (p.AlmostEquals(Origin, decimal_precision)) {
+      //   return true;
+      // }
+
+      // check if the point is on the same line
+      if (Math.Round(Direction.PerpProduct(other - Origin), decimal_precision) != 0) {
+        return false;
+      }
+
+      // check if the point is within the boundaries of the segment
+      return IsAhead(other, decimal_precision);
+    }
+
+    //  geometry collection
+    public override bool Intersects(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(GeometryCollection2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(GeometryCollection2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(GeometryCollection2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  line
+    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public override bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlaps(this, decimal_precision);
+    public override IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  line segment
+    public override bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(LineSegment2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public override bool Overlaps(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlaps(this, decimal_precision);
+    public override IntersectionResult Overlap(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
+    //  line segment set
+    public override bool Intersects(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Intersection(LineSegmentSet2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override bool Overlaps(LineSegmentSet2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(LineSegmentSet2D other,
+                                               int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polygon
+    public override bool Intersects(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(Polygon2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public override bool Overlaps(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polygon2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  polyline
+    public override bool Intersects(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(Polyline2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public override bool Overlaps(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+    public override IntersectionResult Overlap(Polyline2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        throw new NotImplementedException("");
+
+    //  ray
+    public override bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
+      if (line_int.ValueType == typeof(NullValue)) {
+        return new IntersectionResult();
+      }
+
+      var Ps = (Point2D)line_int.Value;
+      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
+        return new IntersectionResult();
+      }
+
+      return new IntersectionResult(Ps);
+    }
+    public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (!IsParallel(other, decimal_precision)) {
+        return new IntersectionResult();
+      }
+
+      bool origin_in = other.Contains(Origin, decimal_precision);
+      bool other_origin_in = Contains(other.Origin, decimal_precision);
+
+      if (!other_origin_in && !origin_in) {
+        return new IntersectionResult();
+      }
+
+      // the other is contained in the ray
+      if (!other_origin_in && origin_in) {
+        return new IntersectionResult(this);
+      }
+
+      // ray's last point in, other's first point in
+      if (other_origin_in && !origin_in) {
+        return new IntersectionResult(other);
+      }
+      //  if (other_origin_in && origin_in)
+      //  the rays shoot towards each other
+
+      return new IntersectionResult(LineSegment2D.FromPoints(Origin, other.Origin));
+    }
+
+    //  triangle
+    public override bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(Triangle2D other,
+                                                    int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
+    public override bool Overlaps(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlaps(this, decimal_precision);
+    public override IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
+
     // own functions
     public Line2D ToLine() => Line2D.FromDirection(Origin, Direction);
 
@@ -112,94 +252,12 @@ namespace GeomSharp {
     public bool IsPerpendicular(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Direction.IsPerpendicular(other.Direction, decimal_precision);
 
-    public bool Contains(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {
-      // if (p.AlmostEquals(Origin, decimal_precision)) {
-      //   return true;
-      // }
-
-      // check if the point is on the same line
-      if (Math.Round(Direction.PerpProduct(p - Origin), decimal_precision) != 0) {
-        return false;
-      }
-
-      // check if the point is within the boundaries of the segment
-      return IsAhead(p, decimal_precision);
-    }
-
     public double DistanceTo(Point2D p) {
       if (IsBehind(p)) {
         return Origin.DistanceTo(p);
       }
 
       return ToLine().DistanceTo(p);
-    }
-
-    /// <summary>
-    /// Tells if two rays intersect (one of them cuts throw the other, splitting it in two)
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
-
-    /// <summary>
-    /// If two rays intersect, this return the point in which one of the is stroke through
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
-      if (line_int.ValueType == typeof(NullValue)) {
-        return new IntersectionResult();
-      }
-
-      var Ps = (Point2D)line_int.Value;
-      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
-        return new IntersectionResult();
-      }
-
-      return new IntersectionResult(Ps);
-    }
-
-    /// <summary>
-    /// Tells if two lines overlap (they share a common section)
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
-
-    /// <summary>
-    /// If two lines overlap, this function returns the shared section between them
-    /// The returned line segment follows the same direction as this segment
-    /// </summary>
-    /// <param name="other"></param>
-    /// <returns></returns>
-    public IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (!IsParallel(other, decimal_precision)) {
-        return new IntersectionResult();
-      }
-
-      bool origin_in = other.Contains(Origin, decimal_precision);
-      bool other_origin_in = Contains(other.Origin, decimal_precision);
-
-      if (!other_origin_in && !origin_in) {
-        return new IntersectionResult();
-      }
-
-      // the other is contained in the ray
-      if (!other_origin_in && origin_in) {
-        return new IntersectionResult(this);
-      }
-
-      // ray's last point in, other's first point in
-      if (other_origin_in && !origin_in) {
-        return new IntersectionResult(other);
-      }
-      //  if (other_origin_in && origin_in)
-      //  the rays shoot towards each other
-
-      return new IntersectionResult(LineSegment2D.FromPoints(Origin, other.Origin));
     }
   }
 
