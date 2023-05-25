@@ -305,14 +305,14 @@ namespace GeomSharp {
 
     //  triangle
     public override bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Intersects(other, decimal_precision);
+        other.Intersects(this, decimal_precision);
     public override IntersectionResult Intersection(Triangle2D other,
                                                     int decimal_precision = Constants.THREE_DECIMALS) =>
         other.Intersection(this, decimal_precision);
     public override bool Overlaps(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Overlaps(other, decimal_precision);
+        other.Overlaps(this, decimal_precision);
     public override IntersectionResult Overlap(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Overlap(other, decimal_precision);
+        other.Overlap(this, decimal_precision);
 
     // own functions
 

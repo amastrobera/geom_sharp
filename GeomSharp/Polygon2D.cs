@@ -7,6 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
 using GeomSharp.Extensions;
+using System.Net.NetworkInformation;
 
 namespace GeomSharp {
 
@@ -229,7 +230,7 @@ namespace GeomSharp {
                     Point2D Intersection)>();  // open-close + intersection point; the OPEN (or CLOSED) states cannot be
                                                // represented by enum inside a method, therefore they are a boolean
 
-      // Console.WriteLine("\n\tline=" + other.ToWkt(decimal_precision) + "\n\tpoly=" + ToWkt(decimal_precision));
+      // Console.WriteLine("\n\tline=" + line.ToWkt(decimal_precision) + "\n\tpoly=" + poly.ToWkt(decimal_precision));
 
       // test all edges intersections
       for (int i = 0; i < Size; ++i) {
@@ -293,16 +294,16 @@ namespace GeomSharp {
         if (i_open == int.MinValue) {
           // this is just a touch point, not an intersection
           // Console.WriteLine("Polygon2D to Line intersection failed to find i_open" +
-          //                  "\n\tpoly=" + ToWkt(decimal_precision) + "\n\tline=" +
-          //                  other.ToWkt(decimal_precision));
+          //                  "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" +
+          //                  line.ToWkt(decimal_precision));
           return new IntersectionResult();
         }
         int i_closed = GetFirstIndex(false, i_open);
         if (i_closed == int.MinValue) {
           // this is just a touch point, not an intersection
           // Console.WriteLine("Polygon2D to Line intersection failed to find i_closed" +
-          //                  "\n\tpoly=" + ToWkt(decimal_precision) + "\n\tline=" +
-          //                  other.ToWkt(decimal_precision));
+          //                  "\n\tpoly=" + poly.ToWkt(decimal_precision) + "\n\tline=" +
+          //                  line.ToWkt(decimal_precision));
           return new IntersectionResult();
         }
         // use indices from the list
