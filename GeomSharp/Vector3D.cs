@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
 using GeomSharp.Algebra;
+using Microsoft.SqlServer.Server;
 
 namespace GeomSharp {
   /// <summary>
@@ -211,6 +212,10 @@ namespace GeomSharp {
         // warning failed to deserialize
       }
     }
+
+    // operations with the plane
+    public bool IsPerpendicular(Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        plane.Normal.IsParallel(this, decimal_precision) && plane.AxisU.IsPerpendicular(this, decimal_precision);
   }
 
   /// <summary>

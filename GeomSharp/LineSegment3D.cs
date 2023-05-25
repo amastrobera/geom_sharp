@@ -370,5 +370,9 @@ namespace GeomSharp {
         other.Overlaps(this, decimal_precision);
     public override IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         other.Overlap(this, decimal_precision);
+
+    // operations with plane
+    public bool IsPerpendicular(Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ToLine().IsPerpendicular(plane, decimal_precision);  // && segment.Intersects(plane);
   }
 }

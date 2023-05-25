@@ -26,15 +26,16 @@ For triangles and polygons, the Overlap also include cases of adjacency (one+ ed
 
 ## Data Structures
 - Point
+- Set of Points
 - Vector
 - Line
 - Ray
 - (Line)Segment
+- Set of (Line)Segment
 - Triangle
 - Polyline
 - Polygon
-- PointSet
-- (Line)SegmentSet
+- GeometryCollection
 ... in 2D or 3D 
 - (TODO) Surface
 - (TODO) Polyhedron

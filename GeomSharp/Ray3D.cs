@@ -299,6 +299,10 @@ namespace GeomSharp {
 
       return ToLine().DistanceTo(p);
     }
+
+    // operations with plane
+    public bool IsPerpendicular(Plane plane, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ToLine().IsPerpendicular(plane, decimal_precision);  // && ray.IsAhead(plane.Origin);
   }
 
 }
