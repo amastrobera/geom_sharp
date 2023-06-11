@@ -117,9 +117,6 @@ namespace GeomSharp {
 
              ")";
     }
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
 
     // own functions
     public bool IsParallel(Line3D other,

@@ -129,10 +129,6 @@ namespace GeomSharp {
 
                   ")";
 
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
-
     // relationship to all the other geometries
 
     //  plane

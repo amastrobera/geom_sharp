@@ -141,10 +141,6 @@ namespace GeomSharp {
                                ")")) +
                   ")";
 
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
-
     // own functions
     public Point3D CenterOfMass() => Point3D.FromVector(
         Items.Select(s => (s.P0.ToVector() + s.P1.ToVector()) / 2.0).Aggregate((v1, v2) => v1 + v2) / Size);

@@ -81,9 +81,6 @@ namespace GeomSharp {
                            Origin.U + Direction.U,
                            Origin.V + Direction.V);
     }
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
 
     // relationship to all the other geometries
 

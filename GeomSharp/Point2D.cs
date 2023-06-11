@@ -86,10 +86,6 @@ namespace GeomSharp {
     public override string ToWkt(int precision = Constants.THREE_DECIMALS) =>
         string.Format("POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")", U, V);
 
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
-
     // relationship to all the other geometries
 
     //  point

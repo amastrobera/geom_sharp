@@ -140,10 +140,6 @@ namespace GeomSharp {
                                ")")) +
                   ")";
 
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
-
     // relationship to all the other geometries
 
     //  point

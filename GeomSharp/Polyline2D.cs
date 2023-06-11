@@ -127,9 +127,6 @@ namespace GeomSharp {
                                       String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), v.U, v.V))) +
 
                   ")";
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
 
     // relationship to all the other geometries
 

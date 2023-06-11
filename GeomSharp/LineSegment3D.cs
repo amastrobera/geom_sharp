@@ -88,10 +88,6 @@ namespace GeomSharp {
              ")";
     }
 
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
-
     // own functions
     public Line3D ToLine() => Line3D.FromPoints(P0, P1);
     public double Length() => (P1 - P0).Length();

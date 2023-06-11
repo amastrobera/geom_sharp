@@ -125,10 +125,6 @@ namespace GeomSharp {
       return s.ToString();
     }
 
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
-
     // relationship to all the other geometries
     // point
     public override bool Contains(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) =>

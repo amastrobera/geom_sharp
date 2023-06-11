@@ -156,9 +156,6 @@ namespace GeomSharp {
                                 Vertices[0].U,
                                 Vertices[0].V) +
                   "))";
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
 
     // relationship to all the other geometries
 
