@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.17</version>
+    <version>1.0.18</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -27,8 +27,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
     <releaseNotes>
-		- reinstated Extension module, for additional operations
-		  to be used with "using GeomSharp.Extensions"
+		- (WIP) function "FromWkt" for each 2D and 3D geometry
+		- (WIP) wkt tests
+		- (WIP) stored unit-tests in wkt format with all our known edge-cases
 	</releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
