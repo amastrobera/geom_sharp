@@ -184,7 +184,7 @@ namespace GeomSharpTests {
       return new Vector3D(Seed.Next(IMin, IMax), Seed.Next(IMin, IMax), Seed.Next(IMin, IMax));
     }
 
-    public static (Line3D Segment, Point3D p0, Point3D p1) MakeLine3D(int IMin = -10, int IMax = 10) {
+    public static (Line3D Line, Point3D p0, Point3D p1) MakeLine3D(int IMin = -10, int IMax = 10) {
       var p0 = new Point3D(Seed.Next(IMin, IMax), Seed.Next(IMin, IMax), Seed.Next(IMin, IMax));
       var p1 = new Point3D(Seed.Next(IMin, IMax), Seed.Next(IMin, IMax), Seed.Next(IMin, IMax));
 

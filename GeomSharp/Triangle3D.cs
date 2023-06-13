@@ -142,7 +142,13 @@ namespace GeomSharp {
     // well known text base class overrides
     public override string ToWkt(int decimal_precision = Constants.THREE_DECIMALS) {
       return string.Format(
-          "POLYGON (({0:F2} {1:F2} {2:F2}, {3:F2} {4:F2} {5:F2}, {6:F2} {7:F2} {8:F2}, {0:F2} {1:F2} {2:F2}))",
+          "TRIANGLE (" +
+              String.Format(
+                  "{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}3:F{1:D}{2},{0}4:F{1:D}{2} {0}5:F{1:D}{2} {0}6:F{1:D}{2},{0}7:F{1:D}{2} {0}8:F{1:D}{2} {0}9:F{1:D}{2}",
+                  "{",
+                  decimal_precision,
+                  "}") +
+              ")",
           P0.X,
           P0.Y,
           P0.Z,

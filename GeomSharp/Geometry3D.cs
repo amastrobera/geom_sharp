@@ -40,67 +40,6 @@ namespace GeomSharp {
                        int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
                                                                                               ToWkt(decimal_precision));
 
-    private static string StripWktFromBrackets(string wkt) {
-      int first_bracket = wkt.IndexOf('(');
-      if (first_bracket < 0) {
-        throw new Exception("missing first bracket");
-      }
-      int last_bracket = wkt.IndexOf(')');
-      if (last_bracket < 0) {
-        throw new Exception("missing last bracket");
-      }
-
-      if (last_bracket <= first_bracket + 1) {
-        throw new Exception("() contain no data");
-      }
-
-      return wkt.Substring(first_bracket + 1, last_bracket - first_bracket - 1);
-    }
-
-    private static double[][][] FromWktPolygonSetBlock(string wkt,
-                                                       char polygon_delim = ',',
-                                                       char point_delim = ',',
-                                                       char num_delim = ' ',
-                                                       int decimal_precision = Constants.THREE_DECIMALS) {
-      var poly_blocks = wkt.Split(polygon_delim);
-
-      var polys = new double [poly_blocks.Length][][];
-      for (int i = 0; i < poly_blocks.Length; ++i) {
-        polys[i] = FromWktPointListBlock(StripWktFromBrackets(poly_blocks[i]), point_delim, num_delim);
-
-        // TODO: add decimal_precision check
-        if (Math.Round(polys[i][0][0] - polys[i][polys[i].Length][0], decimal_precision) != 0 ||
-            Math.Round(polys[i][0][1] - polys[i][polys[i].Length][1], decimal_precision) != 0) {
-          throw new Exception("first point != last point in polygon");
-        }
-      }
-
-      return polys;
-    }
-
-    private static double[][] FromWktPointListBlock(string wkt, char point_delim = ',', char num_delim = ' ') {
-      var point_blocks = wkt.Split(point_delim);
-
-      var points = new double [point_blocks.Length][];
-      for (int i = 0; i < point_blocks.Length; ++i) {
-        points[i] = FromWktPointBlock(point_blocks[i], num_delim);
-      }
-
-      return points;
-    }
-
-    private static double[] FromWktPointBlock(string wkt, char num_delim = ' ') {
-      var numbers = wkt.Split(num_delim);
-
-      if (numbers.Length != 3) {
-        throw new Exception("no three doubles");
-      }
-
-      return new double[] { double.Parse(numbers[0]),
-                            double.Parse(numbers[1]),
-                            double.Parse(numbers[2]) };  // can throw too
-    }
-
     public static Geometry3D FromWkt(string wkt) {
       string known_wkt_string = "";
       string known_empty = "EMPTY";
@@ -121,12 +60,10 @@ namespace GeomSharp {
           return new Point3D(numbers[0], numbers[1], numbers[2]);
         }
 
-        // TODO: Line3D
-
         // LineSegment3D
         // Polyline3D
         known_wkt_string = "LINESTRING";
-        if (wkt.StartsWith(known_wkt_string)) {
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
           if (wkt.Trim() == known_wkt_string + " " + known_empty) {
             return null;
           }
@@ -148,11 +85,83 @@ namespace GeomSharp {
           }
         }
 
-        // TODO: Ray3D
+        // Line3D
+        known_wkt_string = "LINE";
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
+          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+            return null;
+          }
+
+          var geoms = StripWktFromBrackets(wkt).Split(',');
+          if (geoms.Length != 2) {
+            throw new Exception("number of geometries != 2");
+          }
+
+          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWkt(geoms[1]));
+
+          if (geom1 is Point3D && geom2 is null) {
+            var point = (geom1 as Point3D);
+            var null_geom = geoms[1];
+            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
+              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
+              return Line3D.FromDirection(point, (new Vector3D(vec_data[0], vec_data[1], vec_data[2]).Normalize()));
+            }
+            throw new Exception("unexpected second geometry type: " + null_geom);
+          }
+
+          if (geom1 is null && geom2 is Point3D) {
+            var point = (geom2 as Point3D);
+            var null_geom = geoms[0];
+            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
+              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
+              return Line3D.FromDirection(point, (new Vector3D(vec_data[0], vec_data[1], vec_data[2]).Normalize()));
+            }
+            throw new Exception("unexpected first geometry type: " + null_geom);
+          }
+
+          throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
+        }
+
+        // Ray3D
+        known_wkt_string = "RAY";
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
+          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+            return null;
+          }
+
+          var geoms = StripWktFromBrackets(wkt).Split(',');
+          if (geoms.Length != 2) {
+            throw new Exception("number of geometries != 2");
+          }
+
+          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWkt(geoms[1]));
+
+          if (geom1 is Point3D && geom2 is null) {
+            var point = (geom1 as Point3D);
+            var null_geom = geoms[1];
+            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
+              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
+              return new Ray3D(point, (new Vector3D(vec_data[0], vec_data[1]).Normalize()));
+            }
+            throw new Exception("unexpected second geometry type: " + null_geom);
+          }
+
+          if (geom1 is null && geom2 is Point3D) {
+            var point = (geom2 as Point3D);
+            var null_geom = geoms[0];
+            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
+              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
+              return new Ray3D(point, (new Vector3D(vec_data[0], vec_data[1]).Normalize()));
+            }
+            throw new Exception("unexpected first geometry type: " + null_geom);
+          }
+
+          throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
+        }
 
         // Triangle3D
         known_wkt_string = "TRIANGLE";
-        if (wkt.StartsWith(known_wkt_string)) {
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
           if (wkt.Trim() == known_wkt_string + " " + known_empty) {
             return null;
           }
@@ -171,7 +180,7 @@ namespace GeomSharp {
         // Polygon3D
         // Triangle3D
         known_wkt_string = "POLYGON";
-        if (wkt.StartsWith(known_wkt_string)) {
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
           if (wkt.Trim() == known_wkt_string + " " + known_empty) {
             return null;
           }
@@ -196,7 +205,7 @@ namespace GeomSharp {
 
         // PointSet3D
         known_wkt_string = "MULTIPOINT";
-        if (wkt.StartsWith(known_wkt_string)) {
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
           if (wkt.Trim() == known_wkt_string + " " + known_empty) {
             return null;
           }
@@ -213,7 +222,7 @@ namespace GeomSharp {
 
         // LineSegmentSet3D
         known_wkt_string = "MULTILINESTRING";
-        if (wkt.StartsWith(known_wkt_string)) {
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
           if (wkt.Trim() == known_wkt_string + " " + known_empty) {
             return null;
           }
@@ -232,7 +241,7 @@ namespace GeomSharp {
 
         // GeometryCollection3D
         known_wkt_string = "GEOMETRYCOLLECTION";
-        if (wkt.StartsWith(known_wkt_string)) {
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
           if (wkt.Trim() == known_wkt_string + " " + known_empty) {
             return null;
           }
@@ -313,6 +322,69 @@ namespace GeomSharp {
     public abstract IntersectionResult Intersection(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS);
     public abstract bool Overlaps(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS);
     public abstract IntersectionResult Overlap(Triangle3D other, int decimal_precision = Constants.THREE_DECIMALS);
+
+    // private functions
+
+    private static string StripWktFromBrackets(string wkt) {
+      int first_bracket = wkt.IndexOf('(');
+      if (first_bracket < 0) {
+        throw new Exception("missing first bracket");
+      }
+      int last_bracket = wkt.LastIndexOf(')');
+      if (last_bracket < 0) {
+        throw new Exception("missing last bracket");
+      }
+
+      if (last_bracket <= first_bracket + 1) {
+        throw new Exception("() contain no data");
+      }
+
+      return wkt.Substring(first_bracket + 1, last_bracket - first_bracket - 1);
+    }
+
+    private static double[][][] FromWktPolygonSetBlock(string wkt,
+                                                       char polygon_delim = ',',
+                                                       char point_delim = ',',
+                                                       char num_delim = ' ',
+                                                       int decimal_precision = Constants.THREE_DECIMALS) {
+      var poly_blocks = wkt.Split(polygon_delim);
+
+      var polys = new double [poly_blocks.Length][][];
+      for (int i = 0; i < poly_blocks.Length; ++i) {
+        polys[i] = FromWktPointListBlock(StripWktFromBrackets(poly_blocks[i]), point_delim, num_delim);
+
+        // TODO: add decimal_precision check
+        if (Math.Round(polys[i][0][0] - polys[i][polys[i].Length][0], decimal_precision) != 0 ||
+            Math.Round(polys[i][0][1] - polys[i][polys[i].Length][1], decimal_precision) != 0) {
+          throw new Exception("first point != last point in polygon");
+        }
+      }
+
+      return polys;
+    }
+
+    private static double[][] FromWktPointListBlock(string wkt, char point_delim = ',', char num_delim = ' ') {
+      var point_blocks = wkt.Split(point_delim);
+
+      var points = new double [point_blocks.Length][];
+      for (int i = 0; i < point_blocks.Length; ++i) {
+        points[i] = FromWktPointBlock(point_blocks[i], num_delim);
+      }
+
+      return points;
+    }
+
+    private static double[] FromWktPointBlock(string wkt, char num_delim = ' ') {
+      var numbers = wkt.Split(num_delim);
+
+      if (numbers.Length != 3) {
+        throw new Exception("no three doubles");
+      }
+
+      return new double[] { double.Parse(numbers[0]),
+                            double.Parse(numbers[1]),
+                            double.Parse(numbers[2]) };  // can throw too
+    }
   }
 
 }
