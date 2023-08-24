@@ -109,7 +109,7 @@ namespace GeomSharpTests {
     }
 
     [RepeatedTestMethod(1)]
-    [Ignore("TODO: fix MakeSimplePolyline2D loop never ends")]
+    //[Ignore("TODO: fix MakeSimplePolyline2D loop never ends")]
     public void Polyline2D() {
       string file_name = "Polyline2D.wkt";
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
