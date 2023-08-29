@@ -1,4 +1,5 @@
 ﻿
+using GeomSharp.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,18 +24,30 @@ namespace GeomSharp {
                   UnitVector3D u_axis,
                   UnitVector3D v_axis) => (Origin, Normal, AxisU, AxisV) = (origin, normal, u_axis, v_axis);
 
+    public static Plane TryFromPoints(Point3D p0,
+                                      Point3D p1,
+                                      Point3D p2,
+                                      int decimal_precision = Constants.THREE_DECIMALS) {
+      Plane p = null;
+      try {
+        p = FromPoints(p0, p1, p2, decimal_precision);
+      } catch (Exception) {
+        p = null;
+      }
+      return p;
+    }
+
     public static Plane FromPoints(Point3D p0,
                                    Point3D p1,
                                    Point3D p2,
                                    int decimal_precision = Constants.THREE_DECIMALS) {
-      var U = p1 - p0;
-      var V = p2 - p0;
-      if (Math.Round(U.Length(), decimal_precision) == 0 || Math.Round(V.Length(), decimal_precision) == 0) {
-        throw new ArithmeticException("tried to create a plane from two repeated points and another");
-      }
-      if (U.IsParallel(V, decimal_precision)) {
+      if (p0.AreCollinear(p1, p2, decimal_precision)) {
         throw new ArithmeticException("tried to create a plane from collinear points");
       }
+
+      var U = p1 - p0;
+      var V = p2 - p0;
+
       // make U and V perpendicular by using the normal
       var n = U.CrossProduct(V).Normalize();
       var u = U.Normalize();
