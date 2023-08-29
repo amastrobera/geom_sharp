@@ -60,6 +60,44 @@ namespace GeomSharp.Collections {
       return points.Sum() / points.Count;
     }
 
+    public static Point2D Centroid(this List<Point2D> points) {
+      int n = points.Count;
+      if (n == 0) {
+        return Point2D.Zero;
+      }
+
+      if (n == 1) {
+        return points[0];
+      }
+
+      if (n == 2) {
+        return points.Average();
+      }
+
+      double signed_area = 0;
+
+      (double cx, double cy) = (0, 0);
+
+      for (int i = 0; i < n; i++) {
+        int j = (i + 1) % n;
+
+        double signed_area_piece = points[i].U * points[j].V - points[i].V * points[j].U;
+        signed_area += signed_area_piece;
+
+        cx += (points[i].U + points[j].U) * signed_area_piece;
+        cy += (points[i].V + points[j].V) * signed_area_piece;
+      }
+
+      if (Math.Round(signed_area, Constants.THREE_DECIMALS) != 0) {
+        cx /= 6 * signed_area;
+        cy /= 6 * signed_area;
+
+        return new Point2D(cx, cy);
+      }
+
+      return points.Average();  // fallback to simple average in case the areas of the polygons eliminate each other
+    }
+
     public static List<Point3D> RemoveDuplicates(this List<Point3D> point_list,
                                                  int decimal_precision = Constants.THREE_DECIMALS) {
       if (point_list.Count == 0) {
@@ -77,6 +115,23 @@ namespace GeomSharp.Collections {
       return key_dictionary.OrderBy(kv => kv.Value).Select(kv => point_list[kv.Value]).ToList();
     }
 
+    public static bool AreCollinear(this Point3D p1,
+                                    Point3D p2,
+                                    Point3D p3,
+                                    int decimal_precision = Constants.THREE_DECIMALS) {
+      // check if p2 is on the same line p1->p3, and if so remove it
+      if (p1.AlmostEquals(p2, decimal_precision) || p2.AlmostEquals(p3, decimal_precision)) {
+        return true;
+      }
+      // check if the two lines are parallel
+      var U = p2 - p1;
+      var V = p3 - p1;
+      if (U.IsParallel(V, decimal_precision)) {
+        return true;
+      }
+
+      return false;
+    }
     /// <summary>
     /// /// Remove all points that are on the same line, to build the minimum polyline
     /// </summary>
@@ -108,27 +163,17 @@ namespace GeomSharp.Collections {
           break;
         }
 
-        // remove equal points
-        // check if p2 is on the same line p1->p3, and if so remove it
-        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision) ||
-            new_polyline[i2].AlmostEquals(new_polyline[i1], decimal_precision)) {
-          new_polyline.RemoveAt(i2);
+        // remove collinear points
+        if (new_polyline[i1].AreCollinear(new_polyline[i2], new_polyline[i3], decimal_precision)) {
+          // find and remove the point in the middle (extend the edge to the next point)
+          if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
+                         decimal_precision) >= 0) {
+            new_polyline.RemoveAt(i2);
+          } else {
+            new_polyline.RemoveAt(i3);
+          }
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
-        } else {
-          // check if p2 is on the same line p1->p3, and if so remove it
-          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
-            // find and remove the point in the middle (extend the edge to the next point)
-            if (Math.Round(
-                    new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
-                    decimal_precision) >= 0) {
-              new_polyline.RemoveAt(i2);
-            } else {
-              new_polyline.RemoveAt(i3);
-            }
-            --n;  // the size of items has decreased
-            --i;  // analyze again the same start point in the next iteration
-          }
         }
       }
 

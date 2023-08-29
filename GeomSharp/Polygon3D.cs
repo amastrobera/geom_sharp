@@ -522,34 +522,23 @@ namespace GeomSharp {
                           new Point3D(Vertices.Max(v => v.X), Vertices.Max(v => v.Y), Vertices.Max(v => v.Z)));
 
     public static Plane ApproxPlane(IEnumerable<Point3D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      Func<Point3D> CenterOfMass = () => {
-        var _v = new Vector(new double[] { 0, 0, 0 });
-        int _n = points.Count();
-        if (_n < 3) {
-          throw new ArgumentException("ApproxPlane called with less than 3 points");
-        }
-        foreach (var p in points) {
-          _v += p.ToVector() / _n;
-        }
-
-        return Point3D.FromVector(_v);
-      };
-
-      // TODO: pre-sort CCW on a given plane, so that the average normal computed below will go in the same
-      // direction!
-
-      var cm = CenterOfMass();
-      int n = points.Count();
+      var point_list = points.ToList().RemoveDuplicates(decimal_precision).RemoveCollinearPoints(decimal_precision);
+      var center = point_list.Average();
+      int n = point_list.Count();
       var avg_norm_vec = new Vector(new double[] { 0, 0, 0 });
-      var point_list = new List<Point3D>(points);
       int divisor = n;
       for (int i = 0; i <= n; i++) {
         (int i1, int i2) = (i % n, (i + 1) % n);
-        if (point_list[i1].AlmostEquals(point_list[i2], decimal_precision)) {
+        var plane = Plane.TryFromPoints(center, point_list[i1], point_list[i2], decimal_precision);
+        if (plane is null) {
           ++i;
           --divisor;
         } else {
-          avg_norm_vec += Plane.FromPoints(cm, point_list[i1], point_list[i2]).Normal.ToVector();
+          var norm = plane.Normal;
+          bool is_norm_negative = (Math.Round(norm.Z, decimal_precision) < 0);
+          avg_norm_vec +=
+              norm.ToVector() *
+              (is_norm_negative ? -1 : 1);  // force all normals to point up! we must have a CCW sorted set of points
         }
       }
 
@@ -559,7 +548,7 @@ namespace GeomSharp {
             decimal_precision.ToString());
       }
       avg_norm_vec /= divisor;
-      return Plane.FromPointAndNormal(cm, Vector3D.FromVector(avg_norm_vec).Normalize(), decimal_precision);
+      return Plane.FromPointAndNormal(center, Vector3D.FromVector(avg_norm_vec).Normalize(), decimal_precision);
     }
 
     /// <summary>

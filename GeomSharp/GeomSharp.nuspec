@@ -27,10 +27,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!-- Any details about this particular release -->
     <releaseNotes>
-		- (WIP) function "FromWkt" for each 2D and 3D geometry
-		- (WIP) wkt tests
-		- (WIP) stored unit-tests in wkt format with all our known edge-cases
-	</releaseNotes>
+		- bugfix with ApproxPlane function
+    </releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
             nuget.org gallery uses information you add in the portal. 
