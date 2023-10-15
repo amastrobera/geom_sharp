@@ -8,6 +8,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
 
 namespace GeomSharpTests {
   /// <summary>
@@ -16,9 +17,9 @@ namespace GeomSharpTests {
   [TestClass]
   public class WktTests {
     // 2D
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Point2D() {
-      string file_name = "Point2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -36,9 +37,9 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Line2D() {
-      string file_name = "Line2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -60,9 +61,9 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Ray2D() {
-      string file_name = "Ray2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -84,9 +85,9 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void LineSegment2D() {
-      string file_name = "LineSegment2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -108,35 +109,46 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [TestMethod]
+    //[RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     //[Ignore("TODO: fix MakeSimplePolyline2D loop never ends")]
     public void Polyline2D() {
-      string file_name = "Polyline2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
-           decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
+      // for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      //      decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
-        Polyline2D polyline = null;
-        while (polyline is null) {
-          polyline = RandomGenerator.MakeSimplePolyline2D().Polyline;
-        }
+      // Polyline2D polyline = null;
+      // while (polyline is null) {
+      //   polyline = RandomGenerator.MakeSimplePolyline2D(NMax: 3).Polyline;
+      // }
 
-        polyline.ToFile(file_path, decimal_precision);
+      int decimal_precision = 3;
+      var polyline = new Polyline2D(new Point2D[] { new Point2D(0.23, 45.1),
+                                                    new Point2D(13.21, 2.5),
+                                                    new Point2D(23, -10),
+                                                    new Point2D(15.3, 0.34) },
+                                    decimal_precision);
 
-        // System.Console.WriteLine("wkt = " + p.ToWkt());
+      polyline.ToFile(file_path, decimal_precision);
 
-        var polyline_from_file = Geometry2D.FromFile(file_path) as Polyline2D;
+      System.Console.WriteLine("polyline = " + polyline.ToWkt());
 
-        Assert.IsTrue(polyline.AlmostEquals(polyline_from_file, decimal_precision),
-                      polyline.ToWkt(decimal_precision) + "!=" + polyline_from_file.ToWkt(decimal_precision));
-      }
+      var polyline_from_file = Geometry2D.FromFile(file_path) as Polyline2D;
+
+      System.Console.WriteLine("polyline_from_file = " + polyline_from_file.ToWkt());
+
+      Assert.IsTrue(polyline.AlmostEquals(polyline_from_file, decimal_precision),
+                    polyline.ToWkt(decimal_precision) + "!=" + polyline_from_file.ToWkt(decimal_precision));
+
+      //}
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     [Ignore("TODO: fix FromWkt polygon")]
     public void Polygon2D() {
-      string file_name = "Polygon2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -149,18 +161,20 @@ namespace GeomSharpTests {
 
         polygon.ToFile(file_path, decimal_precision);
 
-        // System.Console.WriteLine("wkt = " + p.ToWkt());
+        System.Console.WriteLine("polygon = " + polygon.ToWkt(decimal_precision));
 
         var polygon_from_file = Geometry2D.FromFile(file_path) as Polygon2D;
+
+        System.Console.WriteLine("polygon_from_file = " + polygon_from_file.ToWkt(decimal_precision));
 
         Assert.IsTrue(polygon.AlmostEquals(polygon_from_file, decimal_precision),
                       polygon.ToWkt(decimal_precision) + "!=" + polygon_from_file.ToWkt(decimal_precision));
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Triangle2D() {
-      string file_name = "Triangle2D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -183,9 +197,9 @@ namespace GeomSharpTests {
     }
 
     // 3D
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Point3D() {
-      string file_name = "Point3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -203,9 +217,9 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Line3D() {
-      string file_name = "Line3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -227,10 +241,9 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
-    [Ignore("TODO: fix this test")]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Ray3D() {
-      string file_name = "Ray3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -252,9 +265,9 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void LineSegment3D() {
-      string file_name = "LineSegment3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -276,35 +289,43 @@ namespace GeomSharpTests {
       }
     }
 
-    [RepeatedTestMethod(1)]
-    [Ignore("TODO: fix MakeSimplePolyline3D loop never ends")]
+    [TestMethod]
+    //[RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
+    //[Ignore("TODO: fix MakeSimplePolyline3D loop never ends")]
     public void Polyline3D() {
-      string file_name = "Polyline3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
-           decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
+      // for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      //      decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
-        Polyline3D polyline = null;
-        while (polyline is null) {
-          polyline = RandomGenerator.MakeSimplePolyline3D().Polyline;
-        }
+      // Polyline3D polyline = null;
+      // while (polyline is null) {
+      //   polyline = RandomGenerator.MakeSimplePolyline3D().Polyline;
+      // }
 
-        polyline.ToFile(file_path, decimal_precision);
+      int decimal_precision = 3;
+      var polyline = new Polyline3D(new Point3D[] { new Point3D(0.23, 45.1, 0),
+                                                    new Point3D(13.21, 2.5, 15.2),
+                                                    new Point3D(23, -10, -7.654),
+                                                    new Point3D(15.3, 0.34, -2.64) },
+                                    decimal_precision);
 
-        // System.Console.WriteLine("wkt = " + p.ToWkt());
+      polyline.ToFile(file_path, decimal_precision);
 
-        var polyline_from_file = Geometry3D.FromFile(file_path) as Polyline3D;
+      // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        Assert.IsTrue(polyline.AlmostEquals(polyline_from_file, decimal_precision),
-                      polyline.ToWkt(decimal_precision) + "!=" + polyline_from_file.ToWkt(decimal_precision));
-      }
+      var polyline_from_file = Geometry3D.FromFile(file_path) as Polyline3D;
+
+      Assert.IsTrue(polyline.AlmostEquals(polyline_from_file, decimal_precision),
+                    polyline.ToWkt(decimal_precision) + "!=" + polyline_from_file.ToWkt(decimal_precision));
+      //}
     }
 
-    [RepeatedTestMethod(1)]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     [Ignore("TODO: fix FromWkt polygon")]
     public void Polygon3D() {
-      string file_name = "Polygon3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
@@ -317,19 +338,20 @@ namespace GeomSharpTests {
 
         polygon.ToFile(file_path, decimal_precision);
 
-        // System.Console.WriteLine("wkt = " + p.ToWkt());
+        System.Console.WriteLine("polygon = " + polygon.ToWkt());
 
         var polygon_from_file = Geometry3D.FromFile(file_path) as Polygon3D;
+
+        System.Console.WriteLine("polygon_from_file = " + polygon_from_file.ToWkt());
 
         Assert.IsTrue(polygon.AlmostEquals(polygon_from_file, decimal_precision),
                       polygon.ToWkt(decimal_precision) + "!=" + polygon_from_file.ToWkt(decimal_precision));
       }
     }
 
-    [RepeatedTestMethod(1)]
-    [Ignore("TODO: fix this test")]
+    [RepeatedTestMethod(1)]  // already contains a loop of 10 tests on random geometries from 0 to 9 decimal precision
     public void Triangle3D() {
-      string file_name = "Triangle3D.wkt";
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
       for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;

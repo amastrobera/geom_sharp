@@ -54,7 +54,9 @@ namespace GeomSharp {
         other.GetType() == typeof(Line2D) && this.AlmostEquals(other as Line2D, decimal_precision);
 
     public bool AlmostEquals(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        !(other is null) && Direction.AlmostEquals(other.Direction, decimal_precision);
+        !(other is null) && this.Contains(other.Origin, decimal_precision) &&
+        (Direction.AlmostEquals(other.Direction, decimal_precision) ||
+         Direction.AlmostEquals(-1 * other.Direction, decimal_precision));
 
     // comparison operators
     public static bool operator ==(Line2D a, Line2D b) {
@@ -94,7 +96,7 @@ namespace GeomSharp {
 
     // well known text base class overrides
     public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return "LINE (" + Origin.ToWkt(precision) + "," + Direction.ToWkt(precision) + ")";
+      return "LINE (" + Origin.ToWkt(precision) + ", " + Direction.ToWkt(precision) + ")";
     }
 
     // relationship to all the other geometries

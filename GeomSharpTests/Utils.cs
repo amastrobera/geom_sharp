@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using GeomSharp;
 using GeomSharp.Algebra;
+using GeomSharp.Collections;
 using GeomSharp.Transformation;
 
 namespace GeomSharpTests {
@@ -141,7 +142,7 @@ namespace GeomSharpTests {
               new Point2D(c.U + r * Math.Cos(start_rads + (i * rads)), c.V + r * Math.Sin(start_rads + (i * rads))));
         }
 
-        return (new Polygon2D(cv_points), c, r, n);
+        return (Polygon2D.ConvexHull(cv_points), c, r, n);
       } catch (Exception) {
       }
       return (null, null, 0, 0);
@@ -168,8 +169,11 @@ namespace GeomSharpTests {
               new Point2D(pi.U + r * Math.Cos(start_rads + (i * rads)), pi.V + r * Math.Sin(start_rads + (i * rads))));
         }
 
+        // System.Console.WriteLine("cv_points=" + cv_points.ToWkt());
+
         return (new Polyline2D(cv_points), direction, n);
-      } catch (Exception) {
+      } catch (Exception ex) {
+        // System.Console.WriteLine("ex=" + ex.Message);
       }
       return (null, null, 0);
     }
@@ -275,7 +279,7 @@ namespace GeomSharpTests {
         foreach (var p in random_poly_2d.Polygon) {
           points.Add(ref_plane.Evaluate(p));
         }
-        return (new Polygon3D(points), c, r, n);
+        return (Polygon3D.ConvexHull(points), c, r, n);
 
       } catch (Exception) {
       }

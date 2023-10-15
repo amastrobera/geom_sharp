@@ -42,15 +42,40 @@ namespace GeomSharp {
                        int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
                                                                                               ToWkt(decimal_precision));
 
-    public static Geometry2D FromWkt(string wkt) {
+    private static Vector2D FromWktVector(string wkt) {
+      wkt = wkt.Trim();
+
+      string known_empty = "EMPTY";
+
+      string known_wkt_string = "VECTOR";
+      if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
+        if (wkt == known_wkt_string + " " + known_empty) {
+          return null;
+        }
+
+        var data = FromWktPointListBlock(StripWktFromBrackets(wkt));
+
+        if (data.Length > 1) {
+          throw new Exception("more than one point");
+        }
+        var numbers = data[0];
+        return new Vector2D(numbers[0], numbers[1]);
+      }
+
+      return null;
+    }
+
+    public static Geometry2D FromWkt(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
       string known_wkt_string = "";
       string known_empty = "EMPTY";
 
       try {
+        wkt = wkt.Trim();
+
         // Point2D
         known_wkt_string = "POINT";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -66,7 +91,7 @@ namespace GeomSharp {
         // Polyline2D
         known_wkt_string = "LINESTRING";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -77,19 +102,21 @@ namespace GeomSharp {
 
           if (data.Length == 2) {
             // TODO: assess the file's decimal precision
-            return LineSegment2D.FromPoints(new Point2D(data[0][0], data[0][1]), new Point2D(data[1][0], data[1][1]));
+            return LineSegment2D.FromPoints(new Point2D(data[0][0], data[0][1]),
+                                            new Point2D(data[1][0], data[1][1]),
+                                            decimal_precision);
           }
 
           if (data.Length > 2) {
             // TODO: assess the file's decimal precision
-            return new Polyline2D(data.Select(d => new Point2D(d[0], d[1])));
+            return new Polyline2D(data.Select(d => new Point2D(d[0], d[1])), decimal_precision);
           }
         }
 
         // Line2D
         known_wkt_string = "LINE";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -98,35 +125,30 @@ namespace GeomSharp {
             throw new Exception("number of geometries != 2");
           }
 
-          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWkt(geoms[1]));
+          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWktVector(geoms[1]));
 
-          if (geom1 is Point2D && geom2 is null) {
-            var point = (geom1 as Point2D);
-            var null_geom = geoms[1];
-            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
-              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
-              return Line2D.FromDirection(point, (new Vector2D(vec_data[0], vec_data[1]).Normalize()));
+          if (geom1 is null || geom2 is null) {
+            // try the other way around
+            (var geom21, var geom22) = (FromWktVector(geoms[0]), FromWkt(geoms[1]));
+
+            if (geom21 is null || geom22 is null) {
+              throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
             }
-            throw new Exception("unexpected second geometry type: " + null_geom);
+
+            (geom1, geom2) = (geom22, geom21);  // assign to the original variables
           }
 
-          if (geom1 is null && geom2 is Point2D) {
-            var point = (geom2 as Point2D);
-            var null_geom = geoms[0];
-            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
-              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
-              return Line2D.FromDirection(point, (new Vector2D(vec_data[0], vec_data[1]).Normalize()));
-            }
-            throw new Exception("unexpected first geometry type: " + null_geom);
+          if (!(geom1 is Point2D)) {
+            throw new Exception("unexpected first geometry type: " + geom1.ToWkt());
           }
 
-          throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
+          return Line2D.FromDirection((geom1 as Point2D), geom2.Normalize());
         }
 
         // Ray2D
         known_wkt_string = "RAY";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -135,35 +157,30 @@ namespace GeomSharp {
             throw new Exception("number of geometries != 2");
           }
 
-          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWkt(geoms[1]));
+          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWktVector(geoms[1]));
 
-          if (geom1 is Point2D && geom2 is null) {
-            var point = (geom1 as Point2D);
-            var null_geom = geoms[1];
-            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
-              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
-              return new Ray2D(point, (new Vector2D(vec_data[0], vec_data[1]).Normalize()));
+          if (geom1 is null || geom2 is null) {
+            // try the other way around
+            (var geom21, var geom22) = (FromWktVector(geoms[0]), FromWkt(geoms[1]));
+
+            if (geom21 is null || geom22 is null) {
+              throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
             }
-            throw new Exception("unexpected second geometry type: " + null_geom);
+
+            (geom1, geom2) = (geom22, geom21);  // assign to the original variables
           }
 
-          if (geom1 is null && geom2 is Point2D) {
-            var point = (geom2 as Point2D);
-            var null_geom = geoms[0];
-            if (null_geom.StartsWith("VECTOR", StringComparison.InvariantCultureIgnoreCase)) {
-              var vec_data = FromWktPointBlock(StripWktFromBrackets(null_geom));
-              return new Ray2D(point, (new Vector2D(vec_data[0], vec_data[1]).Normalize()));
-            }
-            throw new Exception("unexpected first geometry type: " + null_geom);
+          if (!(geom1 is Point2D)) {
+            throw new Exception("unexpected first geometry type: " + geom1.ToWkt());
           }
 
-          throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
+          return new Ray2D(geom1 as Point2D, geom2.Normalize());
         }
 
         // Triangle2D
         known_wkt_string = "TRIANGLE";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -182,11 +199,12 @@ namespace GeomSharp {
         // Triangle2D
         known_wkt_string = "POLYGON";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
           var data = FromWktPolygonSetBlock(StripWktFromBrackets(wkt));
+
           if (data.Length == 1 && data[0].Length == 3) {
             // it's a triangle
             // TODO: assess decimal precision
@@ -201,13 +219,13 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return new Polygon2D(data[0].Select(d => new Point2D(d[0], d[1])));
+          return new Polygon2D(data[0].Select(d => new Point2D(d[0], d[1])), decimal_precision);
         }
 
         // PointSet2D
         known_wkt_string = "MULTIPOINT";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -218,13 +236,13 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return new PointSet2D(data.Select(d => new Point2D(d[0], d[1])));
+          return new PointSet2D(data.Select(d => new Point2D(d[0], d[1])), decimal_precision);
         }
 
         // LineSegmentSet2D
         known_wkt_string = "MULTILINESTRING";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
 
@@ -237,29 +255,27 @@ namespace GeomSharp {
           // TODO: assess decimal precision
           return new LineSegmentSet2D(
               line_data.Select(data => LineSegment2D.FromPoints(new Point2D(data[0][0], data[0][1]),
-                                                                new Point2D(data[1][0], data[1][1]))));
+                                                                new Point2D(data[1][0], data[1][1]),
+                                                                decimal_precision)));
         }
 
         // GeometryCollection2D
         known_wkt_string = "GEOMETRYCOLLECTION";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
-          if (wkt.Trim() == known_wkt_string + " " + known_empty) {
+          if (wkt == known_wkt_string + " " + known_empty) {
             return null;
           }
           return new GeometryCollection2D(StripWktFromBrackets(wkt).Split(',').Select(gstr => FromWkt(gstr)));
         }
-
       } catch (Exception ex) {
         throw new Exception("bad format " + known_wkt_string + "(2D): " + ex.Message);
       }
       return null;
     }
 
-    public static Geometry2D FromFile(string wkt_file_path) => !File.Exists(wkt_file_path)
-                                                                   ? throw new ArgumentException("file " +
-                                                                                                 wkt_file_path +
-                                                                                                 " does now exist")
-                                                                   : FromWkt(File.ReadAllText(wkt_file_path));
+    public static Geometry2D FromFile(string wkt_file_path, int decimal_precision = Constants.THREE_DECIMALS) =>
+        !File.Exists(wkt_file_path) ? throw new ArgumentException("file " + wkt_file_path + " does now exist")
+                                    : FromWkt(File.ReadAllText(wkt_file_path), decimal_precision);
 
     // relationship to all the other geometries
 
@@ -322,6 +338,7 @@ namespace GeomSharp {
     // private functions
 
     private static string StripWktFromBrackets(string wkt) {
+      wkt = wkt.Trim();
       int first_bracket = wkt.IndexOf('(');
       if (first_bracket < 0) {
         throw new Exception("missing first bracket");
@@ -339,48 +356,52 @@ namespace GeomSharp {
     }
 
     private static double[][][] FromWktPolygonSetBlock(string wkt,
-                                                       char polygon_delim = ',',
                                                        char point_delim = ',',
                                                        char num_delim = ' ',
                                                        int decimal_precision = Constants.THREE_DECIMALS) {
       // TODO: replace with Regex, all of them!
 
+      wkt = wkt.Trim();
       var polys = new List<double[][]>();
 
-      // string next_wkt = wkt;
-      // while (next_wkt != "") {
-      //   int first_bracket = wkt.IndexOf('(');
-      //   if (first_bracket < 0) {
-      //     throw new Exception("missing first bracket");
-      //   }
-      //   int next_bracket = wkt.IndexOf(')');
-      //   if (next_bracket < 0) {
-      //     throw new Exception("missing next bracket");
-      //   }
+      string next_wkt = wkt;
+      while (next_wkt != "") {
+        int first_bracket = wkt.IndexOf('(');
+        if (first_bracket < 0) {
+          throw new Exception("missing first bracket");
+        }
 
-      //  if (next_bracket <= first_bracket + 1) {
-      //    throw new Exception("() contain no data");
-      //  }
+        int next_bracket = wkt.IndexOf(')');
+        if (next_bracket < 0) {
+          throw new Exception("missing next bracket");
+        }
 
-      //  string wkt_poly_block = next_wkt.Substring(first_bracket + 1, next_bracket - first_bracket - 1);
-      //  polys.Add(FromWktPointListBlock(StripWktFromBrackets(wkt_poly_block), point_delim, num_delim));
+        if (next_bracket <= first_bracket + 1) {
+          throw new Exception("() contain no data");
+        }
 
-      //  // TODO: add decimal_precision check
-      //  if (Math.Round(polys.Last() [0][0] - polys.Last() [polys.Last().Length][0], decimal_precision) != 0 ||
-      //      Math.Round(polys.Last() [0][1] - polys.Last() [polys.Last().Length][1], decimal_precision) != 0) {
-      //    throw new Exception("first point != last point in polygon");
-      //  }
+        string wkt_poly_block = next_wkt.Substring(first_bracket + 1, next_bracket - first_bracket - 1);
 
-      //  next_wkt = wkt.Substring(next_bracket + 1);
-      //  if (next_wkt.StartsWith(",")) {
-      //    next_wkt = next_wkt.Substring(1);
-      //  }
-      //}
+        polys.Add(FromWktPointListBlock(wkt_poly_block, point_delim, num_delim));
+
+        // TODO: add decimal_precision check
+        if (Math.Round(polys.Last() [0][0] - polys.Last() [polys.Last().Length - 1][0], decimal_precision) != 0 ||
+            Math.Round(polys.Last() [0][1] - polys.Last() [polys.Last().Length - 1][1], decimal_precision) != 0) {
+          throw new Exception("first point != last point in polygon");
+        }
+
+        next_wkt = wkt.Substring(next_bracket + 1);
+
+        if (next_wkt.StartsWith(",")) {
+          next_wkt = next_wkt.Substring(1);
+        }
+      }
 
       return polys.ToArray();
     }
 
     private static double[][] FromWktPointListBlock(string wkt, char point_delim = ',', char num_delim = ' ') {
+      wkt = wkt.Trim();
       var point_blocks = wkt.Split(point_delim);
 
       var points = new double [point_blocks.Length][];
@@ -392,6 +413,7 @@ namespace GeomSharp {
     }
 
     private static double[] FromWktPointBlock(string wkt, char num_delim = ' ') {
+      wkt = wkt.Trim();
       var numbers = wkt.Split(num_delim);
 
       if (numbers.Length != 2) {
