@@ -133,11 +133,11 @@ namespace GeomSharpTests {
 
       polyline.ToFile(file_path, decimal_precision);
 
-      System.Console.WriteLine("polyline = " + polyline.ToWkt());
+      // System.Console.WriteLine("polyline = " + polyline.ToWkt());
 
       var polyline_from_file = Geometry2D.FromFile(file_path) as Polyline2D;
 
-      System.Console.WriteLine("polyline_from_file = " + polyline_from_file.ToWkt());
+      // System.Console.WriteLine("polyline_from_file = " + polyline_from_file.ToWkt());
 
       Assert.IsTrue(polyline.AlmostEquals(polyline_from_file, decimal_precision),
                     polyline.ToWkt(decimal_precision) + "!=" + polyline_from_file.ToWkt(decimal_precision));
@@ -161,14 +161,19 @@ namespace GeomSharpTests {
 
         polygon.ToFile(file_path, decimal_precision);
 
-        System.Console.WriteLine("polygon = " + polygon.ToWkt(decimal_precision));
+        // string string_wkt_file = File.ReadAllText(file_path);
+        // System.Console.WriteLine("file=" + string_wkt_file);
 
         var polygon_from_file = Geometry2D.FromFile(file_path) as Polygon2D;
 
-        System.Console.WriteLine("polygon_from_file = " + polygon_from_file.ToWkt(decimal_precision));
+        // System.Console.WriteLine("is wkt and file equal ? " + (polygon.ToWkt(decimal_precision) == string_wkt_file));
+
+        // System.Console.WriteLine("are wkt equal? " +
+        //                          (polygon.ToWkt(decimal_precision) == polygon_from_file.ToWkt(decimal_precision)));
 
         Assert.IsTrue(polygon.AlmostEquals(polygon_from_file, decimal_precision),
-                      polygon.ToWkt(decimal_precision) + "!=" + polygon_from_file.ToWkt(decimal_precision));
+                      "\n\toriginal: " + polygon.ToWkt(decimal_precision) +
+                          "\n\t!=" + "\n\tfrom_file: " + polygon_from_file.ToWkt(decimal_precision));
       }
     }
 
@@ -338,14 +343,11 @@ namespace GeomSharpTests {
 
         polygon.ToFile(file_path, decimal_precision);
 
-        System.Console.WriteLine("polygon = " + polygon.ToWkt());
-
         var polygon_from_file = Geometry3D.FromFile(file_path) as Polygon3D;
 
-        System.Console.WriteLine("polygon_from_file = " + polygon_from_file.ToWkt());
-
         Assert.IsTrue(polygon.AlmostEquals(polygon_from_file, decimal_precision),
-                      polygon.ToWkt(decimal_precision) + "!=" + polygon_from_file.ToWkt(decimal_precision));
+                      "\n\toriginal: " + polygon.ToWkt(decimal_precision) +
+                          "\n\t!=" + "\n\tfrom_file: " + polygon_from_file.ToWkt(decimal_precision));
       }
     }
 

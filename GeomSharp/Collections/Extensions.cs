@@ -156,15 +156,15 @@ namespace GeomSharp.Collections {
 
       // remove collinear points
       for (int i = 0; i < n; ++i) {
-        int i1 = i % n;
-        int i2 = (i1 + 1) % n;
-        int i3 = (i2 + 1) % n;
         if (n < 3) {
           break;
         }
+        int i1 = i % n;
+        int i2 = (i1 + 1) % n;
+        int i3 = (i2 + 1) % n;
 
         // remove collinear points
-        if (new_polyline[i1].AreCollinear(new_polyline[i2], new_polyline[i3], decimal_precision)) {
+        if (AreCollinear(new_polyline[i1], new_polyline[i2], new_polyline[i3], decimal_precision)) {
           // find and remove the point in the middle (extend the edge to the next point)
           if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
                          decimal_precision) >= 0) {
@@ -223,12 +223,12 @@ namespace GeomSharp.Collections {
       var new_polyline = new List<Point2D>(polyline);
       // remove collinear points
       for (int i = 0; i < n; ++i) {
-        int i1 = i % n;
-        int i2 = (i1 + 1) % n;
-        int i3 = (i2 + 1) % n;
         if (n < 3) {
           break;
         }
+        int i1 = i % n;
+        int i2 = (i1 + 1) % n;
+        int i3 = (i2 + 1) % n;
 
         // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
@@ -239,7 +239,8 @@ namespace GeomSharp.Collections {
           --i;  // analyze again the same start point in the next iteration
         } else {
           // check if p2 is on the same line p1->p3, and if so remove it
-          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
+          if ((new_polyline[i3] - new_polyline[i1])
+                  .IsParallel(new_polyline[i2] - new_polyline[i1], decimal_precision)) {
             // find and remove the point in the middle (extend the edge to the next point)
             if (Math.Round(
                     new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),

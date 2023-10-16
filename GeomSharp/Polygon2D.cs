@@ -75,36 +75,34 @@ namespace GeomSharp {
         return false;
       }
 
+      // different number of points, different polygon
       if (other.Size != Size) {
-        return false;
-      }
-
-      // different area, different polygon
-      if (Math.Round(Area() - other.Area(), decimal_precision) != 0) {
+        System.Console.WriteLine("AlmostEquals failed on Size=" + Size.ToString() +
+                                 ", other.Size=" + other.Size.ToString());
         return false;
       }
 
       // different set of points, different polygons
-      //    function to return the index of the first point of the list equal to the given point
-      Func<List<Point2D>, Point2D, int> GetFirstEqualPoint = (List<Point2D> _vertices, Point2D _point) => {
-        for (int _i = 0; _i < _vertices.Count; _i++) {
-          if (_vertices[_i].AlmostEquals(_point, decimal_precision)) {
-            return _i;
-          }
+      var point_count = new Dictionary<string, int>();
+      foreach (var p in Vertices) {
+        string key = p.ToWkt(decimal_precision);
+        if (!point_count.ContainsKey(key)) {
+          point_count[key] = 0;
         }
-        return -1;
-      };
-      //    no equal point found
-      int first_equal_idx = GetFirstEqualPoint(other.Vertices, other[0]);
-      if (first_equal_idx < 0) {
-        return false;
+        point_count[key] += 1;
       }
-      //    test point by point
-      for (int i = 0; i < Size; ++i) {
-        int j = (first_equal_idx + i) % Size;
-        if (!Vertices[i].AlmostEquals(other.Vertices[j], decimal_precision)) {
-          return false;
+
+      foreach (var p in other.Vertices) {
+        string key = p.ToWkt(decimal_precision);
+        if (point_count.ContainsKey(key) && point_count[key] > 0) {
+          point_count[key] -= 1;
         }
+      }
+
+      int num_different = point_count.Sum(kv => kv.Value);
+      System.Console.WriteLine("num_different=" + num_different.ToString());
+      if (num_different > 0) {
+        return false;
       }
 
       return true;
@@ -657,9 +655,7 @@ namespace GeomSharp {
         }
       }
       // initialize with the smallest point and the point after
-      var cvpoints = new List<Point2D>();
-      cvpoints.Add(sorted_points[i0 % n]);
-      cvpoints.Add(sorted_points[(i0 + 1) % n]);
+      var cvpoints = new List<Point2D> { sorted_points[i0 % n], sorted_points[(i0 + 1) % n] };
 
       for (int i = 2; i <= n; ++i) {
         cvpoints.Add(sorted_points[(i0 + i) % n]);
@@ -684,7 +680,7 @@ namespace GeomSharp {
         cvpoints.RemoveAt(cvpoints.Count - 1);
       }
 
-      return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints);
+      return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints, decimal_precision);
     }
   }
 }
