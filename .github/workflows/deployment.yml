@@ -1,9 +1,11 @@
 name: deployment
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
-      - master
+      - 'release/**'
     paths:
       - 'GeomSharp/**'
 
