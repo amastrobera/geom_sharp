@@ -24,7 +24,12 @@ namespace GeomSharp {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
 
-      Vertices = (new List<Point2D>(points)).RemoveCollinearPoints(decimal_precision);
+      // sort obligatory in CCW order
+      // also remove collinear points (and duplicates)
+      Vertices = (new List<Point2D>(points)).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
+      // TODO: check whether this will ever disrupt the original polygon shape that the user meant
+      //       it may be keen to make the polygon throw a specific exception in that case
+
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Vertices.Count < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
@@ -181,7 +186,22 @@ namespace GeomSharp {
         }
       }
 
-      // winding number method (without using the ray.Intersects(segment) function ...
+      // if a triangle, use the "is left" method
+      if (Size == 3) {
+        int num_is_left = 0;
+        for (int i1 = 0; i1 < Size; i1++) {
+          int i2 = (i1 + 1) % Size;
+
+          if (Line2D.FromPoints(Vertices[i1], Vertices[i2], decimal_precision).Location(other, decimal_precision) ==
+              Constants.Location.LEFT) {
+            ++num_is_left;
+          }
+        }
+
+        return num_is_left == Size;
+      }
+
+      // if not a triangle use the "winding number" method (without using the ray.Intersects(segment) function ...
       int wn = 0;
       for (int i = 0; i < Size; i++) {
         var edge = LineSegment2D.FromPoints(Vertices[i], Vertices[(i + 1) % Size]);
@@ -557,6 +577,140 @@ namespace GeomSharp {
         throw new NotImplementedException("");
 
     // own functions
+    [Experimental]
+    public static List<Polygon2D> Polygonize(IEnumerable<Triangle2D> triangles,
+                                             int decimal_precision = Constants.THREE_DECIMALS) {
+      // step 1: make a list of segments
+      var segments = new List<LineSegment2D>();
+      {
+        foreach (var triangle in triangles) {
+          segments.Add(LineSegment2D.FromPoints(triangle.P0, triangle.P1, decimal_precision));
+          segments.Add(LineSegment2D.FromPoints(triangle.P1, triangle.P2, decimal_precision));
+          segments.Add(LineSegment2D.FromPoints(triangle.P2, triangle.P0, decimal_precision));
+        }
+      }
+
+      // step 2: make a hashmap of vertices for quick search
+      var vertex_map = new Dictionary<string, List<LineSegment2D>>();
+      {
+        foreach (var seg in segments) {
+          (string k1, string k2) = (seg.P0.ToWkt(decimal_precision), seg.P1.ToWkt(decimal_precision));
+
+          if (!vertex_map.ContainsKey(k1)) {
+            vertex_map[k1] = new List<LineSegment2D>();
+          }
+          vertex_map[k1].Add(seg);
+
+          if (!vertex_map.ContainsKey(k2)) {
+            vertex_map[k2] = new List<LineSegment2D>();
+          }
+          vertex_map[k2].Add(seg);
+        }
+      }
+
+      // step 3: remove all of those inner edges and inner vertices from the triangulated figure
+      var keys = new List<string>(vertex_map.Keys);
+      {
+        foreach (string key in keys) {
+          if (vertex_map[key].Count > 2) {
+            vertex_map.Remove(key);
+          }
+        }
+        if (vertex_map.Count < 3) {
+          throw new Exception("no proper vertex remains to make at least 3 outer edges");
+        }
+      }
+
+      // step 4: given that all triangles are CCW (their constructor enforces it)
+      //         we can directly connect all edges to their "next" and form 1+ polygons
+      var segment_groups = new List<List<LineSegment2D>>();
+      {
+        var segments_done = new HashSet<string>();
+
+        int num_segs_todo = vertex_map.Keys.Sum(k => vertex_map[k].Count);
+        (int iter, int iter_max) = (0, 100);  // TODO
+
+        while (segments_done.Count < num_segs_todo && iter < iter_max) {
+          var segment_group = new List<LineSegment2D>();
+
+          LineSegment2D cur_seg = null;  // find the first segment that has not yet been dealth with
+          {
+            foreach (var kv in vertex_map) {
+              foreach (var seg in kv.Value) {
+                string skey = seg.ToWkt(decimal_precision);
+                if (!segments_done.Contains(skey)) {
+                  cur_seg = seg;
+                  break;
+                }
+              }
+              if (cur_seg != null) {
+                break;
+              }
+            }
+          }
+
+          (int iter_inner, int iter_inner_max) = (0, vertex_map.Count);
+
+          while (cur_seg != null && iter_inner < iter_inner_max) {
+            segment_group.Add(cur_seg);
+            segments_done.Add(cur_seg.ToWkt(decimal_precision));
+
+            // find next and call it cur_seg
+            string next_vertex_wkt = cur_seg.P1.ToWkt(decimal_precision);
+            if (vertex_map.ContainsKey(next_vertex_wkt)) {
+              LineSegment2D next_seg = null;
+              var edge_list = vertex_map[next_vertex_wkt];  // the edge list (at this point) will only have 2 items
+                                                            // (enforced above in step 3)
+              for (int i = 0; i < 2; i++) {
+                if (edge_list[i].P0.AlmostEquals(cur_seg.P1, decimal_precision)) {
+                  next_seg = edge_list[i];
+                  break;
+                }
+              }
+              if (next_seg is null) {
+                throw new Exception("could not find the next segment in the vertex_map");
+              }
+
+              // set the next current segment
+              cur_seg = next_seg;
+
+            } else {
+              cur_seg = null;
+            }
+
+            ++iter_inner;
+          }
+
+          // check if the loop is closed
+          if (!segment_group.First().P0.AlmostEquals(segment_group.Last().P1, decimal_precision)) {
+            throw new Exception("failed to close the loop during polygonization");
+          }
+
+          segment_groups.Add(segment_group);
+          ++iter;
+        }
+      }
+
+      // step 5: from all those segment groups, make polygons
+      var polys = new List<Polygon2D>();
+      {
+        foreach (var seg_group in segment_groups) {
+          polys.Add(new Polygon2D(seg_group.Select(seg => seg.P0), decimal_precision));
+        }
+      }
+
+      return polys;
+    }
+
+    [Experimental]
+    public List<Triangle2D> Triangulate(int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Size == 3) {
+        return new List<Triangle2D> { Triangle2D.FromPoints(Vertices[0], Vertices[1], Vertices[2], decimal_precision) };
+      }
+
+      throw new NotImplementedException("only handle cases of 3 point polygon for now");
+    }
+
     public double Area() {
       double a = 0;  // risk of overflow ...
 
@@ -630,7 +784,7 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConcaveHull(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveDuplicates(decimal_precision);
+      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
 
       return (sorted_points.Count < 3) ? null : new Polygon2D(sorted_points);
     }

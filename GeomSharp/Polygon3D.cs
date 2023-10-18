@@ -484,6 +484,54 @@ namespace GeomSharp {
         throw new NotImplementedException("");
 
     // own functions
+
+    [Experimental]
+    public static List<Polygon3D> Polygonize(IEnumerable<Triangle3D> triangles,
+                                             int decimal_precision = Constants.THREE_DECIMALS) {
+      var polys = new List<Polygon3D>();
+
+      Plane ref_plane = null;
+      // find the ref plane and check that all triangles are on it!
+      foreach (var triangle in triangles) {
+        var tplane = triangle.RefPlane();
+
+        if (ref_plane == null) {
+          ref_plane = tplane;
+        } else {
+          if (!ref_plane.AlmostEquals(tplane, decimal_precision)) {
+            throw new Exception("triangles are not all on the same plane: cannot make a 3D polygon out of them");
+          }
+        }
+      }
+
+      var polys_2d = Polygon2D.Polygonize(triangles.Select(t => Triangle2D.FromPoints(ref_plane.ProjectInto(t.P0),
+                                                                                      ref_plane.ProjectInto(t.P1),
+                                                                                      ref_plane.ProjectInto(t.P2),
+                                                                                      decimal_precision)),
+                                          decimal_precision);
+
+      polys =
+          polys_2d.Select(poly_2d => new Polygon3D(poly_2d.Select(p_2d => ref_plane.Evaluate(p_2d)), decimal_precision))
+              .ToList();
+
+      return polys;
+    }
+
+    [Experimental]
+    public List<Triangle3D> Triangulate(int decimal_precision = Constants.THREE_DECIMALS) {
+      var ref_plane = RefPlane();
+
+      var this_2d = new Polygon2D(Vertices.Select(v => ref_plane.ProjectInto(v)), decimal_precision);
+      var triangles_2d = this_2d.Triangulate(decimal_precision);
+
+      return triangles_2d
+          .Select(t => Triangle3D.FromPoints(ref_plane.Evaluate(t.P0),
+                                             ref_plane.Evaluate(t.P1),
+                                             ref_plane.Evaluate(t.P2),
+                                             decimal_precision))
+          .ToList();
+    }
+
     public Plane RefPlane() => Plane.FromPointAndNormal(Vertices[0], Normal);
 
     public double Area() {

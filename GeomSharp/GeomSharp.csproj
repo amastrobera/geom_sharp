@@ -49,6 +49,7 @@
     <Compile Include="Collections\Extensions.cs" />
     <Compile Include="Transformation\Projections.cs" />
     <Compile Include="Transformation\*.cs" />
+    <Compile Include="Utils\Attributes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

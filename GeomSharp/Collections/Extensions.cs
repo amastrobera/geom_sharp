@@ -81,7 +81,7 @@ namespace GeomSharp.Collections {
       for (int i = 0; i < n; i++) {
         int j = (i + 1) % n;
 
-        double signed_area_piece = points[i].U * points[j].V - points[i].V * points[j].U;
+        double signed_area_piece = (points[i].U * points[j].V - points[i].V * points[j].U) / 2.0;
         signed_area += signed_area_piece;
 
         cx += (points[i].U + points[j].U) * signed_area_piece;
@@ -89,8 +89,8 @@ namespace GeomSharp.Collections {
       }
 
       if (Math.Round(signed_area, Constants.THREE_DECIMALS) != 0) {
-        cx /= 6 * signed_area;
-        cy /= 6 * signed_area;
+        cx /= 3 * signed_area;
+        cy /= 3 * signed_area;
 
         return new Point2D(cx, cy);
       }
@@ -271,7 +271,7 @@ namespace GeomSharp.Collections {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static List<Point2D> SortCCW(this List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var centroid = points.Average();
+      var centroid = points.Centroid();
       var u_axis = Vector2D.AxisU;
       var v_axis = Vector2D.AxisV;
       points.Sort((p1, p2) =>

@@ -11,6 +11,18 @@ namespace GeomSharpTests {
 
   [TestClass]
   public class Polygon3DTests {
+    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    [Ignore("test not written")]
+    public void Polygonize() {
+      // 2D
+    }
+
+    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    [Ignore("not yet implemented")]
+    public void Triangulate() {
+      // 2D
+    }
+
     [RepeatedTestMethod(100)]
     public void Containment() {
       // 3D

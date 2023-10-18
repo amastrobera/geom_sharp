@@ -14,6 +14,18 @@ namespace GeomSharpTests {
   public class Polygon2DTests {
     // several tests in 2D
 
+    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    [Ignore("test not written")]
+    public void Polygonize() {
+      // 2D
+    }
+
+    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    [Ignore("not yet implemented")]
+    public void Triangulate() {
+      // 2D
+    }
+
     [RepeatedTestMethod(100)]
     public void CenterOfMass() {
       // 2D
