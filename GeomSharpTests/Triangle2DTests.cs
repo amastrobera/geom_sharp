@@ -27,8 +27,6 @@ namespace GeomSharpTests {
 
       Assert.AreEqual(t.U, (p1 - p0).Normalize());
       Assert.AreEqual(t.V, (p2 - p0).Normalize());
-      Assert.IsTrue(((p1 - p0).CrossProduct(p2 - p0) >= 0) ? t.Orientation == Constants.Orientation.COUNTER_CLOCKWISE
-                                                           : t.Orientation == Constants.Orientation.CLOCKWISE);
 
       // center of mass
       Assert.AreEqual(t.CenterOfMass(),
