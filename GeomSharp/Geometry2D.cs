@@ -221,6 +221,20 @@ namespace GeomSharp {
           return new Polygon2D(data[0].Select(d => new Point2D(d[0], d[1])), decimal_precision);
         }
 
+        // MultiPolygon2D
+        known_wkt_string = "MULTIPOLYGON";
+        if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {
+          if (wkt == known_wkt_string + " " + known_empty) {
+            return null;
+          }
+
+          return new MultiPolygon2D(StripWktFromBrackets(wkt)
+                                        .Split(new string[] { "," }, StringSplitOptions.None)
+                                        .Select(s => FromWkt(s, decimal_precision))
+                                        .Cast<Polygon2D>(),
+                                    decimal_precision);
+        }
+
         // PointSet2D
         known_wkt_string = "MULTIPOINT";
         if (wkt.StartsWith(known_wkt_string, StringComparison.InvariantCultureIgnoreCase)) {

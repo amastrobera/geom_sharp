@@ -83,8 +83,6 @@ namespace GeomSharp {
 
       // different number of points, different polygon
       if (other.Size != Size) {
-        System.Console.WriteLine("AlmostEquals failed on Size=" + Size.ToString() +
-                                 ", other.Size=" + other.Size.ToString());
         return false;
       }
 

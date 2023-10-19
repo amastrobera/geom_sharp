@@ -14,29 +14,44 @@ namespace GeomSharpTests {
   public class Polygon2DTests {
     // several tests in 2D
 
-    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    private static string _TestFilePath = System.IO.Path.Combine("..", "..", "Resources", "Polygon2D").ToString();
+
+    [TestMethod]
     public void Polygonize() {
       // 2D
 
       // temporary data
-      int decimal_precision = 0;  // all integers!
-      var exp_polygon = new Polygon2D(new List<Point2D> { new Point2D(5, 0),
-                                                          new Point2D(4, 2),
-                                                          new Point2D(0, 2),
-                                                          new Point2D(-2, 0),
-                                                          new Point2D(2, -4),
-                                                          new Point2D(4, -2) },
-                                      decimal_precision);
+      int decimal_precision = Constants.THREE_DECIMALS;
+      string file_path = System.IO.Path.Combine(Environment.CurrentDirectory, _TestFilePath, "Polygonize_1.wkt");
 
-      var triangles = new List<Triangle2D> {
-        Triangle2D.FromPoints(new Point2D(-2, 0), new Point2D(0, -2), new Point2D(0, 2), decimal_precision),
-        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(0, 2), new Point2D(0, -2), decimal_precision),
-        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(4, -2), new Point2D(4, 2), decimal_precision),
-        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(4, 2), new Point2D(0, 2), decimal_precision),
-        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(0, -2), new Point2D(4, -2), decimal_precision),
-        Triangle2D.FromPoints(new Point2D(0, -2), new Point2D(2, -4), new Point2D(4, -2), decimal_precision),
-        Triangle2D.FromPoints(new Point2D(4, -2), new Point2D(5, 0), new Point2D(4, 2), decimal_precision)
-      };
+      System.Console.WriteLine(file_path);
+
+      // extracted data
+      var geometry_set =
+          Geometry2D.FromFile(file_path);  // 1 MultiPolygon2D full of Polygon2D of 3 points (transformable
+                                           // in Triangle2D)
+                                           // and 1 Polygon2D (expected result)
+
+      // data check
+      Assert.IsTrue(geometry_set.GetType() == typeof(GeometryCollection2D),
+                    String.Format("{0} does not contain expected geometry set", file_path));
+
+      var geometry_collection = geometry_set as GeometryCollection2D;
+
+      Assert.IsTrue(geometry_collection.First().GetType() == typeof(MultiPolygon2D),
+                    String.Format("{0} does not contain expected geometry set MultiPolygon2D", file_path));
+      var multi_poly = geometry_collection.First() as MultiPolygon2D;
+      foreach (var poly in multi_poly) {
+        Assert.IsTrue(poly.GetType() == typeof(Polygon2D) && poly.Size == 3,
+                      String.Format("{0} does not contain expected geometry set Polygon2D(3)", file_path));
+      }
+
+      Assert.IsTrue(geometry_collection.Last().GetType() == typeof(Polygon2D),
+                    String.Format("{0} does not contain expected geometry set Polygon2D(exp)", file_path));
+
+      var exp_polygon = geometry_collection.Last() as Polygon2D;
+
+      var triangles = multi_poly.Select(p => p.Triangulate(decimal_precision).First()).ToList();
 
       var poligonization = Polygon2D.Polygonize(triangles, decimal_precision);
 
