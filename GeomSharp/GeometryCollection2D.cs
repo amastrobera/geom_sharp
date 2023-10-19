@@ -22,7 +22,7 @@ namespace GeomSharp {
 
     // constructors
     public GeometryCollection2D(IEnumerable<Geometry2D> geoms) {
-      Geometries = geoms as List<Geometry2D>;
+      Geometries = new List<Geometry2D>(geoms.Where(g => g != null));  // defensive move!
       Size = Geometries.Count;
     }
 

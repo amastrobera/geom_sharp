@@ -11,6 +11,8 @@ namespace GeomSharpTests {
   class RandomGenerator {
     public static readonly Random Seed = new Random();
 
+    public static int MakeInt(int IMin = 0, int IMax = 10) => Seed.Next(IMin, IMax);
+
     // 2D objects
 
     public static Point2D MakePoint2D(int IMin = -10, int IMax = 10) {

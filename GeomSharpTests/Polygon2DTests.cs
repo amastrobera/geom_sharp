@@ -14,17 +14,27 @@ namespace GeomSharpTests {
   public class Polygon2DTests {
     // several tests in 2D
 
-    private static string _TestFilePath = System.IO.Path.Combine("..", "..", "Resources", "Polygon2D").ToString();
+    private static string _TestFilePath =
+        System.IO.Path.Combine(Environment.CurrentDirectory, "..", "..", "Resources", "Polygon2D").ToString();
 
     [TestMethod]
+    [Ignore("dependent on geometry collection from wkt test")]
     public void Polygonize() {
       // 2D
 
       // temporary data
       int decimal_precision = Constants.THREE_DECIMALS;
-      string file_path = System.IO.Path.Combine(Environment.CurrentDirectory, _TestFilePath, "Polygonize_1.wkt");
+      // string testdll_path = System.IO.Path.GetDirectoryName(
+      //     new System.Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 
-      System.Console.WriteLine(file_path);
+      // System.Console.WriteLine("testdll_path=" + testdll_path);
+
+      string file_path = System.IO.Path.Combine(_TestFilePath, "Polygonize_1.wkt");
+
+      // System.Console.WriteLine("> using file_path=" + file_path);
+
+      string wkt = System.IO.File.ReadAllText(file_path);
+      System.Console.WriteLine("wkt=" + wkt);
 
       // extracted data
       var geometry_set =

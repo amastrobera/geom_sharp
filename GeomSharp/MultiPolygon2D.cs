@@ -24,7 +24,7 @@ namespace GeomSharp {
         throw new ArgumentException("tried to initialize a multi polygon no polygon");
       }
 
-      Polygons = new List<Polygon2D>(polygons);
+      Polygons = new List<Polygon2D>(polygons.Where(p => p != null));
 
       Size = Polygons.Count;
     }
@@ -34,7 +34,7 @@ namespace GeomSharp {
         throw new ArgumentException("tried to initialize a multi polygon no triangles");
       }
 
-      Polygons = triangles.Select(t => new Polygon2D(t, decimal_precision)).ToList();
+      Polygons = triangles.Where(t => t != null).Select(t => new Polygon2D(t, decimal_precision)).ToList();
 
       Size = Polygons.Count;
     }
@@ -78,7 +78,7 @@ namespace GeomSharp {
     public override bool AlmostEquals(Geometry2D other, int decimal_precision = 3) =>
         other.GetType() == typeof(MultiPolygon2D) && this.AlmostEquals(other as MultiPolygon2D, decimal_precision);
 
-    [Experimental("not implemented")]
+    [Experimental("simple loop of polygons, does not consider different combinations of the same set of polygons")]
     public bool AlmostEquals(MultiPolygon2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other is null) {
         return false;
@@ -89,7 +89,7 @@ namespace GeomSharp {
         return false;
       }
 
-      throw new NotImplementedException();
+      return Polygons.Select((poly, i) => (poly, i)).All(p => p.poly.AlmostEquals(other[p.i], decimal_precision));
     }
 
     // comparison operators
