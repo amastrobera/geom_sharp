@@ -43,13 +43,18 @@ namespace GeomSharp {
 
     // comparison operators
     public static bool operator ==(LineSegment3D a, LineSegment3D b) {
+      if (a is null || b is null) {
+        return (a is null && b is null);
+      }
       return a.AlmostEquals(b);
     }
 
     public static bool operator !=(LineSegment3D a, LineSegment3D b) {
+      if (a is null || b is null) {
+        return !(a is null && b is null);
+      }
       return !a.AlmostEquals(b);
     }
-
     // serialization interface implementation and base class overrides
     public override void GetObjectData(SerializationInfo info, StreamingContext context) {
       info.AddValue("P0", P0, typeof(Point3D));
