@@ -35,12 +35,16 @@ namespace GeomSharp {
       Normal = U.CrossProduct(V).Normalize();
     }
 
-    public static Triangle3D FromPoints(Point3D p0, Point3D p1, Point3D p2) {
-      if (p1.AlmostEquals(p0) || p1.AlmostEquals(p2) || p2.AlmostEquals(p0)) {
+    public static Triangle3D FromPoints(Point3D p0,
+                                        Point3D p1,
+                                        Point3D p2,
+                                        int decimal_precision = Constants.THREE_DECIMALS) {
+      if (p1.AlmostEquals(p0, decimal_precision) || p1.AlmostEquals(p2, decimal_precision) ||
+          p2.AlmostEquals(p0, decimal_precision)) {
         throw new ArithmeticException("tried to construct a Triangle with equal points");
       }
 
-      if ((p1 - p0).IsParallel(p2 - p0)) {
+      if ((p1 - p0).IsParallel(p2 - p0, decimal_precision)) {
         throw new ArithmeticException("tried to construct a Triangle with collinear points");
       }
 

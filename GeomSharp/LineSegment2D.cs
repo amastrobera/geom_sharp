@@ -46,10 +46,16 @@ namespace GeomSharp {
 
     // comparison operators
     public static bool operator ==(LineSegment2D a, LineSegment2D b) {
+      if (a is null || b is null) {
+        return (a is null && b is null);
+      }
       return a.AlmostEquals(b);
     }
 
     public static bool operator !=(LineSegment2D a, LineSegment2D b) {
+      if (a is null || b is null) {
+        return !(a is null && b is null);
+      }
       return !a.AlmostEquals(b);
     }
 
