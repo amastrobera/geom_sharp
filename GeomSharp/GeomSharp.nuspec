@@ -4,7 +4,7 @@
     <!-- Identifier that must be unique within the hosting gallery -->
     <id>GeomSharp</id>
     <!-- Package version number that is used when resolving dependencies -->
-    <version>1.0.19</version>
+    <version>1.0.20</version>
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>Angelo Mastroberardino</authors>
     <!-- 
@@ -28,7 +28,7 @@
     <!-- Any details about this particular release -->
     <releaseNotes>
 		- deterministic (file based) unit tests
-    - polygonize (triangles to polygon)
+        - polygonize (triangles to polygon)
     </releaseNotes>
     <!-- 
             The description can be used in package manager UI. Note that the
