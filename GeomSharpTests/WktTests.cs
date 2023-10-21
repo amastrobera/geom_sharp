@@ -23,7 +23,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         var p = RandomGenerator.MakePoint2D();
@@ -31,7 +31,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var p_from_file = Geometry2D.FromFile(file_path) as Point2D;
+        var p_from_file = Geometry2D.FromFile(file_path, decimal_precision) as Point2D;
 
         Assert.IsTrue(p.AlmostEquals(p_from_file, decimal_precision),
                       p.ToWkt(decimal_precision) + "!=" + p_from_file.ToWkt(decimal_precision));
@@ -43,7 +43,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Line2D line = null;
@@ -55,7 +55,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var line_from_file = Geometry2D.FromFile(file_path) as Line2D;
+        var line_from_file = Geometry2D.FromFile(file_path, decimal_precision) as Line2D;
 
         Assert.IsTrue(line.AlmostEquals(line_from_file, decimal_precision),
                       line.ToWkt(decimal_precision) + "!=" + line_from_file.ToWkt(decimal_precision));
@@ -67,7 +67,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Ray2D ray = null;
@@ -79,7 +79,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var ray_from_file = Geometry2D.FromFile(file_path) as Ray2D;
+        var ray_from_file = Geometry2D.FromFile(file_path, decimal_precision) as Ray2D;
 
         Assert.IsTrue(ray.AlmostEquals(ray_from_file, decimal_precision),
                       ray.ToWkt(decimal_precision) + "!=" + ray_from_file.ToWkt(decimal_precision));
@@ -91,7 +91,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         LineSegment2D seg = null;
@@ -103,7 +103,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var seg_from_file = Geometry2D.FromFile(file_path) as LineSegment2D;
+        var seg_from_file = Geometry2D.FromFile(file_path, decimal_precision) as LineSegment2D;
 
         Assert.IsTrue(seg.AlmostEquals(seg_from_file, decimal_precision),
                       seg.ToWkt(decimal_precision) + "!=" + seg_from_file.ToWkt(decimal_precision));
@@ -116,7 +116,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      // for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      // for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
       //      decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
       // Polyline2D polyline = null;
@@ -135,7 +135,7 @@ namespace GeomSharpTests {
 
       // System.Console.WriteLine("polyline = " + polyline.ToWkt());
 
-      var polyline_from_file = Geometry2D.FromFile(file_path) as Polyline2D;
+      var polyline_from_file = Geometry2D.FromFile(file_path, decimal_precision) as Polyline2D;
 
       // System.Console.WriteLine("polyline_from_file = " + polyline_from_file.ToWkt());
 
@@ -146,30 +146,29 @@ namespace GeomSharpTests {
     }
 
     [TestMethod]
-    [Ignore("TODO: fix FromWkt polygon")]
     public void Polygon2D() {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      System.Console.WriteLine("Polygon2D");
+
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
+
+        System.Console.WriteLine("\tdecimal_precision=" + decimal_precision.ToString());
 
         Polygon2D polygon = null;
         while (polygon is null) {
-          polygon = RandomGenerator.MakeConvexPolygon2D().Polygon;
+          polygon = RandomGenerator.MakeConvexPolygon2D(decimal_precision: decimal_precision).Polygon;
         }
+
+        System.Console.WriteLine("\t-> random_polygon=" + polygon.ToWkt(decimal_precision));
 
         polygon.ToFile(file_path, decimal_precision);
 
-        // string string_wkt_file = File.ReadAllText(file_path);
-        // System.Console.WriteLine("file=" + string_wkt_file);
+        var polygon_from_file = Geometry2D.FromFile(file_path, decimal_precision) as Polygon2D;
 
-        var polygon_from_file = Geometry2D.FromFile(file_path) as Polygon2D;
-
-        // System.Console.WriteLine("is wkt and file equal ? " + (polygon.ToWkt(decimal_precision) == string_wkt_file));
-
-        // System.Console.WriteLine("are wkt equal? " +
-        //                          (polygon.ToWkt(decimal_precision) == polygon_from_file.ToWkt(decimal_precision)));
+        System.Console.WriteLine("\t-> polygon_from_file=" + polygon_from_file.ToWkt(decimal_precision));
 
         Assert.IsTrue(polygon.AlmostEquals(polygon_from_file, decimal_precision),
                       "\n\toriginal: " + polygon.ToWkt(decimal_precision) +
@@ -183,7 +182,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         int num_polys = RandomGenerator.MakeInt(2, 12);
@@ -203,7 +202,7 @@ namespace GeomSharpTests {
         // string string_wkt_file = File.ReadAllText(file_path);
         // System.Console.WriteLine("file=" + string_wkt_file);
 
-        var multi_polygon_from_file = Geometry2D.FromFile(file_path) as MultiPolygon2D;
+        var multi_polygon_from_file = Geometry2D.FromFile(file_path, decimal_precision) as MultiPolygon2D;
 
         // System.Console.WriteLine("is wkt and file equal ? " + (polygon.ToWkt(decimal_precision) == string_wkt_file));
 
@@ -221,7 +220,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Triangle2D triangle = null;
@@ -233,7 +232,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var triangle_from_file = Geometry2D.FromFile(file_path) as Triangle2D;
+        var triangle_from_file = Geometry2D.FromFile(file_path, decimal_precision) as Triangle2D;
 
         Assert.IsTrue(triangle.AlmostEquals(triangle_from_file, decimal_precision),
                       triangle.ToWkt(decimal_precision) + "!=" + triangle_from_file.ToWkt(decimal_precision));
@@ -313,7 +312,7 @@ namespace GeomSharpTests {
         throw new Exception("index " + _idx.ToString() + " not in expected range [0,8]");
       };
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         int num_geoms = RandomGenerator.MakeInt(2, 12);
@@ -330,7 +329,7 @@ namespace GeomSharpTests {
         // string string_wkt_file = File.ReadAllText(file_path);
         // System.Console.WriteLine("file=" + string_wkt_file);
 
-        var geom_coll_from_file = Geometry2D.FromFile(file_path) as GeometryCollection2D;
+        var geom_coll_from_file = Geometry2D.FromFile(file_path, decimal_precision) as GeometryCollection2D;
 
         // System.Console.WriteLine("is wkt and file equal ? " + (polygon.ToWkt(decimal_precision) ==
         // string_wkt_file));
@@ -351,7 +350,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         var p = RandomGenerator.MakePoint3D();
@@ -359,7 +358,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var p_from_file = Geometry3D.FromFile(file_path) as Point3D;
+        var p_from_file = Geometry3D.FromFile(file_path, decimal_precision) as Point3D;
 
         Assert.IsTrue(p.AlmostEquals(p_from_file, decimal_precision),
                       p.ToWkt(decimal_precision) + "!=" + p_from_file.ToWkt(decimal_precision));
@@ -371,7 +370,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Line3D line = null;
@@ -383,7 +382,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var line_from_file = Geometry3D.FromFile(file_path) as Line3D;
+        var line_from_file = Geometry3D.FromFile(file_path, decimal_precision) as Line3D;
 
         Assert.IsTrue(line.AlmostEquals(line_from_file, decimal_precision),
                       line.ToWkt(decimal_precision) + "!=" + line_from_file.ToWkt(decimal_precision));
@@ -395,7 +394,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Ray3D ray = null;
@@ -407,7 +406,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var ray_from_file = Geometry3D.FromFile(file_path) as Ray3D;
+        var ray_from_file = Geometry3D.FromFile(file_path, decimal_precision) as Ray3D;
 
         Assert.IsTrue(ray.AlmostEquals(ray_from_file, decimal_precision),
                       ray.ToWkt(decimal_precision) + "!=" + ray_from_file.ToWkt(decimal_precision));
@@ -419,7 +418,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         LineSegment3D seg = null;
@@ -431,7 +430,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var seg_from_file = Geometry3D.FromFile(file_path) as LineSegment3D;
+        var seg_from_file = Geometry3D.FromFile(file_path, decimal_precision) as LineSegment3D;
 
         Assert.IsTrue(seg.AlmostEquals(seg_from_file, decimal_precision),
                       seg.ToWkt(decimal_precision) + "!=" + seg_from_file.ToWkt(decimal_precision));
@@ -439,13 +438,12 @@ namespace GeomSharpTests {
     }
 
     [TestMethod]
-    //[TestMethod]
     //[Ignore("TODO: fix MakeSimplePolyline3D loop never ends")]
     public void Polyline3D() {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      // for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      // for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
       //      decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
       // Polyline3D polyline = null;
@@ -464,7 +462,7 @@ namespace GeomSharpTests {
 
       // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-      var polyline_from_file = Geometry3D.FromFile(file_path) as Polyline3D;
+      var polyline_from_file = Geometry3D.FromFile(file_path, decimal_precision) as Polyline3D;
 
       Assert.IsTrue(polyline.AlmostEquals(polyline_from_file, decimal_precision),
                     polyline.ToWkt(decimal_precision) + "!=" + polyline_from_file.ToWkt(decimal_precision));
@@ -472,22 +470,26 @@ namespace GeomSharpTests {
     }
 
     [TestMethod]
-    [Ignore("TODO: fix FromWkt polygon")]
+    //[Ignore("TODO: fix FromWkt polygon")]
     public void Polygon3D() {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Polygon3D polygon = null;
         while (polygon is null) {
-          polygon = RandomGenerator.MakeConvexPolygon3D().Polygon;
+          polygon = RandomGenerator.MakeConvexPolygon3D(decimal_precision: decimal_precision).Polygon;
         }
 
         polygon.ToFile(file_path, decimal_precision);
 
-        var polygon_from_file = Geometry3D.FromFile(file_path) as Polygon3D;
+        var polygon_from_file = Geometry3D.FromFile(file_path, decimal_precision) as Polygon3D;
+
+        System.Console.WriteLine("polygon=" + polygon.ToWkt(decimal_precision) +
+                                 "\nfile_text=" + File.ReadAllText(file_path) +
+                                 "\npolygon_from_file=" + polygon_from_file.ToWkt(decimal_precision));
 
         Assert.IsTrue(polygon.AlmostEquals(polygon_from_file, decimal_precision),
                       "\n\toriginal: " + polygon.ToWkt(decimal_precision) +
@@ -500,7 +502,7 @@ namespace GeomSharpTests {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
 
-      for (int decimal_precision = 0; decimal_precision < 1 + GeomSharp.Constants.NINE_DECIMALS;
+      for (int decimal_precision = 0; decimal_precision <= GeomSharp.Constants.NINE_DECIMALS;
            decimal_precision++) {  // TODO : make this loop a test attribute in Extensions.cs
 
         Triangle3D triangle = null;
@@ -512,7 +514,7 @@ namespace GeomSharpTests {
 
         // System.Console.WriteLine("wkt = " + p.ToWkt());
 
-        var triangle_from_file = Geometry3D.FromFile(file_path) as Triangle3D;
+        var triangle_from_file = Geometry3D.FromFile(file_path, decimal_precision) as Triangle3D;
 
         Assert.IsTrue(triangle.AlmostEquals(triangle_from_file, decimal_precision),
                       triangle.ToWkt(decimal_precision) + "!=" + triangle_from_file.ToWkt(decimal_precision));

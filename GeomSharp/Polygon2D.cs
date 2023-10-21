@@ -27,6 +27,14 @@ namespace GeomSharp {
 
       // sort obligatory in CCW order
       // also remove collinear points (and duplicates)
+      System.Console.WriteLine("\t\tPolygon2D");
+      System.Console.WriteLine("\t\t\tpoints=" + points.ToList().ToWkt(decimal_precision));
+      System.Console.WriteLine("\t\t\tpoints (SortCCW)=" +
+                               points.ToList().SortCCW(decimal_precision).ToWkt(decimal_precision));
+      System.Console.WriteLine(
+          "\t\t\tpoints (SortCCW+RemoveCollinearPoints)=" +
+          points.ToList().SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision).ToWkt(decimal_precision));
+
       Vertices = (new List<Point2D>(points)).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
       // TODO: check whether this will ever disrupt the original polygon shape that the user meant
       //       it may be keen to make the polygon throw a specific exception in that case
@@ -104,7 +112,6 @@ namespace GeomSharp {
       }
 
       int num_different = point_count.Sum(kv => kv.Value);
-      System.Console.WriteLine("num_different=" + num_different.ToString());
       if (num_different > 0) {
         return false;
       }
@@ -810,8 +817,7 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConcaveHull(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
-
+      var sorted_points = new List<Point2D>(points).ConcaveHull(decimal_precision);
       return (sorted_points.Count < 3) ? null : new Polygon2D(sorted_points);
     }
 
@@ -822,12 +828,12 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConvexHull(List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var concave_hull = ConcaveHull(points, decimal_precision);
+      var concave_hull = points.ConcaveHull(decimal_precision);
 
-      if (concave_hull is null) {
+      if (!concave_hull.Any()) {
         return null;
       }
-      var sorted_points = concave_hull.Vertices;
+      var sorted_points = concave_hull;
 
       // pick the lowest point
       int n = sorted_points.Count;
@@ -864,6 +870,8 @@ namespace GeomSharp {
       if (cvpoints[0].AlmostEquals(cvpoints[cvpoints.Count - 1], decimal_precision)) {
         cvpoints.RemoveAt(cvpoints.Count - 1);
       }
+
+      System.Console.WriteLine("\t\tcvpoints=" + cvpoints.ToWkt(decimal_precision));
 
       return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints, decimal_precision);
     }

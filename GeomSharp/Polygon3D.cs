@@ -25,6 +25,12 @@ namespace GeomSharp {
       if (points.Length < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
+
+      System.Console.WriteLine("\tPolygon3D");
+      System.Console.WriteLine("\t\tpoints=" + points.ToList().ToWkt(decimal_precision));
+      System.Console.WriteLine("\t\tpoints (RemoveCollinearPoints)=" +
+                               points.ToList().RemoveCollinearPoints(decimal_precision).ToWkt(decimal_precision));
+
       Vertices = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Vertices.Count < 3) {
