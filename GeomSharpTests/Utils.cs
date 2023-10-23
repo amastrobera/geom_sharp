@@ -31,10 +31,8 @@ namespace GeomSharpTests {
 
     public static (LineSegment2D Segment, Point2D p0, Point2D p1)
         MakeLineSegment2D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
-      var p1 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      var p0 = MakePoint2D(IMin, IMax, decimal_precision);
+      var p1 = MakePoint2D(IMin, IMax, decimal_precision);
 
       try {
         return (LineSegment2D.FromPoints(p0, p1, decimal_precision), p0, p1);
@@ -45,10 +43,8 @@ namespace GeomSharpTests {
 
     public static (Line2D Line, Point2D p0, Point2D p1)
         MakeLine2D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
-      var p1 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      var p0 = MakePoint2D(IMin, IMax, decimal_precision);
+      var p1 = MakePoint2D(IMin, IMax, decimal_precision);
 
       try {
         return (Line2D.FromPoints(p0, p1, decimal_precision), p0, p1);
@@ -59,10 +55,8 @@ namespace GeomSharpTests {
 
     public static (Ray2D Ray, Point2D p0, Point2D p1)
         MakeRay2D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
-      var p1 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      var p0 = MakePoint2D(IMin, IMax, decimal_precision);
+      var p1 = MakePoint2D(IMin, IMax, decimal_precision);
 
       try {
         return (new Ray2D(p0, (p1 - p0).Normalize()), p0, p1);
@@ -73,12 +67,9 @@ namespace GeomSharpTests {
 
     public static (Triangle2D Triangle, Point2D p0, Point2D p1, Point2D p2)
         MakeTriangle2D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
-      var p1 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
-      var p2 = new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      var p0 = MakePoint2D(IMin, IMax, decimal_precision);
+      var p1 = MakePoint2D(IMin, IMax, decimal_precision);
+      var p2 = MakePoint2D(IMin, IMax, decimal_precision);
 
       try {
         return (Triangle2D.FromPoints(p0, p1, p2, decimal_precision), p0, p1, p2);
@@ -232,12 +223,8 @@ namespace GeomSharpTests {
 
     public static (Line3D Line, Point3D p0, Point3D p1)
         MakeLine3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = new Point3D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
-      var p1 = new Point3D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                           Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      var p0 = MakePoint3D(IMin, IMax, decimal_precision);
+      var p1 = MakePoint3D(IMin, IMax, decimal_precision);
 
       try {
         return (Line3D.FromPoints(p0, p1, decimal_precision), p0, p1);

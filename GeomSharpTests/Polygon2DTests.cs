@@ -23,7 +23,7 @@ namespace GeomSharpTests {
       // 2D
 
       // temporary data
-      int decimal_precision = Constants.THREE_DECIMALS;
+      int precision = Constants.THREE_DECIMALS;
       // string testdll_path = System.IO.Path.GetDirectoryName(
       //     new System.Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 
@@ -38,7 +38,8 @@ namespace GeomSharpTests {
 
       // extracted data
       var geometry_set =
-          Geometry2D.FromFile(file_path);  // 1 MultiPolygon2D full of Polygon2D of 3 points (transformable
+          Geometry2D.FromFile(file_path,
+                              precision);  // 1 MultiPolygon2D full of Polygon2D of 3 points (transformable
                                            // in Triangle2D)
                                            // and 1 Polygon2D (expected result)
 
@@ -61,17 +62,17 @@ namespace GeomSharpTests {
 
       var exp_polygon = geometry_collection.Last() as Polygon2D;
 
-      var triangles = multi_poly.Select(p => p.Triangulate(decimal_precision).First()).ToList();
+      var triangles = multi_poly.Select(p => p.Triangulate(precision).First()).ToList();
 
-      var poligonization = Polygon2D.Polygonize(triangles, decimal_precision);
+      var poligonization = Polygon2D.Polygonize(triangles, precision);
 
       Assert.IsTrue(poligonization.Count == 1, String.Format("more than one polygon came out"));
 
       var polygonized_triangles = poligonization.First();
-      Assert.IsTrue(polygonized_triangles.AlmostEquals(exp_polygon, decimal_precision),
+      Assert.IsTrue(polygonized_triangles.AlmostEquals(exp_polygon, precision),
                     String.Format("polygonized_triangles is different from exp_polygon, \n\texp={0}\n\tact={1}",
-                                  exp_polygon.ToWkt(decimal_precision),
-                                  polygonized_triangles.ToWkt(decimal_precision)));
+                                  exp_polygon.ToWkt(precision),
+                                  polygonized_triangles.ToWkt(precision)));
     }
 
     [RepeatedTestMethod(1)]  // TODO use a file wkt
@@ -82,6 +83,8 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void CenterOfMass() {
+      int precision = RandomGenerator.MakeInt(0, 9);
+
       // 2D
 
       // temporary data
@@ -90,18 +93,22 @@ namespace GeomSharpTests {
       Point2D exp_cm = null;
 
       // test 1: triangle
-      poly = RandomGenerator.MakeTrianglePolygon2D();
+      poly = RandomGenerator.MakeTrianglePolygon2D(decimal_precision: precision);
       if (poly is null) {
         return;
       }
       exp_cm = Point2D.FromVector((poly[0].ToVector() + poly[1].ToVector() + poly[2].ToVector()) / 3);
       cm = poly.CenterOfMass();
-      Assert.IsTrue(cm.AlmostEquals(exp_cm, Constants.THREE_DECIMALS),
-                    String.Format("area of square different, \n\texp={0}\n\tact={1}", exp_cm.ToWkt(), cm.ToWkt()));
+      Assert.IsTrue(cm.AlmostEquals(exp_cm, precision),
+                    String.Format("area of square different, \n\texp={0}\n\tact={1}",
+                                  exp_cm.ToWkt(precision),
+                                  cm.ToWkt(precision)));
     }
 
     [RepeatedTestMethod(100)]
     public void Area() {
+      int precision = RandomGenerator.MakeInt(0, 9);
+
       // 2D
 
       // temporary data
@@ -111,34 +118,36 @@ namespace GeomSharpTests {
       LineSegmentSet2D segments = null;
 
       // test 1: square
-      poly = RandomGenerator.MakeSquare2D();
+      poly = RandomGenerator.MakeSquare2D(decimal_precision: precision);
       if (poly is null) {
         return;
       }
       segments = poly.ToSegments();
       exp_area = Math.Pow(segments[0].Length(), 2);
       area = poly.Area();
-      Assert.IsTrue(Math.Round(area - exp_area, Constants.THREE_DECIMALS) == 0,
+      Assert.IsTrue(Math.Round(area - exp_area, precision) == 0,
                     String.Format("area of square different, \n\texp={0:F3}\n\tact={1:F3}" + exp_area, area));
 
       // test 2: rectangle
-      poly = RandomGenerator.MakeSquare2D();
+      poly = RandomGenerator.MakeSquare2D(decimal_precision: precision);
       if (poly is null) {
         return;
       }
       segments = poly.ToSegments();
       exp_area = segments[0].Length() * segments[1].Length();
       area = poly.Area();
-      Assert.IsTrue(Math.Round(area - exp_area, Constants.THREE_DECIMALS) == 0,
+      Assert.IsTrue(Math.Round(area - exp_area, precision) == 0,
                     String.Format("area of rectangle different, \n\texp={0:F3}\n\tact={1:F3}" + exp_area, area));
     }
 
     [RepeatedTestMethod(100)]
     public void Containment() {
-      // 2D
-      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon2D();
+      int precision = RandomGenerator.MakeInt(0, 9);
 
-      // Console.WriteLine("t = " + t.ToWkt());
+      // 2D
+      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon2D(decimal_precision: precision);
+
+      // Console.WriteLine("t = " + t.ToWkt(precision));
       if (poly is null) {
         return;
       }
@@ -148,24 +157,28 @@ namespace GeomSharpTests {
 
       // test 1: centroid is contained
       p = poly.CenterOfMass();
-      Assert.IsTrue(poly.Contains(p), "inner (center of mass), \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
+      Assert.IsTrue(poly.Contains(p, precision),
+                    "inner (center of mass), \n\tt=" + poly.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
 
       // test 2-3: all vertices are contained, all mid points are contained
       for (int i = 0; i < n; ++i) {
         p = poly[i];
-        Assert.IsTrue(poly.Contains(p),
-                      "border (vertex " + i.ToString() + "), \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
+        Assert.IsTrue(
+            poly.Contains(p, precision),
+            "border (vertex " + i.ToString() + "), \n\tt=" + poly.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
 
         p = Point2D.FromVector((poly[i].ToVector() + poly[(i + 1) % n].ToVector()) / 2);
-        Assert.IsTrue(poly.Contains(p),
-                      "border (mid " + i.ToString() + "), \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
+        Assert.IsTrue(
+            poly.Contains(p, precision),
+            "border (mid " + i.ToString() + "), \n\tt=" + poly.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
       }
 
       // test 4: a point further away than a vertex on the center-vertex line, is not contained
       for (int i = 0; i < n; ++i) {
         p = poly[i] + (poly[i] - cm);
-        Assert.IsFalse(poly.Contains(p),
-                       "outside (vertex " + i.ToString() + "), \n\tt=" + poly.ToWkt() + "\n\tp=" + p.ToWkt());
+        Assert.IsFalse(
+            poly.Contains(p, precision),
+            "outside (vertex " + i.ToString() + "), \n\tt=" + poly.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
       }
 
       // test 5-6-7: a point on the edge, with (horizontal) ray parallel to the edge
@@ -173,28 +186,34 @@ namespace GeomSharpTests {
         var square = new Polygon2D(new List<Point2D> { poly[0],
                                                        poly[0] + Vector2D.AxisU * radius,
                                                        poly[0] + Vector2D.AxisU * radius + Vector2D.AxisV * radius,
-                                                       poly[0] + Vector2D.AxisV * radius });
+                                                       poly[0] + Vector2D.AxisV * radius },
+                                   precision);
 
         p = Point2D.FromVector((square[0].ToVector() + square[1].ToVector()) / 2);
-        Assert.IsTrue(square.Contains(p),
-                      "square (mid point) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+        Assert.IsTrue(
+            square.Contains(p, precision),
+            "square (mid point) parallel ray \n\tt=" + square.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
 
         p = square[0] - Vector2D.AxisU * radius;
-        Assert.IsFalse(square.Contains(p),
-                       "square (outer point) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+        Assert.IsFalse(
+            square.Contains(p, precision),
+            "square (outer point) parallel ray \n\tt=" + square.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
 
         p = square[1] + Vector2D.AxisU * radius;
-        Assert.IsFalse(square.Contains(p),
-                       "square (outer point 2) parallel ray \n\tt=" + square.ToWkt() + "\n\tp=" + p.ToWkt());
+        Assert.IsFalse(
+            square.Contains(p, precision),
+            "square (outer point 2) parallel ray \n\tt=" + square.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
       }
     }
 
     [RepeatedTestMethod(100)]
     public void Intersection() {
-      // 2D
-      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon2D();
+      int precision = RandomGenerator.MakeInt(0, 9);
 
-      // Console.WriteLine("t = " + t.ToWkt());
+      // 2D
+      (var poly, var cm, double radius, int n) = RandomGenerator.MakeConvexPolygon2D(decimal_precision: precision);
+
+      // Console.WriteLine("t = " + t.ToWkt(precision));
       if (poly is null) {
         return;
       }
@@ -207,19 +226,19 @@ namespace GeomSharpTests {
       // test 1: a polygon shifted along the radius by radius size, intersects
       for (int i = 0; i < n; i++) {
         var dir = (poly[i] - cm).Normalize();
-        other = new Polygon2D(poly.Select(p => p + radius * dir));
-        Assert.IsTrue(poly.Intersects(other),
-                      "a polygon shifted along the radius by radius size, intersects, \n\tt=" + poly.ToWkt() +
-                          "\n\tother=" + other.ToWkt());
+        other = new Polygon2D(poly.Select(p => p + radius * dir), precision);
+        Assert.IsTrue(poly.Intersects(other, precision),
+                      "a polygon shifted along the radius by radius size, intersects, \n\tt=" + poly.ToWkt(precision) +
+                          "\n\tother=" + other.ToWkt(precision));
       }
 
       // test 2: a polygon shifted along the radius by 2+radius size, does not intersect
       for (int i = 0; i < n; i++) {
         var dir = (poly[i] - cm).Normalize();
-        other = new Polygon2D(poly.Select(p => p + 3 * radius * dir));
-        Assert.IsFalse(poly.Intersects(other),
+        other = new Polygon2D(poly.Select(p => p + 3 * radius * dir), precision);
+        Assert.IsFalse(poly.Intersects(other, precision),
                        "a polygon shifted along the radius by 2+radius size, does not intersect, \n\tt=" +
-                           poly.ToWkt() + "\n\tother=" + other.ToWkt());
+                           poly.ToWkt(precision) + "\n\tother=" + other.ToWkt(precision));
       }
     }
   }
