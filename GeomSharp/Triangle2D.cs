@@ -19,7 +19,6 @@ namespace GeomSharp {
     public Point2D P1 { get; }
     public Point2D P2 { get; }
 
-    public Constants.Orientation Orientation { get; }
     public UnitVector2D U { get; }
     public UnitVector2D V { get; }
 
@@ -31,30 +30,32 @@ namespace GeomSharp {
       // unit vectors (normalized)
       U = (P1 - P0).Normalize();
       V = (P2 - P0).Normalize();
-
-      Orientation = (U.PerpProduct(V) >= 0) ? Constants.Orientation.COUNTER_CLOCKWISE : Constants.Orientation.CLOCKWISE;
     }
 
-    public static Triangle2D FromPoints(Point2D p0, Point2D p1, Point2D p2) {
-      if (p1.AlmostEquals(p0) || p1.AlmostEquals(p2) || p2.AlmostEquals(p0)) {
-        throw new ArithmeticException("tried to construct a Triangle with equal points");
+    public static Triangle2D FromPoints(Point2D p0,
+                                        Point2D p1,
+                                        Point2D p2,
+                                        int decimal_precision = Constants.THREE_DECIMALS) {
+      var points =
+          (new List<Point2D> { p0, p1, p2 }).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
+
+      if (points.Count < 3) {
+        throw new ArgumentException("tried to initialize a triangle with points which are collinear or duplicate");
       }
 
-      if ((p1 - p0).IsParallel(p2 - p0)) {
-        throw new ArithmeticException("tried to construct a Triangle with collinear points");
-      }
+      (var t0, var t1, var t2) = (points[0], points[1], points[2]);
 
-      var t = new Triangle2D(p0, p1, p2);
+      var triangle = new Triangle2D(t0, t1, t2);
 
-      if (t.Area() == 0) {
+      if (Math.Round(triangle.Area(), decimal_precision) == 0) {
         throw new ArithmeticException("tried to construct a Triangle of nearly zero-area");
       }
 
-      return t;
+      return triangle;
     }
 
     // generic overrides from object class
-    public override int GetHashCode() => new { P0, P1, P2, Orientation }.GetHashCode();
+    public override int GetHashCode() => new { P0, P1, P2 }.GetHashCode();
     public override string ToString() {
       return "{" + P0.ToString() + ", " + P1.ToString() + ", " + P2.ToString() + "}";
     }
@@ -73,29 +74,24 @@ namespace GeomSharp {
       if (other is null) {
         return false;
       }
-      if (Orientation != other.Orientation) {
-        return false;
-      }
 
-      Func<Triangle2D, Point2D, bool> TriangleContainsPoint = (Triangle2D t, Point2D p) => {
+      Func<Triangle2D, Point2D, bool> PointIsOneOfTheVertices = (Triangle2D t, Point2D p) => {
         return t.P0.AlmostEquals(p, decimal_precision) || t.P1.AlmostEquals(p, decimal_precision) ||
                t.P2.AlmostEquals(p, decimal_precision);
       };
 
-      if (!TriangleContainsPoint(this, other.P0)) {
+      if (!PointIsOneOfTheVertices(this, other.P0)) {
         return false;
       }
 
-      if (!TriangleContainsPoint(this, other.P1)) {
+      if (!PointIsOneOfTheVertices(this, other.P1)) {
         return false;
       }
 
-      if (!TriangleContainsPoint(this, other.P2)) {
+      if (!PointIsOneOfTheVertices(this, other.P2)) {
         return false;
       }
 
-      // no check on point order (CCW or CW) is needed, since the constructor guarantees the Normal to be contructed
-      // by points, and therefore incorporates this information
       return true;
     }
 
@@ -114,7 +110,6 @@ namespace GeomSharp {
       info.AddValue("P1", P1, typeof(Point2D));
       info.AddValue("P2", P2, typeof(Point2D));
 
-      info.AddValue("Orientation", Orientation, typeof(Constants.Orientation));
       info.AddValue("U", U, typeof(UnitVector2D));
       info.AddValue("V", V, typeof(UnitVector2D));
     }
@@ -125,7 +120,6 @@ namespace GeomSharp {
       P1 = (Point2D)info.GetValue("P1", typeof(Point2D));
       P2 = (Point2D)info.GetValue("P2", typeof(Point2D));
 
-      Orientation = (Constants.Orientation)info.GetValue("Orientation", typeof(Constants.Orientation));
       U = (UnitVector2D)info.GetValue("U", typeof(UnitVector2D));
       V = (UnitVector2D)info.GetValue("V", typeof(UnitVector2D));
     }
@@ -173,21 +167,9 @@ namespace GeomSharp {
       var loc_12 = LineSegment2D.FromPoints(P1, P2).Location(other, decimal_precision);
       var loc_20 = LineSegment2D.FromPoints(P2, P0).Location(other, decimal_precision);
 
-      // this is really impossible
-      if (Orientation == Constants.Orientation.UNKNOWN) {
-        throw new Exception(
-            "cannot use the Contains (geometrical solution) function for a triangle which point orientation is unknown");
-      }
-
-      if (Orientation == Constants.Orientation.COUNTER_CLOCKWISE) {
-        return (loc_01 == Constants.Location.LEFT || loc_01 == Constants.Location.ON_SEGMENT) &&
-               (loc_12 == Constants.Location.LEFT || loc_12 == Constants.Location.ON_SEGMENT) &&
-               (loc_20 == Constants.Location.LEFT || loc_20 == Constants.Location.ON_SEGMENT);
-      }
-
-      return (loc_01 == Constants.Location.RIGHT || loc_01 == Constants.Location.ON_SEGMENT) &&
-             (loc_12 == Constants.Location.RIGHT || loc_12 == Constants.Location.ON_SEGMENT) &&
-             (loc_20 == Constants.Location.RIGHT || loc_20 == Constants.Location.ON_SEGMENT);
+      return (loc_01 == Constants.Location.LEFT || loc_01 == Constants.Location.ON_SEGMENT) &&
+             (loc_12 == Constants.Location.LEFT || loc_12 == Constants.Location.ON_SEGMENT) &&
+             (loc_20 == Constants.Location.LEFT || loc_20 == Constants.Location.ON_SEGMENT);
     }
 
     //  geometry collection

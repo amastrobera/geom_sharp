@@ -14,6 +14,47 @@ namespace GeomSharpTests {
   public class Polygon2DTests {
     // several tests in 2D
 
+    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    public void Polygonize() {
+      // 2D
+
+      // temporary data
+      int decimal_precision = 0;  // all integers!
+      var exp_polygon = new Polygon2D(new List<Point2D> { new Point2D(5, 0),
+                                                          new Point2D(4, 2),
+                                                          new Point2D(0, 2),
+                                                          new Point2D(-2, 0),
+                                                          new Point2D(2, -4),
+                                                          new Point2D(4, -2) },
+                                      decimal_precision);
+
+      var triangles = new List<Triangle2D> {
+        Triangle2D.FromPoints(new Point2D(-2, 0), new Point2D(0, -2), new Point2D(0, 2), decimal_precision),
+        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(0, 2), new Point2D(0, -2), decimal_precision),
+        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(4, -2), new Point2D(4, 2), decimal_precision),
+        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(4, 2), new Point2D(0, 2), decimal_precision),
+        Triangle2D.FromPoints(new Point2D(2, 0), new Point2D(0, -2), new Point2D(4, -2), decimal_precision),
+        Triangle2D.FromPoints(new Point2D(0, -2), new Point2D(2, -4), new Point2D(4, -2), decimal_precision),
+        Triangle2D.FromPoints(new Point2D(4, -2), new Point2D(5, 0), new Point2D(4, 2), decimal_precision)
+      };
+
+      var poligonization = Polygon2D.Polygonize(triangles, decimal_precision);
+
+      Assert.IsTrue(poligonization.Count == 1, String.Format("more than one polygon came out"));
+
+      var polygonized_triangles = poligonization.First();
+      Assert.IsTrue(polygonized_triangles.AlmostEquals(exp_polygon, decimal_precision),
+                    String.Format("polygonized_triangles is different from exp_polygon, \n\texp={0}\n\tact={1}",
+                                  exp_polygon.ToWkt(decimal_precision),
+                                  polygonized_triangles.ToWkt(decimal_precision)));
+    }
+
+    [RepeatedTestMethod(1)]  // TODO use a file wkt
+    [Ignore("not yet implemented")]
+    public void Triangulate() {
+      // 2D
+    }
+
     [RepeatedTestMethod(100)]
     public void CenterOfMass() {
       // 2D

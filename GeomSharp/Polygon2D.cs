@@ -7,6 +7,7 @@ using System.Linq;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using System.Net;
 
 namespace GeomSharp {
 
@@ -24,7 +25,12 @@ namespace GeomSharp {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
 
-      Vertices = (new List<Point2D>(points)).RemoveCollinearPoints(decimal_precision);
+      // sort obligatory in CCW order
+      // also remove collinear points (and duplicates)
+      Vertices = (new List<Point2D>(points)).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
+      // TODO: check whether this will ever disrupt the original polygon shape that the user meant
+      //       it may be keen to make the polygon throw a specific exception in that case
+
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Vertices.Count < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 non-collinear points");
@@ -181,7 +187,22 @@ namespace GeomSharp {
         }
       }
 
-      // winding number method (without using the ray.Intersects(segment) function ...
+      // if a triangle, use the "is left" method
+      if (Size == 3) {
+        int num_is_left = 0;
+        for (int i1 = 0; i1 < Size; i1++) {
+          int i2 = (i1 + 1) % Size;
+
+          if (Line2D.FromPoints(Vertices[i1], Vertices[i2], decimal_precision).Location(other, decimal_precision) ==
+              Constants.Location.LEFT) {
+            ++num_is_left;
+          }
+        }
+
+        return num_is_left == Size;
+      }
+
+      // if not a triangle use the "winding number" method (without using the ray.Intersects(segment) function ...
       int wn = 0;
       for (int i = 0; i < Size; i++) {
         var edge = LineSegment2D.FromPoints(Vertices[i], Vertices[(i + 1) % Size]);
@@ -557,6 +578,172 @@ namespace GeomSharp {
         throw new NotImplementedException("");
 
     // own functions
+    [Experimental]
+    public static List<Polygon2D> Polygonize(IEnumerable<Triangle2D> triangles,
+                                             int decimal_precision = Constants.THREE_DECIMALS) {
+      // step 1: make a list of segments
+      var segment_list = new List<(LineSegment2D Segment, bool IsOuter)>();
+      {
+        foreach (var triangle in triangles) {
+          segment_list.Add((LineSegment2D.FromPoints(triangle.P0, triangle.P1, decimal_precision), true));
+          segment_list.Add((LineSegment2D.FromPoints(triangle.P1, triangle.P2, decimal_precision), true));
+          segment_list.Add((LineSegment2D.FromPoints(triangle.P2, triangle.P0, decimal_precision), true));
+        }
+      }
+
+      // step 2: make a hashmap of edges for quick search
+      //         as you make the map, mark the edges as "false" if they are found!
+      var edge_map = new Dictionary<string, int>();  // index of edges in the main list
+      {
+        Func<LineSegment2D, (string, string)> MakeSearchKeys = (LineSegment2D _seg) => {
+          (string _k1, string _k2) = (_seg.P0.ToWkt(decimal_precision), _seg.P1.ToWkt(decimal_precision));
+          return (_k1 + "_" + _k2, _k2 + "_" + _k1);
+        };
+
+        for (int i = 0; i < segment_list.Count; ++i) {
+          (string k1, string k2) = MakeSearchKeys(segment_list[i].Segment);
+
+          if (edge_map.ContainsKey(k1) || edge_map.ContainsKey(k2)) {
+            // mark the current as "not" outer
+            segment_list[i] = (segment_list[i].Segment, false);
+
+            // mark the map's one as "not" outer
+            segment_list[edge_map[k1]] = (segment_list[edge_map[k1]].Segment, false);  // k1, k2 point to the same index
+
+          } else {
+            edge_map.Add(k1, i);  // k1, k2 point to the same index
+            edge_map.Add(k2, i);
+          }
+        }
+      }
+
+      // step 3: trim list with only outer edges
+      var outer_edges = segment_list.Where(p => p.IsOuter == true).Select(p => p.Segment).ToList();
+      if (outer_edges.Count < 3) {
+        throw new Exception("outer edges are less than 3, cannot polygonize");
+      }
+      // store the <P0.ToWkt(), i> , where i = index of the
+      // outer_edges search for <P1.ToWkt(), i>
+      Dictionary<string, int> outer_vertex_map =
+          outer_edges.Select((Value, Index) => new { Value, Index })
+              .ToDictionary(p => p.Value.P0.ToWkt(decimal_precision), p => p.Index);
+
+      // step 4: given that all triangles are CCW (their constructor enforces it)
+      //         we can directly connect all edges to their "next" and form 1+ polygons
+      var segment_groups = new List<List<LineSegment2D>>();
+      {
+        var segments_done = new HashSet<int>();  // index of the outer_edges
+
+        int num_segs_todo = outer_edges.Count;
+        (int iter, int iter_max) =
+            (0, outer_edges.Count);  // worst case: no segment is connected, each segment is a segment group! (which
+                                     // will fail way before this loop is completed)
+
+        Func<List<LineSegment2D>, HashSet<int>, (int, LineSegment2D)> GetFirstFree =
+            (List<LineSegment2D> _outer_segments, HashSet<int> _segments_done) => {
+              for (int _i = 0; _i < _outer_segments.Count; ++_i) {
+                if (!_segments_done.Contains(_i)) {
+                  return (_i, _outer_segments[_i]);
+                }
+              }
+              return (-1, null);
+            };
+
+        // System.Console.WriteLine("outer_edges");
+        // for (int i = 0; i < outer_edges.Count; ++i) {
+        //   System.Console.WriteLine(
+        //       string.Format("\t outer_edges({0:D})={1}", i, outer_edges[i].ToWkt(decimal_precision)));
+        // }
+
+        // System.Console.WriteLine("outer_vertex_map");
+        // foreach (var kv in outer_vertex_map) {
+        //   System.Console.WriteLine(string.Format("\t outer_vertex_map({0})={1:D}", kv.Key, kv.Value));
+        // }
+
+        while (segments_done.Count < num_segs_todo && iter < iter_max) {
+          var segment_group = new List<LineSegment2D>();
+
+          // find the first segment that has not yet been dealth with
+          (int cur_idx, LineSegment2D cur_seg) = GetFirstFree(outer_edges, segments_done);
+
+          // System.Console.WriteLine(string.Format("\tcur_idx={0:D}, cur_seg={1}",
+          //                                        cur_idx,
+          //                                        (cur_seg is null) ? "null" : cur_seg.ToWkt(decimal_precision)));
+
+          (int iter_inner, int iter_inner_max) =
+              (0, outer_vertex_map.Count);  // worst case: there is only one segment loop, we start from a segment and
+                                            // connect all segments in the map
+
+          // System.Console.WriteLine("segments_done =" + string.Join(",", segments_done.Select(s => s.ToString())));
+
+          while (cur_seg != null && iter_inner < iter_inner_max) {
+            // System.Console.WriteLine(string.Format("iter={0:D}, iter_inner={1:D}", iter, iter_inner));
+            //  add the segment in the segment group
+            //  update the list of segments done
+            segment_group.Add(cur_seg);
+            segments_done.Add(cur_idx);
+
+            // find next and call it cur_seg
+            string next_vertex_wkt = cur_seg.P1.ToWkt(
+                decimal_precision);  // all segments are guaranteed to be CCW sorted (from the triangles), therefore we
+                                     // can rely on prev/next relationship (and not having to check a "reverse" segment)
+            // System.Console.WriteLine(string.Format("\tnext_vertex_wkt={0}", iter, iter_inner, next_vertex_wkt));
+
+            if (outer_vertex_map.ContainsKey(next_vertex_wkt)) {
+              // System.Console.WriteLine(string.Format("\tcontained"));
+              cur_idx = outer_vertex_map[next_vertex_wkt];
+              cur_seg = outer_edges[cur_idx];
+
+            } else {
+              // System.Console.WriteLine(string.Format("\tnot contained"));
+              cur_idx = -1;
+              cur_seg = null;
+            }
+
+            // System.Console.WriteLine(string.Format("\tcur_idx={0:D}, cur_seg={1}",
+            //                                        cur_idx,
+            //                                        (cur_seg is null) ? "null" : cur_seg.ToWkt(decimal_precision)));
+
+            ++iter_inner;
+          }
+
+          // System.Console.WriteLine(string.Join(", ", segment_group.Select(p => p.ToWkt(decimal_precision))));
+          if (segment_group.Count > 3) {
+            // System.Console.WriteLine("adding");
+            //  check if the loop is closed
+            if (!segment_group.First().P0.AlmostEquals(segment_group.Last().P1, decimal_precision)) {
+              throw new Exception("failed to close the loop during polygonization");
+            }
+            segment_groups.Add(segment_group);
+
+          } else {
+            // System.Console.WriteLine("nothing");
+          }
+
+          ++iter;
+        }
+      }
+
+      // step 5: from all those segment groups, make polygons
+      var polys = new List<Polygon2D>();
+      {
+        foreach (var seg_group in segment_groups) {
+          polys.Add(new Polygon2D(seg_group.Select(seg => seg.P0), decimal_precision));
+        }
+      }
+
+      return polys;
+    }
+
+    [Experimental]
+    public List<Triangle2D> Triangulate(int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Size == 3) {
+        return new List<Triangle2D> { Triangle2D.FromPoints(Vertices[0], Vertices[1], Vertices[2], decimal_precision) };
+      }
+
+      throw new NotImplementedException("only handle cases of 3 point polygon for now");
+    }
+
     public double Area() {
       double a = 0;  // risk of overflow ...
 
@@ -630,7 +817,7 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConcaveHull(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveDuplicates(decimal_precision);
+      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
 
       return (sorted_points.Count < 3) ? null : new Polygon2D(sorted_points);
     }
