@@ -91,34 +91,7 @@ namespace GeomSharp {
 
     // well known text base class overrides
     public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);
-      return "GEOMETRYCOLLECTION (" +
-
-             "POINT (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           Origin.X,
-                           Origin.Y,
-                           Origin.Z) +
-             ")"
-
-             + "," +
-
-             "LINESTRING (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           p1.X,
-                           p1.Y,
-                           p1.Z) +
-             "," +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}"),
-                           p2.X,
-                           p2.Y,
-                           p2.Z) +
-             ")" +
-
-             ")";
-    }
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
+      return "LINE (" + Origin.ToWkt(precision) + "," + Direction.ToWkt(precision) + ")";
     }
 
     // own functions

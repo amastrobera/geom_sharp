@@ -73,21 +73,7 @@ namespace GeomSharp {
 
     // well known text base class overrides
     public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return string.Format(
-          "GEOMETRYCOLLECTION (" + "LINESTRING (" +
-              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
-              String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")" + ", POINT (" +
-              String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" + ")",
-          Origin.X,
-          Origin.Y,
-          Origin.Z,
-          Origin.X + Direction.X,
-          Origin.Y + Direction.Y,
-          Origin.Z + Direction.Z);
-    }
-
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
+      return "RAY (" + Origin.ToWkt(precision) + "," + Direction.ToWkt(precision) + ")";
     }
 
     // relationship to all the other geometries

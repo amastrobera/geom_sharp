@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
+    <Compile Include="WktTests.cs" />
     <Compile Include="IntersectionExtensions2DTests.cs" />
     <Compile Include="OverlapExtensions2DTests.cs" />
     <Compile Include="OverlapExtensions3DTests.cs" />
@@ -71,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Resources\Polygon2D\Polygonize_1.wkt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GeomSharp\GeomSharp.csproj">

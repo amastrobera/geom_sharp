@@ -115,6 +115,24 @@ namespace GeomSharp.Collections {
       return key_dictionary.OrderBy(kv => kv.Value).Select(kv => point_list[kv.Value]).ToList();
     }
 
+    public static bool AreCollinear(this Point2D p1,
+                                    Point2D p2,
+                                    Point2D p3,
+                                    int decimal_precision = Constants.THREE_DECIMALS) {
+      // check if p2 is on the same line p1->p3, and if so remove it
+      if (p1.AlmostEquals(p2, decimal_precision) || p2.AlmostEquals(p3, decimal_precision)) {
+        return true;
+      }
+      // check if the two lines are parallel
+      var U = p2 - p1;
+      var V = p3 - p1;
+      if (U.IsParallel(V, decimal_precision)) {
+        return true;
+      }
+
+      return false;
+    }
+
     public static bool AreCollinear(this Point3D p1,
                                     Point3D p2,
                                     Point3D p3,
@@ -156,24 +174,33 @@ namespace GeomSharp.Collections {
 
       // remove collinear points
       for (int i = 0; i < n; ++i) {
-        int i1 = i % n;
-        int i2 = (i1 + 1) % n;
-        int i3 = (i2 + 1) % n;
         if (n < 3) {
           break;
         }
-
-        // remove collinear points
-        if (new_polyline[i1].AreCollinear(new_polyline[i2], new_polyline[i3], decimal_precision)) {
-          // find and remove the point in the middle (extend the edge to the next point)
-          if (Math.Round(new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
-                         decimal_precision) >= 0) {
-            new_polyline.RemoveAt(i2);
-          } else {
-            new_polyline.RemoveAt(i3);
-          }
+        int i1 = i % n;
+        int i2 = (i1 + 1) % n;
+        int i3 = (i2 + 1) % n;
+        // remove equal points
+        // check if p2 is on the same line p1->p3, and if so remove it
+        if (new_polyline[i3].AlmostEquals(new_polyline[i2], decimal_precision) ||
+            new_polyline[i2].AlmostEquals(new_polyline[i1], decimal_precision)) {
+          new_polyline.RemoveAt(i2);
           --n;  // the size of items has decreased
           --i;  // analyze again the same start point in the next iteration
+        } else {
+          // remove collinear points
+          if (AreCollinear(new_polyline[i1], new_polyline[i2], new_polyline[i3], decimal_precision)) {
+            // find and remove the point in the middle (extend the edge to the next point)
+            if (Math.Round(
+                    new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
+                    decimal_precision) >= 0) {
+              new_polyline.RemoveAt(i2);
+            } else {
+              new_polyline.RemoveAt(i3);
+            }
+            --n;  // the size of items has decreased
+            --i;  // analyze again the same start point in the next iteration
+          }
         }
       }
 
@@ -223,12 +250,12 @@ namespace GeomSharp.Collections {
       var new_polyline = new List<Point2D>(polyline);
       // remove collinear points
       for (int i = 0; i < n; ++i) {
-        int i1 = i % n;
-        int i2 = (i1 + 1) % n;
-        int i3 = (i2 + 1) % n;
         if (n < 3) {
           break;
         }
+        int i1 = i % n;
+        int i2 = (i1 + 1) % n;
+        int i3 = (i2 + 1) % n;
 
         // remove equal points
         // check if p2 is on the same line p1->p3, and if so remove it
@@ -239,7 +266,7 @@ namespace GeomSharp.Collections {
           --i;  // analyze again the same start point in the next iteration
         } else {
           // check if p2 is on the same line p1->p3, and if so remove it
-          if ((new_polyline[i3] - new_polyline[i1]).IsParallel(new_polyline[i2] - new_polyline[i1])) {
+          if (AreCollinear(new_polyline[i1], new_polyline[i2], new_polyline[i3], decimal_precision)) {
             // find and remove the point in the middle (extend the edge to the next point)
             if (Math.Round(
                     new_polyline[i1].DistanceTo(new_polyline[i3]) - new_polyline[i1].DistanceTo(new_polyline[i2]),
@@ -283,6 +310,10 @@ namespace GeomSharp.Collections {
 
       return points;
     }
+
+    public static List<Point2D> ConcaveHull(this IEnumerable<Point2D> points,
+                                            int decimal_precision = Constants.THREE_DECIMALS) =>
+        new List<Point2D>(points).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
 
     /// <summary>
     /// Sorts a list of points in  clockwise order

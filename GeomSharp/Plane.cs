@@ -41,7 +41,7 @@ namespace GeomSharp {
                                    Point3D p1,
                                    Point3D p2,
                                    int decimal_precision = Constants.THREE_DECIMALS) {
-      if (p0.AreCollinear(p1, p2, decimal_precision)) {
+      if (Extensions.AreCollinear(p0, p1, p2, decimal_precision)) {
         throw new ArithmeticException("tried to create a plane from collinear points");
       }
 

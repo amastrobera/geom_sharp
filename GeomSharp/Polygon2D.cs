@@ -27,6 +27,14 @@ namespace GeomSharp {
 
       // sort obligatory in CCW order
       // also remove collinear points (and duplicates)
+      System.Console.WriteLine("\t\tPolygon2D");
+      System.Console.WriteLine("\t\t\tpoints=" + points.ToList().ToWkt(decimal_precision));
+      System.Console.WriteLine("\t\t\tpoints (SortCCW)=" +
+                               points.ToList().SortCCW(decimal_precision).ToWkt(decimal_precision));
+      System.Console.WriteLine(
+          "\t\t\tpoints (SortCCW+RemoveCollinearPoints)=" +
+          points.ToList().SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision).ToWkt(decimal_precision));
+
       Vertices = (new List<Point2D>(points)).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
       // TODO: check whether this will ever disrupt the original polygon shape that the user meant
       //       it may be keen to make the polygon throw a specific exception in that case
@@ -81,36 +89,31 @@ namespace GeomSharp {
         return false;
       }
 
+      // different number of points, different polygon
       if (other.Size != Size) {
         return false;
       }
 
-      // different area, different polygon
-      if (Math.Round(Area() - other.Area(), decimal_precision) != 0) {
-        return false;
+      // different set of points, different polygons
+      var point_count = new Dictionary<string, int>();
+      foreach (var p in Vertices) {
+        string key = p.ToWkt(decimal_precision);
+        if (!point_count.ContainsKey(key)) {
+          point_count[key] = 0;
+        }
+        point_count[key] += 1;
       }
 
-      // different set of points, different polygons
-      //    function to return the index of the first point of the list equal to the given point
-      Func<List<Point2D>, Point2D, int> GetFirstEqualPoint = (List<Point2D> _vertices, Point2D _point) => {
-        for (int _i = 0; _i < _vertices.Count; _i++) {
-          if (_vertices[_i].AlmostEquals(_point, decimal_precision)) {
-            return _i;
-          }
+      foreach (var p in other.Vertices) {
+        string key = p.ToWkt(decimal_precision);
+        if (point_count.ContainsKey(key) && point_count[key] > 0) {
+          point_count[key] -= 1;
         }
-        return -1;
-      };
-      //    no equal point found
-      int first_equal_idx = GetFirstEqualPoint(other.Vertices, other[0]);
-      if (first_equal_idx < 0) {
-        return false;
       }
-      //    test point by point
-      for (int i = 0; i < Size; ++i) {
-        int j = (first_equal_idx + i) % Size;
-        if (!Vertices[i].AlmostEquals(other.Vertices[j], decimal_precision)) {
-          return false;
-        }
+
+      int num_different = point_count.Sum(kv => kv.Value);
+      if (num_different > 0) {
+        return false;
       }
 
       return true;
@@ -162,9 +165,6 @@ namespace GeomSharp {
                                 Vertices[0].U,
                                 Vertices[0].V) +
                   "))";
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
 
     // relationship to all the other geometries
 
@@ -817,8 +817,7 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConcaveHull(IEnumerable<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var sorted_points = new List<Point2D>(points).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
-
+      var sorted_points = new List<Point2D>(points).ConcaveHull(decimal_precision);
       return (sorted_points.Count < 3) ? null : new Polygon2D(sorted_points);
     }
 
@@ -829,12 +828,12 @@ namespace GeomSharp {
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     public static Polygon2D ConvexHull(List<Point2D> points, int decimal_precision = Constants.THREE_DECIMALS) {
-      var concave_hull = ConcaveHull(points, decimal_precision);
+      var concave_hull = points.ConcaveHull(decimal_precision);
 
-      if (concave_hull is null) {
+      if (!concave_hull.Any()) {
         return null;
       }
-      var sorted_points = concave_hull.Vertices;
+      var sorted_points = concave_hull;
 
       // pick the lowest point
       int n = sorted_points.Count;
@@ -847,9 +846,7 @@ namespace GeomSharp {
         }
       }
       // initialize with the smallest point and the point after
-      var cvpoints = new List<Point2D>();
-      cvpoints.Add(sorted_points[i0 % n]);
-      cvpoints.Add(sorted_points[(i0 + 1) % n]);
+      var cvpoints = new List<Point2D> { sorted_points[i0 % n], sorted_points[(i0 + 1) % n] };
 
       for (int i = 2; i <= n; ++i) {
         cvpoints.Add(sorted_points[(i0 + i) % n]);
@@ -874,7 +871,9 @@ namespace GeomSharp {
         cvpoints.RemoveAt(cvpoints.Count - 1);
       }
 
-      return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints);
+      System.Console.WriteLine("\t\tcvpoints=" + cvpoints.ToWkt(decimal_precision));
+
+      return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints, decimal_precision);
     }
   }
 }

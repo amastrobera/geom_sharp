@@ -25,6 +25,12 @@ namespace GeomSharp {
       if (points.Length < 3) {
         throw new ArgumentException("tried to initialize a polygon with less than 3 points");
       }
+
+      System.Console.WriteLine("\tPolygon3D");
+      System.Console.WriteLine("\t\tpoints=" + points.ToList().ToWkt(decimal_precision));
+      System.Console.WriteLine("\t\tpoints (RemoveCollinearPoints)=" +
+                               points.ToList().RemoveCollinearPoints(decimal_precision).ToWkt(decimal_precision));
+
       Vertices = (new List<Point3D>(points)).RemoveCollinearPoints(decimal_precision);
       // input adjustment: correcting mistake of passing collinear points to a polygon
       if (Vertices.Count < 3) {
@@ -98,32 +104,32 @@ namespace GeomSharp {
         return false;
       }
 
-      // different area, different polygon
-      if (Math.Round(Area() - other.Area(), decimal_precision) != 0) {
+      // different number of points, different polygon
+      if (other.Size != Size) {
         return false;
       }
 
       // different set of points, different polygons
-      //    function to return the index of the first point of the list equal to the given point
-      Func<List<Point3D>, Point3D, int> GetFirstEqualPoint = (List<Point3D> _vertices, Point3D _point) => {
-        for (int _i = 0; _i < _vertices.Count; _i++) {
-          if (_vertices[_i].AlmostEquals(_point, decimal_precision)) {
-            return _i;
-          }
+      var point_count = new Dictionary<string, int>();
+      foreach (var p in Vertices) {
+        string key = p.ToWkt(decimal_precision);
+        if (!point_count.ContainsKey(key)) {
+          point_count[key] = 0;
         }
-        return -1;
-      };
-      //    no equal point found
-      int first_equal_idx = GetFirstEqualPoint(other.Vertices, other[0]);
-      if (first_equal_idx < 0) {
-        return false;
+        point_count[key] += 1;
       }
-      //    test point by point
-      for (int i = 0; i < Size; ++i) {
-        int j = (first_equal_idx + i) % Size;
-        if (!Vertices[i].AlmostEquals(other.Vertices[j], decimal_precision)) {
-          return false;
+
+      foreach (var p in other.Vertices) {
+        string key = p.ToWkt(decimal_precision);
+        if (point_count.ContainsKey(key) && point_count[key] > 0) {
+          point_count[key] -= 1;
         }
+      }
+
+      int num_different = point_count.Sum(kv => kv.Value);
+      System.Console.WriteLine("num_different=" + num_different.ToString());
+      if (num_different > 0) {
+        return false;
       }
 
       return true;
@@ -181,10 +187,6 @@ namespace GeomSharp {
                                 Vertices[0].Y,
                                 Vertices[0].Z) +
                   "))";
-
-    public override Geometry3D FromWkt(string wkt) {
-      throw new NotImplementedException();
-    }
 
     // relationship to all the other geometries
 
@@ -638,7 +640,7 @@ namespace GeomSharp {
 
       var poly_2d = Polygon2D.ConvexHull(points.Select(p => plane.ProjectInto(p)).ToList(), decimal_precision);
 
-      return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)));
+      return (poly_2d is null) ? null : new Polygon3D(poly_2d.Select(p => plane.Evaluate(p)), decimal_precision);
     }
   }
 }

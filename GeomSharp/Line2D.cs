@@ -54,7 +54,9 @@ namespace GeomSharp {
         other.GetType() == typeof(Line2D) && this.AlmostEquals(other as Line2D, decimal_precision);
 
     public bool AlmostEquals(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        !(other is null) && Direction.AlmostEquals(other.Direction, decimal_precision);
+        !(other is null) && this.Contains(other.Origin, decimal_precision) &&
+        (Direction.AlmostEquals(other.Direction, decimal_precision) ||
+         Direction.AlmostEquals(-1 * other.Direction, decimal_precision));
 
     // comparison operators
     public static bool operator ==(Line2D a, Line2D b) {
@@ -94,24 +96,7 @@ namespace GeomSharp {
 
     // well known text base class overrides
     public override string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      (var p1, var p2) = (Origin - 2 * Direction, Origin + 2 * Direction);
-      return "GEOMETRYCOLLECTION (" +
-
-             "POINT (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), Origin.U, Origin.V) +
-             ")"
-
-             + "," +
-
-             "LINESTRING (" +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), p1.U, p1.V) + "," +
-             string.Format(String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}"), p2.U, p2.V) + ")" +
-
-             ")";
-    }
-
-    public override Geometry2D FromWkt(string wkt) {
-      throw new NotImplementedException();
+      return "LINE (" + Origin.ToWkt(precision) + ", " + Direction.ToWkt(precision) + ")";
     }
 
     // relationship to all the other geometries
