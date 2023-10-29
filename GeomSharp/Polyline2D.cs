@@ -341,12 +341,15 @@ namespace GeomSharp {
     public double LocationPct(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       double curve_len = Length();
       double len_done = 0;
+
       foreach (var piece_line in ToSegments(decimal_precision)) {
         double piece_len = piece_line.Length();
+
         if (piece_line.Contains(point, decimal_precision)) {
-          double t = Math.Round(piece_line.P0.DistanceTo(point) / Length(), decimal_precision);
-          if (t >= 0 && t <= 1) {
-            return (len_done + t * piece_len) / curve_len;
+          double t = piece_line.P0.DistanceTo(point) / curve_len;
+
+          if (Math.Round(t, decimal_precision) >= 0.0 && Math.Round(t, decimal_precision) <= 1.0) {
+            return Math.Round((len_done + t * piece_len) / curve_len, decimal_precision);
           }
         }
         len_done += piece_len;
@@ -370,18 +373,30 @@ namespace GeomSharp {
         throw new ArgumentException("pct should be in the range [0,1]");
       }
 
-      double curve_len = Math.Round(Length(), decimal_precision);
-      double curve_todo = Math.Round(pct * curve_len, decimal_precision);
+      if (Math.Round(pct, decimal_precision) == 0) {
+        return Nodes.First();
+      }
+
+      if (Math.Round(pct, decimal_precision) == 1) {
+        return Nodes.Last();
+      }
+
+      double curve_len = Length();
+      double curve_todo = pct * curve_len;
       double len_done = 0;
       double pct_done = 0;
+
       foreach (var piece_line in ToSegments(decimal_precision)) {
-        double piece_len = piece_line.Length();
-        if (Math.Round(len_done + piece_len, decimal_precision) >= curve_todo) {
+        double piece_len = Math.Round(piece_line.Length(), decimal_precision);
+
+        if (Math.Round((len_done + piece_len) - curve_todo, decimal_precision) >= 0) {
           // found segment containing the point
           double tI = ((pct - pct_done) * curve_len) / piece_len;
+
           var PI = piece_line.P0 + tI * (piece_line.P1 - piece_line.P0);
-          return PI;
+          return new Point2D(Math.Round(PI.U, decimal_precision), Math.Round(PI.V, decimal_precision));
         }
+
         len_done += piece_len;
         pct_done = len_done / curve_len;
       }
