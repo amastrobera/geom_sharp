@@ -31,9 +31,9 @@ namespace GeomSharp {
         throw new ArgumentException(
             String.Format("tried to initialize a Point3D with an {0:D}-dimention vector", copy_raw.Size));
       }
-      X = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
-      Y = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
-      Z = Math.Round(copy_raw[2], Constants.NINE_DECIMALS);
+      X = copy_raw[0];
+      Y = copy_raw[1];
+      Z = copy_raw[2];
     }
 
     public static Point3D FromVector(Vector v) {
