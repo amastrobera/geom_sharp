@@ -119,5 +119,34 @@ namespace GeomSharpTests {
                            "), \n\tpline=" + pline.ToWkt(precision) + "\n\tseg=" + seg.ToWkt(precision));
       }
     }
+
+    [RepeatedTestMethod(100)]
+    public void GetPointOnPolyline() {
+      int precision = RandomGenerator.MakeInt(0, 9);
+
+      // 2D
+
+      (var pline, var _, int n) = RandomGenerator.MakeSimplePolyline2D(decimal_precision: precision);
+
+      // Console.WriteLine("t = " + t.ToWkt(precision));
+      if (pline is null) {
+        return;
+      }
+
+      // temporary data
+      Point2D p;
+
+      // test 1: polyline points!
+      for (int i = 0; i < n; ++i) {
+        p = pline[i];
+
+        double pct = pline.LocationPct(p, precision);
+        var q = pline.GetPointOnPolyline(pct, precision);
+
+        Assert.IsTrue(q.AlmostEquals(q, precision),
+                      "point (" + i.ToString() + ") could not be found on polyline.\n\tpline=" +
+                          pline.ToWkt(precision) + "\n\tp=" + p.ToWkt(precision));
+      }
+    }
   }
 }

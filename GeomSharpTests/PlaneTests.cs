@@ -82,15 +82,16 @@ namespace GeomSharpTests {
       var shift = 2 * shift_vector;
 
       // shiting points of the plane up, than projecting and testing for containment
-      Assert.IsTrue(plane.Contains(plane.ProjectOnto(p0 + shift), precision));
-      Assert.IsTrue(plane.Contains(plane.ProjectOnto(p1 + shift), precision));
-      Assert.IsTrue(plane.Contains(plane.ProjectOnto(p1 + shift), precision));
+      Assert.IsTrue(plane.Contains(plane.ProjectOnto(p0 + shift, precision), precision));
+      Assert.IsTrue(plane.Contains(plane.ProjectOnto(p1 + shift, precision), precision));
+      Assert.IsTrue(plane.Contains(plane.ProjectOnto(p1 + shift, precision), precision));
 
       // linear combination
       (double a, double b, double c) = RandomGenerator.MakeLinearCombo3SumTo1();
       Assert.IsTrue(plane.Contains(plane.ProjectOnto(new Point3D(a * p0.X + b * p1.X + c * p2.X,
                                                                  a * p0.Y + b * p1.Y + c * p2.Y,
-                                                                 a * p0.Z + b * p1.Z + c * p2.Z)),
+                                                                 a * p0.Z + b * p1.Z + c * p2.Z),
+                                                     precision),
                                    precision));
     }
 
@@ -114,15 +115,16 @@ namespace GeomSharpTests {
       var shift = 2 * shift_vector;
 
       // shiting points of the plane up, than projecting and testing for containment
-      Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(p0 + shift), precision));
-      Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(p1 + shift), precision));
-      Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(p1 + shift), precision));
+      Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(p0 + shift, precision), precision));
+      Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(p1 + shift, precision), precision));
+      Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(p1 + shift, precision), precision));
 
       // linear combination
       (double a, double b, double c) = RandomGenerator.MakeLinearCombo3SumTo1();
       Assert.IsTrue(plane.Contains(plane.VerticalProjectOnto(new Point3D(a * p0.X + b * p1.X + c * p2.X,
                                                                          a * p0.Y + b * p1.Y + c * p2.Y,
-                                                                         a * p0.Z + b * p1.Z + c * p2.Z)),
+                                                                         a * p0.Z + b * p1.Z + c * p2.Z),
+                                                             precision),
                                    precision));
     }
 
@@ -139,13 +141,14 @@ namespace GeomSharpTests {
       }
 
       // origin
-      Assert.IsTrue(plane.ProjectInto(p0).AlmostEquals(Point2D.Zero, precision), "origin");
+      Assert.IsTrue(plane.ProjectInto(p0, precision).AlmostEquals(Point2D.Zero, precision), "origin");
       // point on the AxisU
-      Assert.IsTrue(Line2D.FromDirection(Point2D.Zero, Vector2D.AxisU).Contains(plane.ProjectInto(p1), precision),
-                    "AxisU");
+      Assert.IsTrue(
+          Line2D.FromDirection(Point2D.Zero, Vector2D.AxisU).Contains(plane.ProjectInto(p1, precision), precision),
+          "AxisU");
       // point on the AxisV
       Assert.IsTrue(Line2D.FromDirection(Point2D.Zero, Vector2D.AxisV)
-                        .Contains(plane.ProjectInto(plane.Origin + plane.AxisV), precision),
+                        .Contains(plane.ProjectInto(plane.Origin + plane.AxisV, precision), precision),
                     "AxisV");
 
       //// compare ProjectInto with Intersection. they should yield the same result
@@ -275,7 +278,7 @@ namespace GeomSharpTests {
       Assert.IsTrue(plane.Intersects(other_plane, precision));
     }
 
-    [RepeatedTestMethod(10)]
+    [RepeatedTestMethod(100)]
     public void Evaluate() {
       int precision = RandomGenerator.MakeInt(0, 9);
 
@@ -296,8 +299,8 @@ namespace GeomSharpTests {
 
       Func<Plane, Point3D, string, bool> AssertEvaluate =
           (Plane ref_plane, Point3D original_point, string test_description) => {
-            var proj_point = ref_plane.ProjectInto(original_point);
-            var eval_point = ref_plane.Evaluate(proj_point);
+            var proj_point = ref_plane.ProjectInto(original_point, precision);
+            var eval_point = ref_plane.Evaluate(proj_point, precision);
 
             Assert.IsTrue(ref_plane.Contains(original_point, precision), "original_point contained");
             Assert.IsTrue(ref_plane.Contains(eval_point, precision), "eval_point contained");
