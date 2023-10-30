@@ -28,8 +28,7 @@ namespace GeomSharp {
         throw new ArgumentException(
             String.Format("tried to initialize a Point2D with an {0:D}-dimention vector", copy_raw.Size));
       }
-      U = Math.Round(copy_raw[0], Constants.NINE_DECIMALS);
-      V = Math.Round(copy_raw[1], Constants.NINE_DECIMALS);
+      (U, V) = (copy_raw[0], copy_raw[1]);
     }
 
     // generic overrides from object class
