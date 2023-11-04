@@ -18,15 +18,13 @@ namespace GeomSharpTests {
     public static Point2D MakePoint2D(int IMin = -10,
                                       int IMax = 10,
                                       int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      return new Point2D(IMin + Seed.NextDouble() * (IMax - IMin), IMin + Seed.NextDouble() * (IMax - IMin));
     }
 
     public static Vector2D MakeVector2D(int IMin = -10,
                                         int IMax = 10,
                                         int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Vector2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      return new Vector2D(IMin + Seed.NextDouble() * (IMax - IMin), IMin + Seed.NextDouble() * (IMax - IMin));
     }
 
     public static (LineSegment2D Segment, Point2D p0, Point2D p1)
@@ -152,7 +150,7 @@ namespace GeomSharpTests {
                             int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
       // construct polygon based on a center and radius, and number of points to approximate a circle
       try {
-        var c = (Center is null) ? MakePoint2D(IMax - IMin, decimal_precision) : Center;
+        var c = (Center is null) ? MakePoint2D(IMax - IMin) : Center;
         double r = Seed.NextDouble() * (IMax - IMin);
         int n = Seed.Next(NMax);
         if (n < 4) {
@@ -178,7 +176,7 @@ namespace GeomSharpTests {
       // construct polyline with no self-intersections
       // build a p0 + sin approximated line
       try {
-        var p0 = MakePoint2D(IMax - IMin, decimal_precision);
+        var p0 = MakePoint2D(IMax - IMin);
         var direction = MakeVector2D(IMin, IMax).Normalize();
 
         double length = Seed.NextDouble() * (IMax - IMin);
@@ -205,26 +203,22 @@ namespace GeomSharpTests {
 
     //  3D objects
 
-    public static Point3D MakePoint3D(int IMin = -10,
-                                      int IMax = 10,
-                                      int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Point3D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+    public static Point3D MakePoint3D(int IMin = -10, int IMax = 10) {
+      return new Point3D(IMin + Seed.NextDouble() * (IMax - IMin),
+                         IMin + Seed.NextDouble() * (IMax - IMin),
+                         IMin + Seed.NextDouble() * (IMax - IMin));
     }
 
-    public static Vector3D MakeVector3D(int IMin = -10,
-                                        int IMax = 10,
-                                        int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Vector3D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+    public static Vector3D MakeVector3D(int IMin = -10, int IMax = 10) {
+      return new Vector3D(IMin + Seed.NextDouble() * (IMax - IMin),
+                          IMin + Seed.NextDouble() * (IMax - IMin),
+                          IMin + Seed.NextDouble() * (IMax - IMin));
     }
 
     public static (Line3D Line, Point3D p0, Point3D p1)
         MakeLine3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMin, IMax, decimal_precision);
-      var p1 = MakePoint3D(IMin, IMax, decimal_precision);
+      var p0 = MakePoint3D(IMin, IMax);
+      var p1 = MakePoint3D(IMin, IMax);
 
       try {
         return (Line3D.FromPoints(p0, p1, decimal_precision), p0, p1);
@@ -235,8 +229,8 @@ namespace GeomSharpTests {
 
     public static (LineSegment3D Segment, Point3D p0, Point3D p1)
         MakeLineSegment3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin, decimal_precision);
-      var p1 = MakePoint3D(IMax - IMin, decimal_precision);
+      var p0 = MakePoint3D(IMax - IMin);
+      var p1 = MakePoint3D(IMax - IMin);
 
       try {
         return (LineSegment3D.FromPoints(p0, p1, decimal_precision), p0, p1);
@@ -247,8 +241,8 @@ namespace GeomSharpTests {
 
     public static (Ray3D Ray, Point3D p0, Point3D p1)
         MakeRay3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin, decimal_precision);
-      var p1 = MakePoint3D(IMax - IMin, decimal_precision);
+      var p0 = MakePoint3D(IMax - IMin);
+      var p1 = MakePoint3D(IMax - IMin);
 
       try {
         return (new Ray3D(p0, (p1 - p0).Normalize()), p0, p1);
@@ -259,9 +253,9 @@ namespace GeomSharpTests {
 
     public static (Triangle3D Triangle, Point3D p0, Point3D p1, Point3D p2)
         MakeTriangle3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin, decimal_precision);
-      var p1 = MakePoint3D(IMax - IMin, decimal_precision);
-      var p2 = MakePoint3D(IMax - IMin, decimal_precision);
+      var p0 = MakePoint3D(IMax - IMin);
+      var p1 = MakePoint3D(IMax - IMin);
+      var p2 = MakePoint3D(IMax - IMin);
 
       try {
         return (Triangle3D.FromPoints(p0, p1, p2, decimal_precision), p0, p1, p2);
@@ -272,9 +266,9 @@ namespace GeomSharpTests {
 
     public static (Plane Plane, Point3D p0, Point3D p1, Point3D p2)
         MakePlane(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin, decimal_precision);
-      var p1 = MakePoint3D(IMax - IMin, decimal_precision);
-      var p2 = MakePoint3D(IMax - IMin, decimal_precision);
+      var p0 = MakePoint3D(IMax - IMin);
+      var p1 = MakePoint3D(IMax - IMin);
+      var p2 = MakePoint3D(IMax - IMin);
       try {
         return (Plane.FromPoints(p0, p1, p2, decimal_precision), p0, p1, p2);
       } catch (Exception) {
@@ -337,7 +331,7 @@ namespace GeomSharpTests {
                              int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
       // construct polyline with no self-intersections
       // build a p0 + sin approximated line
-      var p0 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p0 = MakePoint3D(IMax, IMin);
       var direction_longitudinal = MakeVector3D(IMin, IMax).Normalize();
       var direction_elevation = (direction_longitudinal.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ);
       var direction_lateral = direction_longitudinal.CrossProduct(direction_elevation).Normalize();

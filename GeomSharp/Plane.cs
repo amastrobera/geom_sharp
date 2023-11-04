@@ -172,44 +172,13 @@ namespace GeomSharp {
     // projection (3D to 2D)
 
     /// <summary>
-    /// Projects orthogonally the point on the plane
-    /// </summary>
-    /// <param name="p"></param>
-    /// <param name="decimal_precision"></param>
-    /// <returns></returns>
-    public Point3D ProjectOnto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
-      // funny edge case
-      if (Contains(p, decimal_precision)) {
-        return p;
-      }
-
-      // in theory this is sufficient, but in practice this result is far from zero-distance to the plane
-      // var q = p - SignedDistance(p) * Normal;
-
-      // so, let's use Daniel Sunday's formula to achieve greatness
-      var U = -SignedDistance(p) * Normal;
-      var W = p - Origin;
-      var n = Normal;
-      double sI = -n.DotProduct(W) / n.DotProduct(U);
-      var temp = p + sI * U;
-      var q = new Point3D(Math.Round(temp.X, decimal_precision),
-                          Math.Round(temp.Y, decimal_precision),
-                          Math.Round(temp.Z, decimal_precision));
-
-      if (!Contains(q, decimal_precision)) {
-        throw new Exception("ProjectOnto failed");
-      }
-      return q;
-    }
-
-    /// <summary>
     /// Projects on a plane along a given axis
     /// </summary>
     /// <param name="p"></param>
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public Point3D ProjectOnto(Point3D p, UnitVector3D proj_axis, int decimal_precision = Constants.THREE_DECIMALS) {
+    public Point3D ProjectOnto(Point3D p, Vector3D proj_axis, int decimal_precision = Constants.THREE_DECIMALS) {
       // funny edge case
       if (Contains(p, decimal_precision)) {
         return p;
@@ -222,18 +191,23 @@ namespace GeomSharp {
 
       double sI = -n.DotProduct(W) / n.DotProduct(U);
 
-      Point3D temp = p + sI * U;
-
-      var q = new Point3D(Math.Round(temp.X, decimal_precision),
-                          Math.Round(temp.Y, decimal_precision),
-                          Math.Round(temp.Z, decimal_precision));
+      Point3D q = p + sI * U;
 
       if (!Contains(q, decimal_precision)) {
-        throw new Exception("VerticalProjectOnto failed");
+        throw new Exception("ProjectOnto (axis) failed");
       }
 
       return q;
     }
+
+    /// <summary>
+    /// Projects orthogonally the point on the plane
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="decimal_precision"></param>
+    /// <returns></returns>
+    public Point3D ProjectOnto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ProjectOnto(p, -SignedDistance(p) * Normal, decimal_precision);
 
     /// <summary>
     /// Projects on a plane along a given axis (throws if the plane is vertical!)
@@ -263,7 +237,7 @@ namespace GeomSharp {
       double B_len = B.Length();
       double B_cos = B.DotProduct(AxisU);
       double B_sin = B.DotProduct(AxisV);
-      return new Point2D(Math.Round(B_cos, decimal_precision), Math.Round(B_sin, decimal_precision));
+      return new Point2D(B_cos, B_sin);
 
       // // this below yields the same result as the above
       // var U_int = Line3D.FromDirection(q, AxisV).Intersection(Line3D.FromDirection(Origin, AxisU));
@@ -298,7 +272,7 @@ namespace GeomSharp {
       double B_len = B.Length();
       double B_cos = B.DotProduct(AxisU);
       double B_sin = B.DotProduct(AxisV);
-      return new Point2D(Math.Round(B_cos, decimal_precision), Math.Round(B_sin, decimal_precision));
+      return new Point2D(B_cos, B_sin);
     }
 
     // evaluation (2D to 3D)
@@ -307,28 +281,20 @@ namespace GeomSharp {
     /// We transform a plane's 2D point to the 3D version of it.
     /// </summary>
     /// <param name="p"></param>
-    /// <param name="decimal_precision"/>
     /// <returns></returns>
-    public Point3D Evaluate(Point2D p, int decimal_precision = Constants.THREE_DECIMALS) {
-      var temp = Origin + AxisU * p.U + AxisV * p.V;
-      return new Point3D(Math.Round(temp.X, decimal_precision),
-                         Math.Round(temp.Y, decimal_precision),
-                         Math.Round(temp.Z, decimal_precision));
-    }
+    public Point3D Evaluate(Point2D p) => Origin + AxisU * p.U + AxisV * p.V;
 
-    public List<Point3D> Evaluate(List<Point2D> point_list_2d, int decimal_precision = Constants.THREE_DECIMALS) =>
-        new List<Point3D>(point_list_2d.Select(p => Evaluate(p, decimal_precision)));
+    public List<Point3D> Evaluate(List<Point2D> point_list_2d) =>
+        new List<Point3D>(point_list_2d.Select(p => Evaluate(p)));
 
     public LineSegment3D Evaluate(LineSegment2D shape_2d, int decimal_precision = Constants.THREE_DECIMALS) =>
-        LineSegment3D.FromPoints(Evaluate(shape_2d.P0, decimal_precision), Evaluate(shape_2d.P1, decimal_precision));
+        LineSegment3D.FromPoints(Evaluate(shape_2d.P0), Evaluate(shape_2d.P1), decimal_precision);
 
     public Triangle3D Evaluate(Triangle2D shape_2d, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Triangle3D.FromPoints(Evaluate(shape_2d.P0, decimal_precision),
-                              Evaluate(shape_2d.P1, decimal_precision),
-                              Evaluate(shape_2d.P2, decimal_precision));
+        Triangle3D.FromPoints(Evaluate(shape_2d.P0), Evaluate(shape_2d.P1), Evaluate(shape_2d.P2), decimal_precision);
 
     public Polygon3D Evaluate(Polygon2D shape_2d, int decimal_precision = Constants.THREE_DECIMALS) =>
-        new Polygon3D(shape_2d.Select(p => Evaluate(p, decimal_precision)), decimal_precision);
+        new Polygon3D(shape_2d.Select(p => Evaluate(p)), decimal_precision);
 
     // special formatting
     public override string ToString() {
@@ -337,36 +303,17 @@ namespace GeomSharp {
     }
 
     public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return string.Format(
-          "GEOMETRYCOLLECTION (" +
+      return "GEOMETRYCOLLECTION (" +
 
-              "POINT (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ")" +
-              "," +
+             Origin.ToWkt(precision) + "," +
 
-              "LINESTRING (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") +
-              ", " + String.Format("{0}3:F{1:D}{2} {0}4:F{1:D}{2} {0}5:F{1:D}{2}", "{", precision, "}") + ")",
+             Normal.ToWkt(precision) + "," +
 
-          "LINESTRING (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
-              String.Format("{0}6:F{1:D}{2} {0}7:F{1:D}{2} {0}8:F{1:D}{2}", "{", precision, "}") + ")" + ")",
+             AxisU.ToWkt(precision) + "," +
 
-          "LINESTRING (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2} {0}2:F{1:D}{2}", "{", precision, "}") + ", " +
-              String.Format("{0}9:F{1:D}{2} {0}10:F{1:D}{2} {0}11:F{1:D}{2}", "{", precision, "}") + ")" + ")"
+             AxisV.ToWkt(precision) +
 
-              + ")"
-
-          ,
-          Origin.X,
-          Origin.Y,
-          Origin.Z,
-          Normal.X,
-          Normal.Y,
-          Normal.Z,
-          AxisU.X,
-          AxisU.Y,
-          AxisU.Z,
-          AxisV.X,
-          AxisV.Y,
-          AxisV.Z);
+             ")";
     }
 
     // relationship to other geometries

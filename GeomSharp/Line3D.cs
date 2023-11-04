@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using Microsoft.SqlServer.Server;
+using GeomSharp.Utils;
 
 namespace GeomSharp {
   /// <summary>
@@ -24,7 +25,10 @@ namespace GeomSharp {
             ? throw new NullLengthException("trying to initialize a line with two identical points")
             : new Line3D(p0, p1);
 
-    public static Line3D FromDirection(Point3D orig, UnitVector3D dir) => new Line3D(orig, dir);
+    public static Line3D FromDirection(Point3D orig,
+                                       UnitVector3D dir,
+                                       int decimal_precision = Constants.THREE_DECIMALS) =>
+        new Line3D(orig.ToDecimals(decimal_precision), dir.ToDecimals(decimal_precision).Normalize());
 
     private Line3D(Point3D p0, Point3D p1) {
       P0 = p0;

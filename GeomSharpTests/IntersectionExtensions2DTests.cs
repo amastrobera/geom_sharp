@@ -80,7 +80,7 @@ namespace GeomSharpTests {
 
       // case 2: no intersection (parallel, shift random vector)
       //      upwards
-      Vector2D shift = RandomGenerator.MakeVector2D(decimal_precision: precision);
+      Vector2D shift = RandomGenerator.MakeVector2D();
       ray = new Ray2D(p0 + 2 * shift, u);
       Assert.IsFalse(line.Intersects(ray, precision),
                      "no intersection (parallel, shift upwards random vector)" + "\ns1=" + line.ToWkt(precision) +
@@ -279,7 +279,7 @@ namespace GeomSharpTests {
 
       // case 2: no intersection (parallel, shift random vector)
       //      upwards
-      Vector2D shift = RandomGenerator.MakeVector2D(decimal_precision: precision);
+      Vector2D shift = RandomGenerator.MakeVector2D();
       ray = new Ray2D(p0 + 2 * shift, u);
       Assert.IsFalse(segment.Intersects(ray, precision),
                      "no intersection (parallel, shift upwards random vector)" + "\ns1=" + segment.ToWkt(precision) +

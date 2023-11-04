@@ -131,7 +131,7 @@ namespace GeomSharpTests {
 
       // case 2: no intersection (parallel, shift random vector)
       //      upwards
-      Vector3D shift = RandomGenerator.MakeVector3D(decimal_precision: precision);
+      Vector3D shift = RandomGenerator.MakeVector3D();
       other = Line3D.FromPoints(p0 + 2 * shift, p1 + 2 * shift, precision);
       Assert.IsFalse(line.Intersects(other, precision),
                      "no intersection (parallel, shift upwards random vector)" + "\n\tl1=" + line.ToWkt(precision) +

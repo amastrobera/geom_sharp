@@ -50,6 +50,8 @@
     <Compile Include="Transformation\Projections.cs" />
     <Compile Include="Transformation\*.cs" />
     <Compile Include="Utils\Attributes.cs" />
+    <Compile Include="Utils\Conversions.cs" />
+    <Compile Include="Utils\Format.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

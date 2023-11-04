@@ -358,7 +358,7 @@ namespace GeomSharp {
 
     public Point3D ProjectOnto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
       int i_nearest = IndexOfNearestSegmentToPoint(p, decimal_precision);
-      return Line3D.FromPoints(Nodes[i_nearest], Nodes[i_nearest + 1]).ProjectOnto(p);
+      return Line3D.FromPoints(Nodes[i_nearest], Nodes[i_nearest + 1], decimal_precision).ProjectOnto(p);
     }
 
     /// <summary>
@@ -381,7 +381,8 @@ namespace GeomSharp {
           double t = piece_line.P0.DistanceTo(point) / curve_len;
 
           if (Math.Round(t, decimal_precision) >= 0.0 && Math.Round(t, decimal_precision) <= 1.0) {
-            return Math.Round((len_done + t * piece_len) / curve_len, decimal_precision);
+            double pct = (len_done + t * piece_len) / curve_len;
+            return pct;
           }
         }
         len_done += piece_len;
@@ -419,16 +420,14 @@ namespace GeomSharp {
       double pct_done = 0;
 
       foreach (var piece_line in ToSegments(decimal_precision)) {
-        double piece_len = Math.Round(piece_line.Length(), decimal_precision);
+        double piece_len = piece_line.Length();
 
         if (Math.Round((len_done + piece_len) - curve_todo, decimal_precision) >= 0) {
           // found segment containing the point
           double tI = ((pct - pct_done) * curve_len) / piece_len;
 
           var PI = piece_line.P0 + tI * (piece_line.P1 - piece_line.P0);
-          return new Point3D(Math.Round(PI.X, decimal_precision),
-                             Math.Round(PI.Y, decimal_precision),
-                             Math.Round(PI.Z, decimal_precision));
+          return PI;
         }
 
         len_done += piece_len;

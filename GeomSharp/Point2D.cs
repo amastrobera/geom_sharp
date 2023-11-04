@@ -46,8 +46,8 @@ namespace GeomSharp {
         other.GetType() == typeof(Point2D) && this.AlmostEquals(other as Point2D, decimal_precision);
 
     public bool AlmostEquals(Point2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        !(other is null) && Math.Round(this.U - other.U, decimal_precision) == 0 &&
-        Math.Round(this.V - other.V, decimal_precision) == 0;
+        !(other is null) &&
+        ToVector().AlmostEquals(other.ToVector(), decimal_precision, Extensions.EqualityMethod.SUM_OF_SQUARES);
 
     // comparison operators
     public static bool operator ==(Point2D a, Point2D b) {

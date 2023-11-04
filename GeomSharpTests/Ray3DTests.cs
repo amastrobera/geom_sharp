@@ -142,7 +142,7 @@ namespace GeomSharpTests {
 
       // case 2: no intersection (parallel, shift random vector)
       //      upwards
-      Vector3D shift = RandomGenerator.MakeVector3D(decimal_precision: precision);
+      Vector3D shift = RandomGenerator.MakeVector3D();
       if (Math.Round(shift.Length(), precision) == 0) {
         other = new Ray3D(p0 + shift, u);
         Assert.IsFalse(ray.Intersects(other, precision),

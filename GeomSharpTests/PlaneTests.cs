@@ -222,7 +222,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void IntersectPlane() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = Constants.THREE_DECIMALS;  // RandomGenerator.MakeInt(3, 9);
 
       var random_plane = RandomGenerator.MakePlane(decimal_precision: precision);
       var plane = random_plane.Plane;
@@ -256,7 +256,7 @@ namespace GeomSharpTests {
       i = 0;
       shift_vector = null;
       while ((shift_vector is null || shift_vector.AlmostEquals(plane.Normal, precision)) && i < max_inter) {
-        var vec = RandomGenerator.MakeVector3D(decimal_precision: precision);
+        var vec = RandomGenerator.MakeVector3D();
         shift_vector = (plane.Normal + vec).Normalize();
         ++i;
       }
@@ -266,7 +266,7 @@ namespace GeomSharpTests {
       i = 0;
       p = null;
       while ((p is null || p.AlmostEquals(plane.Origin, precision)) && i < max_inter) {
-        p = RandomGenerator.MakePoint3D(decimal_precision: precision);
+        p = RandomGenerator.MakePoint3D();
         ++i;
       }
       if (i == max_inter) {
@@ -292,90 +292,48 @@ namespace GeomSharpTests {
         return;
       }
 
-      // cached variables
-      (var p0, var p1, var p2) = (random_plane.p0, random_plane.p1, random_plane.p2);
-      (double a, double b, double c) = RandomGenerator.MakeLinearCombo3SumTo1();
-      Point3D p;
-
       Func<Plane, Point3D, string, bool> AssertEvaluate =
           (Plane ref_plane, Point3D original_point, string test_description) => {
             var proj_point = ref_plane.ProjectInto(original_point, precision);
-            var eval_point = ref_plane.Evaluate(proj_point, precision);
+            var eval_point = ref_plane.Evaluate(proj_point);
 
-            Assert.IsTrue(ref_plane.Contains(original_point, precision), "original_point contained");
-            Assert.IsTrue(ref_plane.Contains(eval_point, precision), "eval_point contained");
+            Assert.IsTrue(original_point.AlmostEquals(eval_point, precision),
+                          "original_point != eval_point" +
 
-            // Console.WriteLine("\n" + test_description +
+                              "\n\talmost_equals=" + original_point.AlmostEquals(eval_point, precision).ToString() +
+                              "\n\tprecision=" + precision.ToString() + "\n\toriginal=" +
+                              original_point.ToWkt(precision) + "\n\teval=" + eval_point.ToWkt(precision));
 
-            //                  "\n\toriginal=" + original_point.ToWkt(precision) +
+            Assert.IsTrue(ref_plane.Contains(original_point, precision),
+                          "original_point not contained in the plane" +
 
-            //                  "\n\tproj=" + proj_point.ToWkt(precision) +
+                              "\n\tprecision=" + precision.ToString() + "\n\tref_plane=" + ref_plane.ToWkt(precision) +
+                              "\n\toriginal=" + original_point.ToWkt(precision) +
+                              "\n\tproj=" + proj_point.ToWkt(precision) + "\n\teval=" + eval_point.ToWkt(precision));
 
-            //                  "\n\teval=" + eval_point.ToWkt(precision)
+            Assert.IsTrue(
+                ref_plane.Contains(eval_point, precision),
+                "eval_point not contained in the plane" +
 
-            //);
-
-            // Assert.AreEqual(original_point,
-            //                 eval_point,
-
-            //                "\n" + test_description +
-
-            //                    "\n\tproj_point=" + proj_point.ToWkt(precision) +
-
-            //                    "\n\toriginal_point=" + original_point.ToWkt(precision) +
-            //                    ", d=" + (original_point - ref_plane.Origin).Length().ToString() +
-
-            //                    "\n\teval_point=" + eval_point.ToWkt(precision) +
-            //                    ", d=" + (eval_point - ref_plane.Origin).Length().ToString()
-
-            //);
+                    "\n\tprecision=" + precision.ToString() + "\n\tref_plane=" + ref_plane.ToWkt(precision) +
+                    "\n\toriginal=" + original_point.ToWkt(precision) + "\n\tproj=" + proj_point.ToWkt(precision) +
+                    "\n\teval=" + eval_point.ToWkt(precision) +
+                    "\n\tsigned_distance=" + Math.Round(ref_plane.SignedDistance(eval_point), precision).ToString());
 
             return true;
           };
 
-      // plane = Plane.FromPoints(new Point3D(0, 0, 5), new Point3D(5, 2, 5), new Point3D(-1, 4, 5));
-
-      // Console.WriteLine("plane=" + plane.ToString());
-
-      // var P = plane.Origin + plane.AxisU;
-      // var U = plane.AxisU;
-      // var O = plane.Origin;
-      // var OP = P - O;
-
-      // Console.WriteLine("OP=" + OP.ToWkt(precision));
-      // Console.WriteLine("|OP|=" + OP.Length().ToString());
-      // Console.WriteLine("U=" + U.ToWkt(precision));
-      // Console.WriteLine("|U|=" + U.Length().ToString());
-      // Console.WriteLine("OP*U=" + OP.DotProduct(U).ToString());
-      // Console.WriteLine("O*U=" + O.DotProduct(U).ToString());
-      // Console.WriteLine("P*U=" + P.DotProduct(U).ToString());
-      // Console.WriteLine("U2=" + U.DotProduct(U).ToString());
-
-      // var proj_point_onto = plane.ProjectOnto(P);
-      // var proj_point_into = plane.ProjectInto(P);
-      // var eval_point_to = plane.Evaluate(proj_point_into);
-
-      // Console.WriteLine(
-
-      //    "\n\torigin=" + O.ToWkt(precision) +
-
-      //    "\n\tproj_point_onto=" + proj_point_onto.ToWkt(precision) + ", d=" + (proj_point_onto -
-      //    O).Length().ToString() +
-
-      //    "\n\tproj_point_into=" + proj_point_into.ToWkt(precision) +
-      //    ", d=" + (proj_point_into - Point2D.Zero).Length().ToString() +
-
-      //    "\n\toriginal_point=" + P.ToWkt(precision) + ", d=" + (P - O).Length().ToString() +
-
-      //    "\n\teval_point=" + eval_point_to.ToWkt(precision) + ", d=" + (eval_point_to - O).Length().ToString()
-
-      //);
+      // cached variables
+      (var p0, var p1, var p2) = (random_plane.p0, random_plane.p1, random_plane.p2);
+      (int coef1, int coef2) = (RandomGenerator.MakeInt(0, 9), RandomGenerator.MakeInt(0, 9));
+      (double a, double b, double c) = RandomGenerator.MakeLinearCombo3SumTo1();
+      Point3D p;
 
       // case 1: the generating points - projected, then evaluated - are equal to themselves
       //          p -> p_proj -> p_eval = p
       AssertEvaluate(plane, plane.Origin, "origin point, p0");
-      AssertEvaluate(plane, plane.Origin + plane.AxisU, "axis U point, p1");
-      AssertEvaluate(plane, plane.Origin + plane.AxisV, "axis V point, p2");
+      AssertEvaluate(plane, plane.Origin + coef1 * plane.AxisU, "axis U point, p1");
+      AssertEvaluate(plane, plane.Origin + coef2 * plane.AxisV, "axis V point, p2");
 
       // case 2: linear combinations of the original 3D points, still belonging to the plane
       p = new Point3D(a * p0.X + b * p1.X + c * p2.X,

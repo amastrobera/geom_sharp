@@ -5,6 +5,7 @@ using System.Linq;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using static GeomSharp.Algebra.Extensions;
 
 namespace GeomSharp.Algebra {
   /// <summary>
@@ -80,20 +81,32 @@ namespace GeomSharp.Algebra {
     /// <param name="other"></param>
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public bool AlmostEquals(Vector other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (other is null) {
-        return false;
-      }
+    public bool AlmostEquals(Vector other,
+                             int decimal_precision = Constants.THREE_DECIMALS,
+                             EqualityMethod method = EqualityMethod.SUM_OF_SQUARES) {
       if (Size != other.Size) {
         return false;
       }
 
-      for (int i = 0; i < Size; ++i) {
-        if (Math.Round(_values[i] - other._values[i], decimal_precision) != 0) {
-          return false;
+      switch (method) {
+        case EqualityMethod.SUM_OF_SQUARES: {
+          double sse = 0;
+          for (int i = 0; i < Size; i++) {
+            sse += Math.Pow(this[i] - other[i], 2);
+          }
+          return Math.Round(Math.Sqrt(sse), decimal_precision) == 0;
         }
+
+        case EqualityMethod.BY_MEMBERS:
+          for (int i = 0; i < Size; i++) {
+            if (Math.Round(this[i] - other[i], decimal_precision) == 0) {
+              return false;
+            }
+          }
+          return true;
       }
-      return true;
+
+      throw new NotImplementedException();
     }
 
     public bool Equals(Vector other) => this.AlmostEquals(other);
@@ -231,7 +244,7 @@ namespace GeomSharp.Algebra {
       info.AddValue("size", Size, typeof(int));
       info.AddValue("values", _values, typeof(double[]));
     }
-    
+
     public Vector(SerializationInfo info, StreamingContext context) {
       // Reset the property value using the GetValue method.
       Size = (int)info.GetValue("size", typeof(int));

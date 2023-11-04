@@ -141,7 +141,7 @@ namespace GeomSharpTests {
 
       // case 2: no intersection (parallel, shift random vector)
       //      upwards
-      Vector2D shift = RandomGenerator.MakeVector2D(decimal_precision: precision);
+      Vector2D shift = RandomGenerator.MakeVector2D();
       if (Math.Round(shift.Length(), Constants.NINE_DECIMALS) != 0) {
         other = new Ray2D(p0 + shift, u);
         Assert.IsFalse(ray.Intersects(other, precision),

@@ -328,7 +328,7 @@ namespace GeomSharpTests {
 
       int decimal_precision = RandomGenerator.MakeInt(0, 9);
 
-      var p = RandomGenerator.MakePoint3D(decimal_precision: decimal_precision);
+      var p = RandomGenerator.MakePoint3D();
       p.ToFile(file_path, decimal_precision);
 
       // System.Console.WriteLine("wkt = " + p.ToWkt());
