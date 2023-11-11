@@ -55,7 +55,9 @@ namespace GeomSharp {
     public override bool AlmostEquals(Geometry3D other, int decimal_precision = 3) =>
         other.GetType() == typeof(Line3D) && this.AlmostEquals(other as Line3D, decimal_precision);
     public bool AlmostEquals(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        !(other is null) && Direction.AlmostEquals(other.Direction, decimal_precision);
+        !(other is null) && this.Contains(other.Origin, decimal_precision) &&
+        (Direction.AlmostEquals(other.Direction, decimal_precision) ||
+         Direction.AlmostEquals(-1 * other.Direction, decimal_precision));
 
     // comparison operators
     public static bool operator ==(Line3D a, Line3D b) {

@@ -80,7 +80,7 @@ namespace GeomSharp {
     /// <returns></returns>
     public bool AlmostEquals(Vector2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) &&
-        ToVector().AlmostEquals(other.ToVector(), decimal_precision, Extensions.EqualityMethod.SUM_OF_SQUARES);
+        ToVector().AlmostEquals(other.ToVector(), decimal_precision, Extensions.EqualityMethod.BY_MEMBERS);
 
     public bool Equals(Vector2D other) => this.AlmostEquals(other);
 

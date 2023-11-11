@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Generic;
+using GeomSharp.Utils;
 
 namespace GeomSharp {
   /// <summary>
@@ -41,7 +42,7 @@ namespace GeomSharp {
                        int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
                                                                                               ToWkt(decimal_precision));
 
-    private static Vector2D FromWktVector(string wkt) {
+    private static Vector2D FromWktVector(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
       wkt = wkt.Trim();
 
       string known_empty = "EMPTY";
@@ -58,7 +59,7 @@ namespace GeomSharp {
           throw new Exception("more than one point");
         }
         var numbers = data[0];
-        return new Vector2D(numbers[0], numbers[1]);
+        return new Vector2D(numbers[0], numbers[1]).ToDecimals(decimal_precision);
       }
 
       return null;
@@ -83,7 +84,7 @@ namespace GeomSharp {
             throw new Exception("more than one point");
           }
           var numbers = data[0];
-          return new Point2D(numbers[0], numbers[1]);
+          return new Point2D(numbers[0], numbers[1]).ToDecimals(decimal_precision);
         }
 
         // LineSegment2D
@@ -101,14 +102,15 @@ namespace GeomSharp {
 
           if (data.Length == 2) {
             // TODO: assess the file's decimal precision
-            return LineSegment2D.FromPoints(new Point2D(data[0][0], data[0][1]),
-                                            new Point2D(data[1][0], data[1][1]),
+            return LineSegment2D.FromPoints(new Point2D(data[0][0], data[0][1]).ToDecimals(decimal_precision),
+                                            new Point2D(data[1][0], data[1][1]).ToDecimals(decimal_precision),
                                             decimal_precision);
           }
 
           if (data.Length > 2) {
             // TODO: assess the file's decimal precision
-            return new Polyline2D(data.Select(d => new Point2D(d[0], d[1])), decimal_precision);
+            return new Polyline2D(data.Select(d => new Point2D(d[0], d[1]).ToDecimals(decimal_precision)),
+                                  decimal_precision);
           }
         }
 
@@ -124,11 +126,12 @@ namespace GeomSharp {
             throw new Exception("number of geometries != 2");
           }
 
-          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWktVector(geoms[1]));
+          (var geom1, var geom2) = (FromWkt(geoms[0], decimal_precision), FromWktVector(geoms[1], decimal_precision));
 
           if (geom1 is null || geom2 is null) {
             // try the other way around
-            (var geom21, var geom22) = (FromWktVector(geoms[0]), FromWkt(geoms[1]));
+            (var geom21, var geom22) =
+                (FromWktVector(geoms[0], decimal_precision), FromWkt(geoms[1], decimal_precision));
 
             if (geom21 is null || geom22 is null) {
               throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
@@ -156,11 +159,12 @@ namespace GeomSharp {
             throw new Exception("number of geometries != 2");
           }
 
-          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWktVector(geoms[1]));
+          (var geom1, var geom2) = (FromWkt(geoms[0], decimal_precision), FromWktVector(geoms[1], decimal_precision));
 
           if (geom1 is null || geom2 is null) {
             // try the other way around
-            (var geom21, var geom22) = (FromWktVector(geoms[0]), FromWkt(geoms[1]));
+            (var geom21, var geom22) =
+                (FromWktVector(geoms[0], decimal_precision), FromWkt(geoms[1], decimal_precision));
 
             if (geom21 is null || geom22 is null) {
               throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
@@ -189,9 +193,9 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return Triangle2D.FromPoints(new Point2D(data[0][0], data[0][1]),
-                                       new Point2D(data[1][0], data[1][1]),
-                                       new Point2D(data[2][0], data[2][1]));
+          return Triangle2D.FromPoints(new Point2D(data[0][0], data[0][1]).ToDecimals(decimal_precision),
+                                       new Point2D(data[1][0], data[1][1]).ToDecimals(decimal_precision),
+                                       new Point2D(data[2][0], data[2][1]).ToDecimals(decimal_precision));
         }
 
         // Polygon2D
@@ -202,14 +206,14 @@ namespace GeomSharp {
             return null;
           }
 
-          var data = FromWktPolygonSetBlock(StripWktFromBrackets(wkt));
+          var data = FromWktPolygonSetBlock(StripWktFromBrackets(wkt), decimal_precision: decimal_precision);
 
           if (data.Length == 1 && data[0].Length == 3) {
             // it's a triangle
             // TODO: assess decimal precision
-            return Triangle2D.FromPoints(new Point2D(data[0][0][0], data[0][0][1]),
-                                         new Point2D(data[0][1][0], data[0][1][1]),
-                                         new Point2D(data[0][2][0], data[0][2][1]));
+            return Triangle2D.FromPoints(new Point2D(data[0][0][0], data[0][0][1]).ToDecimals(decimal_precision),
+                                         new Point2D(data[0][1][0], data[0][1][1]).ToDecimals(decimal_precision),
+                                         new Point2D(data[0][2][0], data[0][2][1]).ToDecimals(decimal_precision));
           }
 
           if (data.Length > 1) {
@@ -218,7 +222,8 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return new Polygon2D(data[0].Select(d => new Point2D(d[0], d[1])), decimal_precision);
+          return new Polygon2D(data[0].Select(d => new Point2D(d[0], d[1]).ToDecimals(decimal_precision)),
+                               decimal_precision);
         }
 
         // MultiPolygon2D
@@ -228,11 +233,15 @@ namespace GeomSharp {
             return null;
           }
 
-          return new MultiPolygon2D(StripWktFromBrackets(wkt)
-                                        .Split(new string[] { "," }, StringSplitOptions.None)
-                                        .Select(s => FromWkt(s, decimal_precision))
-                                        .Cast<Polygon2D>(),
-                                    decimal_precision);
+          // TODO: this was a good try, but not working
+          //       use https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex?view=net-7.0
+          var data = FromWktMultiPolygonSetBlock(StripWktFromBrackets(wkt), decimal_precision: decimal_precision);
+          System.Console.WriteLine("data=" + data.ToString());
+
+          return new MultiPolygon2D(
+              data.Select(d => new Polygon2D(d[0].Select(p => new Point2D(p[0], p[1]).ToDecimals(decimal_precision)),
+                                             decimal_precision)),
+              decimal_precision);
         }
 
         // PointSet2D
@@ -249,7 +258,8 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return new PointSet2D(data.Select(d => new Point2D(d[0], d[1])), decimal_precision);
+          return new PointSet2D(data.Select(d => new Point2D(d[0], d[1]).ToDecimals(decimal_precision)),
+                                decimal_precision);
         }
 
         // LineSegmentSet2D
@@ -265,11 +275,12 @@ namespace GeomSharp {
             line_data[i] = FromWktPointListBlock(StripWktFromBrackets(line_blocks[i]));
           }
 
-          // TODO: assess decimal precision
-          return new LineSegmentSet2D(
-              line_data.Select(data => LineSegment2D.FromPoints(new Point2D(data[0][0], data[0][1]),
-                                                                new Point2D(data[1][0], data[1][1]),
-                                                                decimal_precision)));
+          // TODO: this doesn't support polylines! it's getting all data from file with first and last point only!
+          return new LineSegmentSet2D(line_data.Select(
+              data => LineSegment2D.FromPoints(
+                  new Point2D(data[0][0], data[0][1]).ToDecimals(decimal_precision),
+                  new Point2D(data[data.Length - 1][0], data[data.Length - 1][1]).ToDecimals(decimal_precision),
+                  decimal_precision)));
         }
 
         // GeometryCollection2D
@@ -411,6 +422,45 @@ namespace GeomSharp {
       }
 
       return polys.ToArray();
+    }
+
+    private static double[][][][] FromWktMultiPolygonSetBlock(string wkt,
+                                                              char point_delim = ',',
+                                                              char num_delim = ' ',
+                                                              int decimal_precision = Constants.THREE_DECIMALS) {
+      // TODO: replace with Regex, all of them!
+
+      wkt = wkt.Trim();
+      var mpolys = new List<double[][][]>();
+
+      string next_wkt = wkt;
+      while (next_wkt != "") {
+        int first_bracket = wkt.IndexOf('(');
+        if (first_bracket < 0) {
+          throw new Exception("missing first bracket");
+        }
+
+        int next_bracket = wkt.IndexOf(')');
+        if (next_bracket < 0) {
+          throw new Exception("missing next bracket");
+        }
+
+        if (next_bracket <= first_bracket + 1) {
+          throw new Exception("() contain no data");
+        }
+
+        string wkt_poly_block = next_wkt.Substring(first_bracket + 1, next_bracket - first_bracket - 1);
+
+        mpolys.Add(FromWktPolygonSetBlock(wkt_poly_block, point_delim, num_delim, decimal_precision));
+
+        next_wkt = wkt.Substring(next_bracket + 1);
+
+        if (next_wkt.StartsWith(",")) {
+          next_wkt = next_wkt.Substring(1);
+        }
+      }
+
+      return mpolys.ToArray();
     }
 
     private static double[][] FromWktPointListBlock(string wkt, char point_delim = ',', char num_delim = ' ') {

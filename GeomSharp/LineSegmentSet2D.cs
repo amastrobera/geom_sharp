@@ -8,6 +8,8 @@ using System.Runtime.Serialization;
 
 namespace GeomSharp {
 
+  // TODO: this does not contain (yet) polylines!
+
   /// <summary>
   /// New class that extends the MathNet.Spatial.Euclidean namespace
   /// </summary>

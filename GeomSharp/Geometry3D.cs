@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GeomSharp.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,7 +42,7 @@ namespace GeomSharp {
                        int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
                                                                                               ToWkt(decimal_precision));
 
-    private static Vector3D FromWktVector(string wkt) {
+    private static Vector3D FromWktVector(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
       wkt = wkt.Trim();
       string known_empty = "EMPTY";
 
@@ -56,7 +57,7 @@ namespace GeomSharp {
           throw new Exception("more than one point");
         }
         var numbers = data[0];
-        return new Vector3D(numbers[0], numbers[1], numbers[2]);
+        return new Vector3D(numbers[0], numbers[1], numbers[2]).ToDecimals(decimal_precision);
       }
 
       return null;
@@ -81,7 +82,7 @@ namespace GeomSharp {
             throw new Exception("more than one point");
           }
           var numbers = data[0];
-          return new Point3D(numbers[0], numbers[1], numbers[2]);
+          return new Point3D(numbers[0], numbers[1], numbers[2]).ToDecimals(decimal_precision);
         }
 
         // LineSegment3D
@@ -99,14 +100,16 @@ namespace GeomSharp {
 
           if (data.Length == 2) {
             // TODO: assess the file's decimal precision
-            return LineSegment3D.FromPoints(new Point3D(data[0][0], data[0][1], data[0][2]),
-                                            new Point3D(data[1][0], data[1][1], data[1][2]),
-                                            decimal_precision);
+            return LineSegment3D.FromPoints(
+                new Point3D(data[0][0], data[0][1], data[0][2]).ToDecimals(decimal_precision),
+                new Point3D(data[1][0], data[1][1], data[1][2]).ToDecimals(decimal_precision),
+                decimal_precision);
           }
 
           if (data.Length > 2) {
             // TODO: assess the file's decimal precision
-            return new Polyline3D(data.Select(d => new Point3D(d[0], d[1], d[2])), decimal_precision);
+            return new Polyline3D(data.Select(d => new Point3D(d[0], d[1], d[2]).ToDecimals(decimal_precision)),
+                                  decimal_precision);
           }
         }
 
@@ -122,11 +125,12 @@ namespace GeomSharp {
             throw new Exception("number of geometries != 2");
           }
 
-          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWktVector(geoms[1]));
+          (var geom1, var geom2) = (FromWkt(geoms[0], decimal_precision), FromWktVector(geoms[1], decimal_precision));
 
           if (geom1 is null || geom2 is null) {
             // try the other way around
-            (var geom21, var geom22) = (FromWktVector(geoms[0]), FromWkt(geoms[1]));
+            (var geom21, var geom22) =
+                (FromWktVector(geoms[0], decimal_precision), FromWkt(geoms[1], decimal_precision));
             if (geom21 is null || geom22 is null) {
               throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
             }
@@ -153,11 +157,12 @@ namespace GeomSharp {
             throw new Exception("number of geometries != 2");
           }
 
-          (var geom1, var geom2) = (FromWkt(geoms[0]), FromWktVector(geoms[1]));
+          (var geom1, var geom2) = (FromWkt(geoms[0], decimal_precision), FromWktVector(geoms[1], decimal_precision));
 
           if (geom1 is null || geom2 is null) {
             // try the other way around
-            (var geom21, var geom22) = (FromWktVector(geoms[0]), FromWkt(geoms[1]));
+            (var geom21, var geom22) =
+                (FromWktVector(geoms[0], decimal_precision), FromWkt(geoms[1], decimal_precision));
 
             if (geom21 is null || geom22 is null) {
               throw new Exception("unexpected pair of geometries: " + string.Join(",", geoms));
@@ -186,9 +191,9 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return Triangle3D.FromPoints(new Point3D(data[0][0], data[0][1], data[0][2]),
-                                       new Point3D(data[1][0], data[1][1], data[1][2]),
-                                       new Point3D(data[2][0], data[2][1], data[2][2]));
+          return Triangle3D.FromPoints(new Point3D(data[0][0], data[0][1], data[0][2]).ToDecimals(decimal_precision),
+                                       new Point3D(data[1][0], data[1][1], data[1][2]).ToDecimals(decimal_precision),
+                                       new Point3D(data[2][0], data[2][1], data[2][2]).ToDecimals(decimal_precision));
         }
 
         // Polygon3D
@@ -203,9 +208,10 @@ namespace GeomSharp {
           if (data.Length == 1 && data[0].Length == 3) {
             // it's a triangle
             // TODO: assess decimal precision
-            return Triangle3D.FromPoints(new Point3D(data[0][0][0], data[0][0][1], data[0][0][2]),
-                                         new Point3D(data[0][1][0], data[0][1][1], data[0][1][2]),
-                                         new Point3D(data[0][2][0], data[0][2][1], data[0][2][2]));
+            return Triangle3D.FromPoints(
+                new Point3D(data[0][0][0], data[0][0][1], data[0][0][2]).ToDecimals(decimal_precision),
+                new Point3D(data[0][1][0], data[0][1][1], data[0][1][2]).ToDecimals(decimal_precision),
+                new Point3D(data[0][2][0], data[0][2][1], data[0][2][2]).ToDecimals(decimal_precision));
           }
 
           if (data.Length > 1) {
@@ -214,7 +220,8 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return new Polygon3D(data[0].Select(d => new Point3D(d[0], d[1], d[2])), decimal_precision);
+          return new Polygon3D(data[0].Select(d => new Point3D(d[0], d[1], d[2]).ToDecimals(decimal_precision)),
+                               decimal_precision);
         }
 
         // PointSet3D
@@ -231,7 +238,8 @@ namespace GeomSharp {
           }
 
           // TODO: assess decimal precision
-          return new PointSet3D(data.Select(d => new Point3D(d[0], d[1], d[2])), decimal_precision);
+          return new PointSet3D(data.Select(d => new Point3D(d[0], d[1], d[2]).ToDecimals(decimal_precision)),
+                                decimal_precision);
         }
 
         // LineSegmentSet3D
@@ -247,11 +255,14 @@ namespace GeomSharp {
             line_data[i] = FromWktPointListBlock(StripWktFromBrackets(line_blocks[i]));
           }
 
-          // TODO: assess decimal precision
+          // TODO: this only supports line segments (not polylines). it's chopping the polyline off from first to last
+          // point only
           return new LineSegmentSet3D(
-              line_data.Select(data => LineSegment3D.FromPoints(new Point3D(data[0][0], data[0][1], data[0][2]),
-                                                                new Point3D(data[1][0], data[1][1], data[1][2]),
-                                                                decimal_precision)));
+              line_data.Select(data => LineSegment3D.FromPoints(
+                                   new Point3D(data[0][0], data[0][1], data[0][2]).ToDecimals(decimal_precision),
+                                   new Point3D(data[data.Length - 1][0], data[data.Length - 1][1], data[1][2])
+                                       .ToDecimals(decimal_precision),
+                                   decimal_precision)));
         }
 
         // GeometryCollection3D

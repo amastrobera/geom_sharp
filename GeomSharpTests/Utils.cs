@@ -5,6 +5,7 @@ using GeomSharp;
 using GeomSharp.Algebra;
 using GeomSharp.Collections;
 using GeomSharp.Transformation;
+using GeomSharp.Utils;
 
 namespace GeomSharpTests {
 
@@ -18,13 +19,15 @@ namespace GeomSharpTests {
     public static Point2D MakePoint2D(int IMin = -10,
                                       int IMax = 10,
                                       int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Point2D(IMin + Seed.NextDouble() * (IMax - IMin), IMin + Seed.NextDouble() * (IMax - IMin));
+      return new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
+                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
     }
 
     public static Vector2D MakeVector2D(int IMin = -10,
                                         int IMax = 10,
                                         int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Vector2D(IMin + Seed.NextDouble() * (IMax - IMin), IMin + Seed.NextDouble() * (IMax - IMin));
+      return new Vector2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
+                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
     }
 
     public static (LineSegment2D Segment, Point2D p0, Point2D p1)
@@ -105,11 +108,12 @@ namespace GeomSharpTests {
 
         var angle_shift = Angle.FromRadians(Math.PI / 2);
 
-        return new Polygon2D(new Point2D[4] { c + start_vector * radius,
-                                              c + start_vector.Rotate(1 * angle_shift) * radius,
-                                              c + start_vector.Rotate(2 * angle_shift) * radius,
-                                              c + start_vector.Rotate(3 * angle_shift) * radius },
-                             decimal_precision);
+        return new Polygon2D(
+            new Point2D[4] { (c + start_vector * radius).ToDecimals(decimal_precision),
+                             (c + start_vector.Rotate(1 * angle_shift) * radius).ToDecimals(decimal_precision),
+                             (c + start_vector.Rotate(2 * angle_shift) * radius).ToDecimals(decimal_precision),
+                             (c + start_vector.Rotate(3 * angle_shift) * radius).ToDecimals(decimal_precision) },
+            decimal_precision);
 
       } catch (Exception) {
       }
@@ -131,11 +135,12 @@ namespace GeomSharpTests {
 
         var angle_shift = Angle.FromRadians(Math.PI / 2);
 
-        return new Polygon2D(new Point2D[4] { c + start_vector * b,
-                                              c + start_vector.Rotate(1 * angle_shift) * h,
-                                              c + start_vector.Rotate(2 * angle_shift) * b,
-                                              c + start_vector.Rotate(3 * angle_shift) * h },
-                             decimal_precision);
+        return new Polygon2D(
+            new Point2D[4] { (c + start_vector * b).ToDecimals(decimal_precision),
+                             (c + start_vector.Rotate(1 * angle_shift) * h).ToDecimals(decimal_precision),
+                             (c + start_vector.Rotate(2 * angle_shift) * b).ToDecimals(decimal_precision),
+                             (c + start_vector.Rotate(3 * angle_shift) * h).ToDecimals(decimal_precision) },
+            decimal_precision);
 
       } catch (Exception) {
       }
@@ -150,7 +155,7 @@ namespace GeomSharpTests {
                             int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
       // construct polygon based on a center and radius, and number of points to approximate a circle
       try {
-        var c = (Center is null) ? MakePoint2D(IMax - IMin) : Center;
+        var c = (Center is null) ? MakePoint2D(IMax, IMin, decimal_precision) : Center;
         double r = Seed.NextDouble() * (IMax - IMin);
         int n = Seed.Next(NMax);
         if (n < 4) {
@@ -162,7 +167,8 @@ namespace GeomSharpTests {
         var cv_points = new List<Point2D>();
         for (int i = 0; i < n; ++i) {
           cv_points.Add(
-              new Point2D(c.U + r * Math.Cos(start_rads + (i * rads)), c.V + r * Math.Sin(start_rads + (i * rads))));
+              new Point2D(c.U + r * Math.Cos(start_rads + (i * rads)), c.V + r * Math.Sin(start_rads + (i * rads)))
+                  .ToDecimals(decimal_precision));
         }
 
         return (Polygon2D.ConvexHull(cv_points, decimal_precision), c, r, n);
@@ -176,8 +182,8 @@ namespace GeomSharpTests {
       // construct polyline with no self-intersections
       // build a p0 + sin approximated line
       try {
-        var p0 = MakePoint2D(IMax - IMin);
-        var direction = MakeVector2D(IMin, IMax).Normalize();
+        var p0 = MakePoint2D(IMax, IMin, decimal_precision);
+        var direction = MakeVector2D(IMin, IMax, decimal_precision).Normalize();
 
         double length = Seed.NextDouble() * (IMax - IMin);
         int n = Seed.Next(NMax);
@@ -189,7 +195,8 @@ namespace GeomSharpTests {
         for (int i = 0; i < n; ++i) {
           var pi = p0 + i / n * length * direction;
           cv_points.Add(
-              new Point2D(pi.U + r * Math.Cos(start_rads + (i * rads)), pi.V + r * Math.Sin(start_rads + (i * rads))));
+              new Point2D(pi.U + r * Math.Cos(start_rads + (i * rads)), pi.V + r * Math.Sin(start_rads + (i * rads)))
+                  .ToDecimals(decimal_precision));
         }
 
         // System.Console.WriteLine("cv_points=" + cv_points.ToWkt());
@@ -203,22 +210,26 @@ namespace GeomSharpTests {
 
     //  3D objects
 
-    public static Point3D MakePoint3D(int IMin = -10, int IMax = 10) {
-      return new Point3D(IMin + Seed.NextDouble() * (IMax - IMin),
-                         IMin + Seed.NextDouble() * (IMax - IMin),
-                         IMin + Seed.NextDouble() * (IMax - IMin));
+    public static Point3D MakePoint3D(int IMin = -10,
+                                      int IMax = 10,
+                                      int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
+      return new Point3D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
+                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
+                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
     }
 
-    public static Vector3D MakeVector3D(int IMin = -10, int IMax = 10) {
-      return new Vector3D(IMin + Seed.NextDouble() * (IMax - IMin),
-                          IMin + Seed.NextDouble() * (IMax - IMin),
-                          IMin + Seed.NextDouble() * (IMax - IMin));
+    public static Vector3D MakeVector3D(int IMin = -10,
+                                        int IMax = 10,
+                                        int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
+      return new Vector3D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
+                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
+                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
     }
 
     public static (Line3D Line, Point3D p0, Point3D p1)
         MakeLine3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMin, IMax);
-      var p1 = MakePoint3D(IMin, IMax);
+      var p0 = MakePoint3D(IMin, IMax, decimal_precision);
+      var p1 = MakePoint3D(IMin, IMax, decimal_precision);
 
       try {
         return (Line3D.FromPoints(p0, p1, decimal_precision), p0, p1);
@@ -229,8 +240,8 @@ namespace GeomSharpTests {
 
     public static (LineSegment3D Segment, Point3D p0, Point3D p1)
         MakeLineSegment3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin);
-      var p1 = MakePoint3D(IMax - IMin);
+      var p0 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p1 = MakePoint3D(IMax, IMin, decimal_precision);
 
       try {
         return (LineSegment3D.FromPoints(p0, p1, decimal_precision), p0, p1);
@@ -241,8 +252,8 @@ namespace GeomSharpTests {
 
     public static (Ray3D Ray, Point3D p0, Point3D p1)
         MakeRay3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin);
-      var p1 = MakePoint3D(IMax - IMin);
+      var p0 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p1 = MakePoint3D(IMax, IMin, decimal_precision);
 
       try {
         return (new Ray3D(p0, (p1 - p0).Normalize()), p0, p1);
@@ -253,9 +264,9 @@ namespace GeomSharpTests {
 
     public static (Triangle3D Triangle, Point3D p0, Point3D p1, Point3D p2)
         MakeTriangle3D(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin);
-      var p1 = MakePoint3D(IMax - IMin);
-      var p2 = MakePoint3D(IMax - IMin);
+      var p0 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p1 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p2 = MakePoint3D(IMax, IMin, decimal_precision);
 
       try {
         return (Triangle3D.FromPoints(p0, p1, p2, decimal_precision), p0, p1, p2);
@@ -266,9 +277,9 @@ namespace GeomSharpTests {
 
     public static (Plane Plane, Point3D p0, Point3D p1, Point3D p2)
         MakePlane(int IMin = -10, int IMax = 10, int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      var p0 = MakePoint3D(IMax - IMin);
-      var p1 = MakePoint3D(IMax - IMin);
-      var p2 = MakePoint3D(IMax - IMin);
+      var p0 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p1 = MakePoint3D(IMax, IMin, decimal_precision);
+      var p2 = MakePoint3D(IMax, IMin, decimal_precision);
       try {
         return (Plane.FromPoints(p0, p1, p2, decimal_precision), p0, p1, p2);
       } catch (Exception) {
@@ -315,7 +326,7 @@ namespace GeomSharpTests {
             (ref_plane.Evaluate(random_poly_2d.Center), random_poly_2d.Radius, random_poly_2d.Size);
         var points = new List<Point3D>();
         foreach (var p in random_poly_2d.Polygon) {
-          points.Add(ref_plane.Evaluate(p));
+          points.Add(ref_plane.Evaluate(p).ToDecimals(decimal_precision));
         }
         return (Polygon3D.ConvexHull(points, decimal_precision), c, r, n);
 
@@ -332,7 +343,7 @@ namespace GeomSharpTests {
       // construct polyline with no self-intersections
       // build a p0 + sin approximated line
       var p0 = MakePoint3D(IMax, IMin);
-      var direction_longitudinal = MakeVector3D(IMin, IMax).Normalize();
+      var direction_longitudinal = MakeVector3D(IMin, IMax, decimal_precision).Normalize();
       var direction_elevation = (direction_longitudinal.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ);
       var direction_lateral = direction_longitudinal.CrossProduct(direction_elevation).Normalize();
 
@@ -348,10 +359,11 @@ namespace GeomSharpTests {
         var cv_points = new List<Point3D>();
         for (int i = 0; i < n; ++i) {
           var pi = p0 + i / n * length * direction_longitudinal;
-          cv_points.Add(new Point3D(
-              pi.X + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Cos(start_rads_xy + (i * rads_xy)),
-              pi.Y + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy)),
-              pi.Z + r * Math.Cos(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy))));
+          cv_points.Add(
+              new Point3D(pi.X + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Cos(start_rads_xy + (i * rads_xy)),
+                          pi.Y + r * Math.Sin(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy)),
+                          pi.Z + r * Math.Cos(start_rads_yz + (i * rads_yz)) * Math.Sin(start_rads_xy + (i * rads_xy)))
+                  .ToDecimals(decimal_precision));
         }
 
         return (new Polyline3D(cv_points, decimal_precision), direction_longitudinal, direction_lateral, n);

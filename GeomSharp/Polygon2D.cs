@@ -27,13 +27,13 @@ namespace GeomSharp {
 
       // sort obligatory in CCW order
       // also remove collinear points (and duplicates)
-      System.Console.WriteLine("\t\tPolygon2D");
-      System.Console.WriteLine("\t\t\tpoints=" + points.ToList().ToWkt(decimal_precision));
-      System.Console.WriteLine("\t\t\tpoints (SortCCW)=" +
-                               points.ToList().SortCCW(decimal_precision).ToWkt(decimal_precision));
-      System.Console.WriteLine(
-          "\t\t\tpoints (SortCCW+RemoveCollinearPoints)=" +
-          points.ToList().SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision).ToWkt(decimal_precision));
+      // System.Console.WriteLine("\t\tPolygon2D");
+      // System.Console.WriteLine("\t\t\tpoints=" + points.ToList().ToWkt(decimal_precision));
+      // System.Console.WriteLine("\t\t\tpoints (SortCCW)=" +
+      //                         points.ToList().SortCCW(decimal_precision).ToWkt(decimal_precision));
+      // System.Console.WriteLine(
+      //    "\t\t\tpoints (SortCCW+RemoveCollinearPoints)=" +
+      //    points.ToList().SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision).ToWkt(decimal_precision));
 
       Vertices = (new List<Point2D>(points)).SortCCW(decimal_precision).RemoveCollinearPoints(decimal_precision);
       // TODO: check whether this will ever disrupt the original polygon shape that the user meant
@@ -871,7 +871,7 @@ namespace GeomSharp {
         cvpoints.RemoveAt(cvpoints.Count - 1);
       }
 
-      System.Console.WriteLine("\t\tcvpoints=" + cvpoints.ToWkt(decimal_precision));
+      // System.Console.WriteLine("\t\tcvpoints=" + cvpoints.ToWkt(decimal_precision));
 
       return (cvpoints.Count < 3) ? null : new Polygon2D(cvpoints, decimal_precision);
     }

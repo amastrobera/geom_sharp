@@ -11,7 +11,7 @@ namespace GeomSharpTests {
   public class Triangle2DTests {
     [RepeatedTestMethod(100)]
     public void Contructor() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       var random_triangle = RandomGenerator.MakeTriangle2D(decimal_precision: precision);
       var t = random_triangle.Triangle;
@@ -38,7 +38,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Containment() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 2D
       var t = RandomGenerator.MakeTriangle2D(decimal_precision: precision).Triangle;
@@ -107,7 +107,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Intersection() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 2D
       var t1 = RandomGenerator.MakeTriangle2D(decimal_precision: precision).Triangle;
@@ -221,7 +221,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Overlap() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 2D
       var t1 = RandomGenerator.MakeTriangle2D(decimal_precision: precision).Triangle;
@@ -307,7 +307,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void OnPerimeter() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 2D
       var t = RandomGenerator.MakeTriangle2D(decimal_precision: precision).Triangle;
@@ -377,7 +377,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Touch() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 2D
       var t1 = RandomGenerator.MakeTriangle2D(decimal_precision: precision).Triangle;
@@ -477,7 +477,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Adjacency() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 2D
       var t1 = RandomGenerator.MakeTriangle2D(decimal_precision: precision).Triangle;

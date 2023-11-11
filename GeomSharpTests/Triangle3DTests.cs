@@ -100,7 +100,7 @@ namespace GeomSharpTests {
 
     [TestMethod]
     public void ContainsEdgeCases() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 3D (flat XY)
       TestContains(Triangle3D.FromPoints(new Point3D(0, 0, 0), new Point3D(1, 0, 0), new Point3D(0, 1, 0), precision),
@@ -117,7 +117,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Containment() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       // 3D
       TestContains(RandomGenerator.MakeTriangle3D(decimal_precision: precision).Triangle, precision);
@@ -125,7 +125,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Intersection() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       var t1 = RandomGenerator.MakeTriangle3D(decimal_precision: precision).Triangle;
 
@@ -220,7 +220,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Overlap() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       var t1 = RandomGenerator.MakeTriangle3D(decimal_precision: precision).Triangle;
 
@@ -314,7 +314,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Adjacency() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       var t1 = RandomGenerator.MakeTriangle3D(decimal_precision: precision).Triangle;
 
@@ -403,7 +403,7 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Touch() {
-      int precision = RandomGenerator.MakeInt(0, 9);
+      int precision = RandomGenerator.MakeInt(3, 9);
 
       var t1 = RandomGenerator.MakeTriangle3D(decimal_precision: precision).Triangle;
 

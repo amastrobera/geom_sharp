@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,7 +13,7 @@ namespace GeomSharp.Algebra {
   /// A Mathematical Vector containing any number of double
   /// </summary>
   [Serializable]
-  public class Vector : IEquatable<Vector>, ISerializable {
+  public class Vector : IEquatable<Vector>, ISerializable, IEnumerable<double> {
     private double[] _values;
     public readonly int Size;
 
@@ -83,23 +84,22 @@ namespace GeomSharp.Algebra {
     /// <returns></returns>
     public bool AlmostEquals(Vector other,
                              int decimal_precision = Constants.THREE_DECIMALS,
-                             EqualityMethod method = EqualityMethod.SUM_OF_SQUARES) {
+                             EqualityMethod method = EqualityMethod.ROOT_SUM_OF_SQUARES) {
       if (Size != other.Size) {
         return false;
       }
 
       switch (method) {
-        case EqualityMethod.SUM_OF_SQUARES: {
-          double sse = 0;
-          for (int i = 0; i < Size; i++) {
-            sse += Math.Pow(this[i] - other[i], 2);
-          }
-          return Math.Round(Math.Sqrt(sse), decimal_precision) == 0;
+        case EqualityMethod.ROOT_SUM_OF_SQUARES: {
+          var diff = new Vector(
+              this.Select((v, i) => Math.Round(v, decimal_precision) - Math.Round(other[i], decimal_precision)));
+          return Math.Round(diff.Length(), decimal_precision) == 0;
         }
 
         case EqualityMethod.BY_MEMBERS:
           for (int i = 0; i < Size; i++) {
-            if (Math.Round(this[i] - other[i], decimal_precision) == 0) {
+            if (Math.Round(Math.Round(this[i], decimal_precision) - Math.Round(other[i], decimal_precision),
+                           decimal_precision) != 0) {
               return false;
             }
           }
@@ -270,6 +270,16 @@ namespace GeomSharp.Algebra {
       } catch (Exception e) {
         // warning failed to deserialize
       }
+    }
+
+    public IEnumerator<double> GetEnumerator() {
+      for (int i = 0; i < _values.Length; i++) {
+        yield return _values[i];
+      }
+    }
+
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      return this.GetEnumerator();
     }
   }
 

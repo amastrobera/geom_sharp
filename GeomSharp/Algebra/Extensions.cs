@@ -7,7 +7,7 @@ namespace GeomSharp.Algebra {
   public static class Extensions {
     // equality
 
-    public enum EqualityMethod { SUM_OF_SQUARES, BY_MEMBERS }
+    public enum EqualityMethod { ROOT_SUM_OF_SQUARES, BY_MEMBERS }
 
     // algaebric operations
 

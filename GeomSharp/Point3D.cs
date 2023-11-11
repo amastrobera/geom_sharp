@@ -54,7 +54,7 @@ namespace GeomSharp {
 
     public bool AlmostEquals(Point3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         !(other is null) &&
-        ToVector().AlmostEquals(other.ToVector(), decimal_precision, Extensions.EqualityMethod.SUM_OF_SQUARES);
+        ToVector().AlmostEquals(other.ToVector(), decimal_precision, Extensions.EqualityMethod.BY_MEMBERS);
 
     // comparison operators
     public static bool operator ==(Point3D a, Point3D b) {
