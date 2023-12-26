@@ -19,15 +19,15 @@ namespace GeomSharpTests {
     public static Point2D MakePoint2D(int IMin = -10,
                                       int IMax = 10,
                                       int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Point2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                         Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      return new Point2D(IMin + Seed.NextDouble() * (IMax - IMin), IMin + Seed.NextDouble() * (IMax - IMin))
+          .ToDecimals(decimal_precision);
     }
 
     public static Vector2D MakeVector2D(int IMin = -10,
                                         int IMax = 10,
                                         int decimal_precision = GeomSharp.Constants.THREE_DECIMALS) {
-      return new Vector2D(Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision),
-                          Math.Round(IMin + Seed.NextDouble() * (IMax - IMin), decimal_precision));
+      return new Vector2D(IMin + Seed.NextDouble() * (IMax - IMin), IMin + Seed.NextDouble() * (IMax - IMin))
+          .ToDecimals(decimal_precision);
     }
 
     public static (LineSegment2D Segment, Point2D p0, Point2D p1)

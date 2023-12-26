@@ -37,6 +37,37 @@ namespace GeomSharpTests {
     }
 
     [RepeatedTestMethod(100)]
+    public void Vector2D() {
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
+      string file_path = Path.Combine(Path.GetTempPath(), file_name);
+
+      int decimal_precision = RandomGenerator.MakeInt(0, 9);
+
+      var p = RandomGenerator.MakeVector2D();
+      p.ToFile(file_path, decimal_precision);
+
+      // System.Console.WriteLine("wkt = " + p.ToWkt(decimal_precision));
+
+      var p_from_file = GeomSharp.Vector2D.FromFile(file_path, decimal_precision);
+
+      // System.Console.WriteLine("from file = " + p_from_file.ToWkt(decimal_precision));
+
+      Assert.IsTrue(
+          p.AlmostEquals(p_from_file, decimal_precision),
+          $"precision={decimal_precision}: " +
+              $"\n{p.ToWkt(decimal_precision)} != {p_from_file.ToWkt(decimal_precision)}"
+
+              + "\n" +
+              string.Join(
+                  ",",
+                  p.ToVector().Select(
+                      (n, i) =>
+                          $"{i}={Math.Round(Math.Round(n, decimal_precision) - Math.Round(p_from_file.ToVector()[i], decimal_precision))}"))
+
+      );
+    }
+
+    [RepeatedTestMethod(100)]
     public void Line2D() {
       string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
       string file_path = Path.Combine(Path.GetTempPath(), file_name);
@@ -107,9 +138,13 @@ namespace GeomSharpTests {
 
       // System.Console.WriteLine("ray_from_file = " + ray_from_file.ToWkt(decimal_precision));
 
+      // clang-format off
       Assert.IsTrue(ray.AlmostEquals(ray_from_file, decimal_precision),
-                    "precision=" + decimal_precision.ToString() + ": " + ray.ToWkt(decimal_precision) +
-                        " != " + ray_from_file.ToWkt(decimal_precision));
+                    $"precision={decimal_precision}:\nray={ray.ToWkt(decimal_precision)}" +
+                    "           \n!=                " + 
+                    $"\nraw file=" + File.ReadAllText(file_path) +
+                    $"\nfile={ray_from_file.ToWkt(decimal_precision)}");
+      // clang-format on
     }
 
     [RepeatedTestMethod(100)]
@@ -389,6 +424,35 @@ namespace GeomSharpTests {
       Assert.IsTrue(p.AlmostEquals(p_from_file, decimal_precision),
                     "precision=" + decimal_precision.ToString() + ": " + p.ToWkt(decimal_precision) +
                         " != " + p_from_file.ToWkt(decimal_precision));
+    }
+
+    [RepeatedTestMethod(100)]
+    public void Vector3D() {
+      string file_name = new StackTrace(false).GetFrame(0).GetMethod().Name + ".wkt";  // function name.wkt
+      string file_path = Path.Combine(Path.GetTempPath(), file_name);
+
+      int decimal_precision = RandomGenerator.MakeInt(0, 9);
+
+      var p = RandomGenerator.MakeVector3D();
+      p.ToFile(file_path, decimal_precision);
+
+      // System.Console.WriteLine("wkt = " + p.ToWkt(decimal_precision));
+
+      var p_from_file = GeomSharp.Vector3D.FromFile(file_path, decimal_precision);
+
+      Assert.IsTrue(
+          p.AlmostEquals(p_from_file, decimal_precision),
+          $"precision={decimal_precision}: " +
+              $"\n{p.ToWkt(decimal_precision)} != {p_from_file.ToWkt(decimal_precision)}"
+
+              + "\n" +
+              string.Join(
+                  ",",
+                  p.ToVector().Select(
+                      (n, i) =>
+                          $"{i}={Math.Round(Math.Round(n, decimal_precision) - Math.Round(p_from_file.ToVector()[i], decimal_precision))}"))
+
+      );
     }
 
     [RepeatedTestMethod(100)]

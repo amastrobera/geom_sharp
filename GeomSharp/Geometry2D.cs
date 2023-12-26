@@ -42,7 +42,7 @@ namespace GeomSharp {
                        int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
                                                                                               ToWkt(decimal_precision));
 
-    private static Vector2D FromWktVector(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
+    public static Vector2D FromWktVector(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
       wkt = wkt.Trim();
 
       string known_empty = "EMPTY";
@@ -53,7 +53,9 @@ namespace GeomSharp {
           return null;
         }
 
-        var data = FromWktPointListBlock(StripWktFromBrackets(wkt));
+        string wkt_without_geom_name = wkt.Substring(known_wkt_string.Length + 1);  // remove the geometry name
+
+        var data = FromWktPointListBlock(StripWktFromBrackets(wkt_without_geom_name));
 
         if (data.Length > 1) {
           throw new Exception("more than one point");

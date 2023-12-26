@@ -42,7 +42,7 @@ namespace GeomSharp {
                        int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
                                                                                               ToWkt(decimal_precision));
 
-    private static Vector3D FromWktVector(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
+    public static Vector3D FromWktVector(string wkt, int decimal_precision = Constants.THREE_DECIMALS) {
       wkt = wkt.Trim();
       string known_empty = "EMPTY";
 

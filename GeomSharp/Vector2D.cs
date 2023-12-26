@@ -159,11 +159,21 @@ namespace GeomSharp {
 
     // special formatting
     public override string ToString() => "{" + String.Format("{0:F9} {1:F9}", U, V) + "}";
-    public string ToWkt(int precision = Constants.THREE_DECIMALS) {
-      return string.Format("VECTOR (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")",
-                           U,
-                           V);
-    }
+
+    // well known text and to/from file
+    public string ToWkt(int precision = Constants.THREE_DECIMALS) =>
+        string.Format("VECTOR (" + String.Format("{0}0:F{1:D}{2} {0}1:F{1:D}{2}", "{", precision, "}") + ")", U, V);
+
+    public void ToFile(string wkt_file_path,
+                       int decimal_precision = Constants.THREE_DECIMALS) => File.WriteAllText(wkt_file_path,
+                                                                                              ToWkt(decimal_precision));
+
+    public static Vector2D FromWkt(string wkt, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Geometry2D.FromWktVector(wkt, decimal_precision);
+
+    public static Vector2D FromFile(string wkt_file_path, int decimal_precision = Constants.THREE_DECIMALS) =>
+        !File.Exists(wkt_file_path) ? throw new ArgumentException("file " + wkt_file_path + " does now exist")
+                                    : FromWkt(File.ReadAllText(wkt_file_path), decimal_precision);
 
     // serialization functions
     // Implement this method to serialize data. The method is called on serialization.
