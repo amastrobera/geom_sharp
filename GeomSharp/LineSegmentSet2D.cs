@@ -27,7 +27,7 @@ namespace GeomSharp {
             seg_hashmap.Add(key, i);
           }
         }
-        Items = new List<LineSegment2D>(seg_hashmap.Select(pair => segments[pair.Value]));
+        Items = new List<LineSegment2D>(seg_hashmap.OrderBy(p => p.Value).Select(pair => segments[pair.Value]));
       }
 
       Size = Items.Count;
