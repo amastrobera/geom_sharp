@@ -333,18 +333,19 @@ namespace GeomSharp {
     /// Returns the relative position of a point onto a curve in % [0,1]
     /// Returns double.MaxValue and warns an error if the point does not belong to the curve at all
     /// It's in 3D, and works on a linearized version of the curve
-    /// It's the twin function of GetPointOnPolyline
+    /// It's the twin function of GetPoint
     /// </summary>
     /// <param name="point"></param>
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public double LocationPct(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
+    public double GetPct(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) {
       double curve_len = Length();
       double len_done = 0;
+
       foreach (var piece_line in ToSegments(decimal_precision)) {
         double piece_len = piece_line.Length();
         if (piece_line.Contains(point, decimal_precision)) {
-          double t = Math.Round(piece_line.P0.DistanceTo(point) / Length(), decimal_precision);
+          double t = Math.Round(piece_line.P0.DistanceTo(point) / piece_line.Length(), decimal_precision);
           if (t >= 0 && t <= 1) {
             return (len_done + t * piece_len) / curve_len;
           }
@@ -362,23 +363,23 @@ namespace GeomSharp {
     /// Gives a warning and returns null in case of errors
     /// It's the twin function of LocationAlongTheLine
     /// </summary>
-    /// <param name="pct">must be in the range [0, 1] of throws</param>
+    /// <param name="pct_location">must be in the range [0, 1] of throws</param>
     /// <param name="decimal_precision"></param>
     /// <returns></returns>
-    public Point2D GetPointOnPolyline(double pct, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (Math.Round(pct, decimal_precision) < 0 || Math.Round(pct, decimal_precision) > 1) {
+    public Point2D GetPoint(double pct_location, int decimal_precision = Constants.THREE_DECIMALS) {
+      if (Math.Round(pct_location, decimal_precision) < 0 || Math.Round(pct_location, decimal_precision) > 1) {
         throw new ArgumentException("pct should be in the range [0,1]");
       }
 
       double curve_len = Math.Round(Length(), decimal_precision);
-      double curve_todo = Math.Round(pct * curve_len, decimal_precision);
+      double curve_todo = Math.Round(pct_location * curve_len, decimal_precision);
       double len_done = 0;
       double pct_done = 0;
       foreach (var piece_line in ToSegments(decimal_precision)) {
         double piece_len = piece_line.Length();
         if (Math.Round(len_done + piece_len, decimal_precision) >= curve_todo) {
           // found segment containing the point
-          double tI = ((pct - pct_done) * curve_len) / piece_len;
+          double tI = ((pct_location - pct_done) * curve_len) / piece_len;
           var PI = piece_line.P0 + tI * (piece_line.P1 - piece_line.P0);
           return PI;
         }
@@ -386,7 +387,7 @@ namespace GeomSharp {
         pct_done = len_done / curve_len;
       }
 
-      // string.Format("GetPointOnPolyline did not find the point on the curve for {0:F4}%", pct)
+      // string.Format("GetPoint did not find the point on the curve for {0:F4}%", pct)
       return null;
     }
   }
