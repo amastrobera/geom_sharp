@@ -23,6 +23,14 @@ namespace GeomSharp {
             ? throw new NullLengthException("trying to initialize a line with two identical points")
             : new Line3D(p0, p1);
 
+    public static Line3D FromPoints_NoThrow(Point3D p0, Point3D p1, int decimal_precision = Constants.THREE_DECIMALS) {
+      try {
+        return FromPoints(p0, p1, decimal_precision);
+      } catch (Exception ex) {
+      }
+      return null;
+    }
+
     public static Line3D FromDirection(Point3D orig, UnitVector3D dir) => new Line3D(orig, dir);
 
     private Line3D(Point3D p0, Point3D p1) {

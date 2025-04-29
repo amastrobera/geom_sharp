@@ -728,8 +728,8 @@ namespace GeomSharp {
     }
 
     public bool IsOnPerimeter(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) =>
-        LineSegment2D.FromPoints(P0, P1, decimal_precision).Contains(point) ||
-        LineSegment2D.FromPoints(P1, P2, decimal_precision).Contains(point) ||
-        LineSegment2D.FromPoints(P2, P0, decimal_precision).Contains(point);
+        LineSegment2D.FromPoints(P0, P1, decimal_precision).Contains(point, decimal_precision) ||
+        LineSegment2D.FromPoints(P1, P2, decimal_precision).Contains(point, decimal_precision) ||
+        LineSegment2D.FromPoints(P2, P0, decimal_precision).Contains(point, decimal_precision);
   }
 }

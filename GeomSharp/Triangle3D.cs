@@ -615,8 +615,8 @@ namespace GeomSharp {
     }
 
     public bool IsOnPerimeter(Point3D point, int decimal_precision = Constants.THREE_DECIMALS) =>
-        LineSegment3D.FromPoints(P0, P1, decimal_precision).Contains(point) ||
-        LineSegment3D.FromPoints(P1, P2, decimal_precision).Contains(point) ||
-        LineSegment3D.FromPoints(P2, P0, decimal_precision).Contains(point);
+        LineSegment3D.FromPoints(P0, P1, decimal_precision).Contains(point, decimal_precision) ||
+        LineSegment3D.FromPoints(P1, P2, decimal_precision).Contains(point, decimal_precision) ||
+        LineSegment3D.FromPoints(P2, P0, decimal_precision).Contains(point, decimal_precision);
   }
 }

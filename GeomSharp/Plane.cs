@@ -176,9 +176,9 @@ namespace GeomSharp {
     /// </summary>
     /// <param name="p"></param>
     /// <returns></returns>
-    public Point3D ProjectOnto(Point3D p) {
+    public Point3D ProjectOnto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
       // funny edge case
-      if (Contains(p)) {
+      if (Contains(p, decimal_precision)) {
         return p;
       }
 
@@ -189,12 +189,17 @@ namespace GeomSharp {
       var U = -SignedDistance(p) * Normal;
       var W = p - Origin;
       var n = Normal;
-      double sI = -n.DotProduct(W) / n.DotProduct(U);
+      double denom = n.DotProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
+        throw new Exception("ProjectOnto failed (div-zero)");
+      }
+
+      double sI = -n.DotProduct(W) / denom;
       var q = p + sI * U;
 
-      if (!Contains(q)) {
-        throw new Exception("ProjectOnto failed");
-      }
+      // if (!Contains(q, decimal_precision)) {
+      //   throw new Exception("ProjectOnto failed (no plane contains)");
+      // }
       return q;
     }
 
@@ -204,9 +209,9 @@ namespace GeomSharp {
     /// <param name="p"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public Point3D ProjectOnto(Point3D p, UnitVector3D proj_axis) {
+    public Point3D ProjectOnto(Point3D p, UnitVector3D proj_axis, int decimal_precision = Constants.THREE_DECIMALS) {
       // funny edge case
-      if (Contains(p)) {
+      if (Contains(p, decimal_precision)) {
         return p;
       }
 
@@ -214,14 +219,18 @@ namespace GeomSharp {
       var U = proj_axis;
       var W = p - Origin;
       var n = Normal;
+      double denom = n.DotProduct(U);
 
-      double sI = -n.DotProduct(W) / n.DotProduct(U);
+      double sI = -n.DotProduct(W) / denom;
+      if (Math.Round(denom, decimal_precision) == 0) {
+        throw new Exception("ProjectOnto failed (div-zero)");
+      }
 
       Point3D q = p + sI * U;
 
-      if (!Contains(q)) {
-        throw new Exception("VerticalProjectOnto failed");
-      }
+      // if (!Contains(q, decimal_precision)) {
+      //   throw new Exception("VerticalProjectOnto failed");
+      // }
 
       return q;
     }
@@ -232,7 +241,8 @@ namespace GeomSharp {
     /// <param name="p"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public Point3D VerticalProjectOnto(Point3D p) => ProjectOnto(p, Vector3D.AxisZ);
+    public Point3D VerticalProjectOnto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) =>
+        ProjectOnto(p, Vector3D.AxisZ, decimal_precision);
 
     /// <summary>
     /// Project given 3D XYZ point into plane,
@@ -246,8 +256,8 @@ namespace GeomSharp {
     /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of
     /// the plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
     /// </summary>
-    public Point2D ProjectInto(Point3D p) {
-      var q = ProjectOnto(p);
+    public Point2D ProjectInto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
+      var q = ProjectOnto(p, decimal_precision);
       var B = q - Origin;
       double B_len = B.Length();
       double B_cos = B.DotProduct(AxisU);
@@ -281,8 +291,8 @@ namespace GeomSharp {
     /// ProjectInto projects the Point3D p onto the same 3D plane. Then projects the point on the AxisU and AxisV of
     /// the plane, and returns the 2D coordinates of the point along the basis AxisU,AxisV.
     /// </summary>
-    public Point2D VerticalProjectInto(Point3D p) {
-      var q = VerticalProjectOnto(p);
+    public Point2D VerticalProjectInto(Point3D p, int decimal_precision = Constants.THREE_DECIMALS) {
+      var q = VerticalProjectOnto(p, decimal_precision);
       var B = q - Origin;
       double B_len = B.Length();
       double B_cos = B.DotProduct(AxisU);

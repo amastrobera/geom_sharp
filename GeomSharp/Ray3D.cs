@@ -219,7 +219,7 @@ namespace GeomSharp {
       }
 
       var Ps = (Point3D)line_int.Value;
-      if (!(Contains(Ps) && other.Contains(Ps))) {
+      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
         return new IntersectionResult();
       }
 
