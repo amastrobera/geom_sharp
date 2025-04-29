@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -174,7 +172,7 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
-      if (line_int.ValueType == typeof(NullValue)) {
+      if (line_int.ValueType != typeof(Point2D)) {
         return new IntersectionResult();
       }
 

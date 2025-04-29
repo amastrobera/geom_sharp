@@ -1,5 +1,4 @@
-﻿
-using GeomSharp.Collections;
+﻿using GeomSharp.Collections;
 
 using System;
 using System.Linq;
@@ -165,7 +164,7 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) {
       var plane_inter = other.Intersection(RefPlane());
-      if (plane_inter.ValueType == typeof(NullValue)) {
+      if (plane_inter.ValueType != typeof(Line3D)) {
         return new IntersectionResult();
       }
 
@@ -210,7 +209,7 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var res = RefPlane().Intersection(other, decimal_precision);
-      if (res.ValueType == typeof(NullValue)) {
+      if (res.ValueType != typeof(Point3D)) {
         return new IntersectionResult();
       }
 
@@ -269,17 +268,16 @@ namespace GeomSharp {
     public override IntersectionResult Intersection(LineSegment3D other,
                                                     int decimal_precision = Constants.THREE_DECIMALS) {
       var res = RefPlane().Intersection(other, decimal_precision);
-      if (res.ValueType == typeof(NullValue)) {
+      if (res.ValueType != typeof(Point3D)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)res.Value;
 
-      if (Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision)) {
-        return new IntersectionResult(pI);
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
       }
-
-      return new IntersectionResult();
+      return new IntersectionResult(pI);
     }
     public override bool Overlaps(LineSegment3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Overlap(other, decimal_precision).ValueType != typeof(NullValue);
@@ -358,17 +356,16 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var res = RefPlane().Intersection(other, decimal_precision);
-      if (res.ValueType == typeof(NullValue)) {
+      if (res.ValueType != typeof(Point3D)) {
         return new IntersectionResult();
       }
 
       var pI = (Point3D)res.Value;
 
-      if (Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision)) {
-        return new IntersectionResult(pI);
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
       }
-
-      return new IntersectionResult();
+      return new IntersectionResult(pI);
     }
 
     public override bool Overlaps(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -588,7 +585,7 @@ namespace GeomSharp {
 
           // a line on the same plane passing through a triangle was defined as an overlap
           var ovlp_this = inter_line.Overlap(this);
-          if (ovlp_this.ValueType == typeof(NullValue)) {
+          if (ovlp_this.ValueType != typeof(LineSegment3D)) {
             return new IntersectionResult();
           }
 

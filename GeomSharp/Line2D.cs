@@ -3,7 +3,6 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace GeomSharp {
   /// <summary>
@@ -137,21 +136,18 @@ namespace GeomSharp {
       return !IsParallel(other, decimal_precision);  // in 2D you only have two chances: parallel or intersecting
     }
     public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (!Intersects(other, decimal_precision)) {
+      // TODO: can be put this code in a common place, and avoid duplicating it over and over ?
+      var U = P1 - P0;
+      var V = other.P1 - other.P0;
+      var W = P0 - other.P0;
+      double denom = V.PerpProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
         return new IntersectionResult();
       }
 
-      // TODO: can be put this code in a common place, and avoid duplicating it over and over ?
-      var V = other.Direction;
-      var U = Direction;
-      var W = Origin - other.Origin;
+      double sI = -V.PerpProduct(W) / denom;  // guaranteed non-zero if non-parallel
 
-      double sI = -V.PerpProduct(W) / V.PerpProduct(U);  // guaranteed non-zero if non-parallel
-
-      var Ps = Origin + sI * Direction;
-      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
-        throw new Exception(String.Format("Intersection({0}) miscalculated Ps", GetType().ToString().ToString()));
-      }
+      var Ps = P0 + sI * U;
 
       return new IntersectionResult(Ps);
     }
@@ -217,7 +213,7 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_inter = Intersection(other.ToLine(), decimal_precision);
-      if (line_inter.ValueType == typeof(NullValue)) {
+      if (line_inter.ValueType != typeof(Point2D)) {
         return new IntersectionResult();
       }
 

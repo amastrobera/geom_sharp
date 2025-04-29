@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
-using GeomSharp;
 
 namespace GeomSharp {
   /// <summary>
@@ -104,17 +101,21 @@ namespace GeomSharp {
       var W = Origin - other.Origin;
       var n = other.Normal;
 
-      double sI = -n.DotProduct(W) / n.DotProduct(U);
+      double denom = n.DotProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
+        return new IntersectionResult();
+      }
 
+      double sI = -n.DotProduct(W) / denom;
       if (Math.Round(sI, decimal_precision) < 0) {
         return new IntersectionResult();
       }
 
       Point3D q = Origin + sI * U;
 
-      if (!other.Contains(q, decimal_precision)) {
-        throw new Exception("plane.Intersection(Line3D) failed");
-      }
+      // if (!other.Contains(q, decimal_precision)) {
+      //   throw new Exception("plane.Intersection(Line3D) failed");
+      // }
 
       return new IntersectionResult(q);
     }
@@ -213,7 +214,7 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
-      if (line_int.ValueType == typeof(NullValue)) {
+      if (line_int.ValueType != typeof(Point3D)) {
         return new IntersectionResult();
       }
 

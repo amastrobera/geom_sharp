@@ -3,7 +3,6 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
-using Microsoft.SqlServer.Server;
 
 namespace GeomSharp {
   /// <summary>
@@ -159,17 +158,22 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
       // Daniel Sunday's magic
-      var U = Direction;
-      var W = Origin - other.Origin;
+      var U = P1 - P0;
+      var W = P0 - other.Origin;
       var n = other.Normal;
 
-      double sI = -n.DotProduct(W) / n.DotProduct(U);
+      double denom = n.DotProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
+        return new IntersectionResult();
+      }
+
+      double sI = -n.DotProduct(W) / denom;
 
       Point3D q = Origin + sI * U;
 
-      if (!other.Contains(q, decimal_precision)) {
-        throw new Exception("plane.Intersection(Line3D) failed");
-      }
+      // if (!other.Contains(q, decimal_precision)) {
+      //   throw new Exception("plane.Intersection(Line3D) failed");
+      // }
 
       return new IntersectionResult(q);
     }
@@ -202,51 +206,20 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
 
     public override IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (IsParallel(other, decimal_precision)) {
+      // TODO: can be put this code in a common place, and avoid duplicating it over and over ?
+      var U = P1 - P0;
+      var V = other.P1 - other.P0;
+      var W = P0 - other.P0;
+      double denom = V.PerpProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
         return new IntersectionResult();
       }
 
-      // pick the first plane 2D where both lines can be projected as lines and not as dots
-      // (verify that neither line is perpendicular to the projecting plane)
-      Plane plane_2d =
-          !(this.IsPerpendicular(Plane.XY, decimal_precision) || other.IsPerpendicular(Plane.XY, decimal_precision))
-              ? Plane.XY
-              : (!(this.IsPerpendicular(Plane.YZ, decimal_precision) ||
-                   other.IsPerpendicular(Plane.YZ, decimal_precision))
-                     ? Plane.YZ
-                     : Plane.ZX);
+      double sI = -V.PerpProduct(W) / denom;  // guaranteed non-zero if non-parallel
 
-      (var p1, var other_p1) = (plane_2d.ProjectInto(Origin), plane_2d.ProjectInto(other.Origin));
-      (var p2, var other_p2) =
-          (plane_2d.ProjectInto(Origin + 2 * Direction), plane_2d.ProjectInto(other.Origin + 2 * other.Direction));
-      (var line_2d, var other_line_2d) =
-          (Line2D.FromPoints(p1, p2, decimal_precision), Line2D.FromPoints(other_p1, other_p2, decimal_precision));
+      var Ps = P0 + sI * U;
 
-      var inter_res = line_2d.Intersection(other_line_2d, decimal_precision);
-      if (inter_res.ValueType == typeof(NullValue)) {
-        // no 2D intersection, no 3D intersection either
-        return new IntersectionResult();
-      }
-      // there is a 2D intersection, let's get the respective 3D point
-      var pI_2d = (Point2D)inter_res.Value;
-
-      // given the linear relationship between the 3D line and the projected 2D line, we can find the point on
-      // the 3D line with a length ratio
-      var A = Origin;
-      var B = Origin + 2 * Direction;
-      var a = plane_2d.ProjectInto(A);
-      var b = plane_2d.ProjectInto(B);
-      var len_ratio = (pI_2d - a).Length() / (b - a).Length();
-      Point3D pI = A + len_ratio * (B - A);
-
-      // and verify it belongs to both lines
-      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
-        // this is merely a 2D intersection, 3D lines do not intersect
-        return new IntersectionResult();
-      }
-
-      // all is well, yea yea
-      return new IntersectionResult(pI);
+      return new IntersectionResult(Ps);
     }
 
     public override bool Overlaps(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
@@ -312,7 +285,7 @@ namespace GeomSharp {
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
     public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_inter = Intersection(other.ToLine(), decimal_precision);
-      if (line_inter.ValueType == typeof(NullValue)) {
+      if (line_inter.ValueType != typeof(Point3D)) {
         return new IntersectionResult();
       }
 

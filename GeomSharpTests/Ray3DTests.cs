@@ -70,26 +70,26 @@ namespace GeomSharpTests {
 
       // temp data
       Ray3D other;
-      Vector3D u_perp = u.CrossProduct((u.IsParallel(Vector3D.AxisZ) ? Vector3D.AxisY : Vector3D.AxisZ));
+      Vector3D u_perp = u.Perp();
       UnitVector3D u_perp_norm = u_perp.Normalize();
 
       // case 1: intersect forrreal
       //      in the middle, crossing
-      other = new Ray3D(mid + u_perp, -u_perp_norm);
+      other = new Ray3D(mid + 2 * u_perp, -u_perp_norm);
       Assert.IsTrue(ray.Intersects(other),
                     "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
       //      in the middle, crossing
-      other = new Ray3D(mid - u_perp, u_perp_norm);
+      other = new Ray3D(mid - 2 * u_perp, u_perp_norm);
       Assert.IsTrue(ray.Intersects(other),
                     "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      in the middle no intersection (shooting the other way)
-      other = new Ray3D(mid + u_perp, u_perp_norm);
+      other = new Ray3D(mid + 2 * u_perp, u_perp_norm);
       Assert.IsFalse(ray.Intersects(other),
                      "no intersect (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      in the middle no intersection (shooting the other way)
-      other = new Ray3D(mid - u_perp, -u_perp_norm);
+      other = new Ray3D(mid - 2 * u_perp, -u_perp_norm);
       Assert.IsFalse(ray.Intersects(other),
                      "no intersect (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
