@@ -161,6 +161,7 @@ namespace GeomSharp {
     //  plane
     public override bool Intersects(Plane other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
     public override IntersectionResult Intersection(Plane other, int decimal_precision = Constants.THREE_DECIMALS) {
       if (other.Contains(this, decimal_precision)) {
         return new IntersectionResult();

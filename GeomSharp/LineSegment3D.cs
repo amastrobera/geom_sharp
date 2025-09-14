@@ -233,9 +233,7 @@ namespace GeomSharp {
       }
 
       var pI = (Point3D)int_res.Value;
-      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
-        return new IntersectionResult();
-      }
+
       return new IntersectionResult(pI);
     }
 
@@ -306,6 +304,7 @@ namespace GeomSharp {
     //  ray
     public override bool Intersects(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
     public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_inter = ToLine().Intersection(other.ToLine(), decimal_precision);
       if (line_inter.ValueType != typeof(Point3D)) {
@@ -313,9 +312,6 @@ namespace GeomSharp {
       }
 
       var pI = (Point3D)line_inter.Value;
-      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
-        return new IntersectionResult();
-      }
 
       return new IntersectionResult(pI);
     }

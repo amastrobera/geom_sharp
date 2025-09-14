@@ -170,6 +170,7 @@ namespace GeomSharp {
     //  ray
     public override bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
     public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
       if (line_int.ValueType != typeof(Point2D)) {
@@ -177,9 +178,6 @@ namespace GeomSharp {
       }
 
       var Ps = (Point2D)line_int.Value;
-      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
-        return new IntersectionResult();
-      }
 
       return new IntersectionResult(Ps);
     }

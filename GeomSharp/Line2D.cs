@@ -132,9 +132,11 @@ namespace GeomSharp {
         throw new NotImplementedException("");
 
     //  line
-    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      return !IsParallel(other, decimal_precision);  // in 2D you only have two chances: parallel or intersecting
-    }
+    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    // !IsParallel(other, decimal_precision);
+    // could be quicker in 2D you only have two chances: parallel or intersecting
+
     public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
       // TODO: can be put this code in a common place, and avoid duplicating it over and over ?
       var U = P1 - P0;

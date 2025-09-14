@@ -65,9 +65,6 @@ namespace GeomSharpTests {
 
     [RepeatedTestMethod(100)]
     public void Intersection() {
-      // default precision
-      int default_precision = Constants.THREE_DECIMALS;
-
       // input
       (var ray, var p0, var p1) = RandomGenerator.MakeRay3D();
 
@@ -81,53 +78,91 @@ namespace GeomSharpTests {
       Ray3D other;
       Vector3D u_perp = u.Perp();
       UnitVector3D u_perp_norm = u_perp.Normalize();
+      IntersectionResult int_res = null;
+      Point3D int_pt = null;
 
       // case 1: intersect forrreal
       //      in the middle, crossing
       other = new Ray3D(mid + u_perp, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
                     "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
+                    "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+
       //      in the middle, crossing
       other = new Ray3D(mid - u_perp, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
-                    "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
+                    "intersect forrreal (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      in the middle no intersection (shooting the other way)
       other = new Ray3D(mid + u_perp, u_perp_norm);
-      Assert.IsFalse(ray.Intersects(other, default_precision),
-                     "no intersect (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                    "no intersect (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      in the middle no intersection (shooting the other way)
       other = new Ray3D(mid - u_perp, -u_perp_norm);
-      Assert.IsFalse(ray.Intersects(other, default_precision),
-                     "no intersect (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                    "no intersect (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      on the first extremity, crossing
       other = new Ray3D(p0 + u_perp, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
                     "intersect forrreal (+p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
+                    "intersect forrreal (+p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+
       other = new Ray3D(p0 - u_perp, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (-p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (-p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the middle, going down
       other = new Ray3D(mid, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (to mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (to mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the middle, going up
       other = new Ray3D(mid, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (from mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (from mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the the first extremity, going down
       other = new Ray3D(p0, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (from p0+)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (from p0+)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the the first extremity, going up
       other = new Ray3D(p0, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other, default_precision),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (from p0-)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point3D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (from p0-)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       // case 2: no intersection (parallel, shift random vector)
@@ -135,15 +170,17 @@ namespace GeomSharpTests {
       Vector3D shift = RandomGenerator.MakeVector3D();
       if (Math.Round(shift.Length(), Constants.NINE_DECIMALS) == 0) {
         other = new Ray3D(p0 + shift, u);
-        Assert.IsFalse(ray.Intersects(other, default_precision),
-                       "no intersection (parallel, shift upwards random vector)" + "\nray1=" + ray.ToWkt() +
-                           ", ray2=" + other.ToWkt());
+        int_res = ray.Intersection(other);
+        Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                      "no intersection (parallel, shift upwards random vector)" + "\nray1=" + ray.ToWkt() +
+                          ", ray2=" + other.ToWkt());
 
         //      downwards
         other = new Ray3D(p0 - shift, u);
-        Assert.IsFalse(ray.Intersects(other, default_precision),
-                       "no intersection (parallel, shift downwards random vector)" + "\nray1=" + ray.ToWkt() +
-                           ", ray2=" + other.ToWkt());
+        int_res = ray.Intersection(other);
+        Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                      "no intersection (parallel, shift downwards random vector)" + "\nray1=" + ray.ToWkt() +
+                          ", ray2=" + other.ToWkt());
       }
     }
 
