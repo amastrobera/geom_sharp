@@ -3,7 +3,6 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace GeomSharp {
   /// <summary>
@@ -133,25 +132,24 @@ namespace GeomSharp {
         throw new NotImplementedException("");
 
     //  line
-    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      return !IsParallel(other, decimal_precision);  // in 2D you only have two chances: parallel or intersecting
-    }
+    public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    // !IsParallel(other, decimal_precision);
+    // could be quicker in 2D you only have two chances: parallel or intersecting
+
     public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (!Intersects(other, decimal_precision)) {
+      // TODO: can be put this code in a common place, and avoid duplicating it over and over ?
+      var U = P1 - P0;
+      var V = other.P1 - other.P0;
+      var W = P0 - other.P0;
+      double denom = V.PerpProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
         return new IntersectionResult();
       }
 
-      // TODO: can be put this code in a common place, and avoid duplicating it over and over ?
-      var V = other.Direction;
-      var U = Direction;
-      var W = Origin - other.Origin;
+      double sI = -V.PerpProduct(W) / denom;  // guaranteed non-zero if non-parallel
 
-      double sI = -V.PerpProduct(W) / V.PerpProduct(U);  // guaranteed non-zero if non-parallel
-
-      var Ps = Origin + sI * Direction;
-      if (!(Contains(Ps, decimal_precision) && other.Contains(Ps, decimal_precision))) {
-        throw new Exception(String.Format("Intersection({0}) miscalculated Ps", GetType().ToString().ToString()));
-      }
+      var Ps = P0 + sI * U;
 
       return new IntersectionResult(Ps);
     }
@@ -166,6 +164,12 @@ namespace GeomSharp {
     }
     public override IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Overlaps(other, decimal_precision) ? new IntersectionResult(this) : new IntersectionResult();
+
+    // ray
+    public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlaps(this, decimal_precision);
+    public override IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Overlap(this, decimal_precision);
 
     //  line segment
     public override bool Intersects(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -214,32 +218,9 @@ namespace GeomSharp {
 
     //  ray
     public override bool Intersects(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
-    public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      var line_inter = Intersection(other.ToLine(), decimal_precision);
-      if (line_inter.ValueType == typeof(NullValue)) {
-        return new IntersectionResult();
-      }
-
-      var pI = (Point2D)line_inter.Value;
-      if (!other.Contains(pI, decimal_precision)) {
-        return new IntersectionResult();
-      }
-      return new IntersectionResult(pI);
-    }
-    public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        Overlap(other, decimal_precision).ValueType != typeof(NullValue);
-    public override IntersectionResult Overlap(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) {
-      if (!other.Direction.IsParallel(Direction, decimal_precision)) {
-        return new IntersectionResult();
-      }
-
-      if (Contains(other.Origin, decimal_precision)) {
-        return new IntersectionResult(other);
-      }
-
-      return new IntersectionResult();
-    }
+        other.Intersects(this, decimal_precision);
+    public override IntersectionResult Intersection(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
+        other.Intersection(this, decimal_precision);
 
     //  triangle
     public override bool Intersects(Triangle2D other, int decimal_precision = Constants.THREE_DECIMALS) =>

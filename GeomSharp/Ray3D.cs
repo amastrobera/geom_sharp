@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
-using GeomSharp;
 
 namespace GeomSharp {
   /// <summary>
@@ -104,8 +101,12 @@ namespace GeomSharp {
       var W = Origin - other.Origin;
       var n = other.Normal;
 
-      double sI = -n.DotProduct(W) / n.DotProduct(U);
+      double denom = n.DotProduct(U);
+      if (Math.Round(denom, decimal_precision) == 0) {
+        return new IntersectionResult();
+      }
 
+      double sI = -n.DotProduct(W) / denom;
       if (Math.Round(sI, decimal_precision) < 0) {
         return new IntersectionResult();
       }
@@ -155,9 +156,23 @@ namespace GeomSharp {
 
     //  line
     public override bool Intersects(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Intersects(this, decimal_precision);
-    public override IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Intersection(this, decimal_precision);
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      {
+        var line_inter = ToLine().Intersection(other, decimal_precision);
+        if (line_inter.ValueType != typeof(Point3D)) {
+          return new IntersectionResult();
+        }
+
+        var pI = (Point3D)line_inter.Value;
+        if (!Contains(pI, decimal_precision)) {
+          return new IntersectionResult(pI);
+        }
+
+        return new IntersectionResult();
+      }
+    }
+
     public override bool Overlaps(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         other.Overlaps(this, decimal_precision);
     public override IntersectionResult Overlap(Line3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -211,18 +226,18 @@ namespace GeomSharp {
     //  ray
     public override bool Intersects(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+
     public override IntersectionResult Intersection(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) {
       var line_int = ToLine().Intersection(other.ToLine(), decimal_precision);
-      if (line_int.ValueType == typeof(NullValue)) {
+      if (line_int.ValueType != typeof(Point3D)) {
         return new IntersectionResult();
       }
 
-      var Ps = (Point3D)line_int.Value;
-      if (!(Contains(Ps) && other.Contains(Ps))) {
+      var pI = (Point3D)line_int.Value;
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
         return new IntersectionResult();
       }
-
-      return new IntersectionResult(Ps);
+      return new IntersectionResult(pI);
     }
     public override bool Overlaps(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Overlap(other, decimal_precision).ValueType != typeof(NullValue);

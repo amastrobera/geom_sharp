@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Linq;
 
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 
 using GeomSharp.Algebra;
-using Microsoft.SqlServer.Server;
 
 namespace GeomSharp {
   /// <summary>
@@ -121,9 +119,29 @@ namespace GeomSharp {
 
     public static Vector3D operator /(Vector3D b, double k) => FromVector(b.ToVector() / k);
 
+    public Vector3D Perp() {
+      int default_precision = Constants.THREE_DECIMALS;
+      bool is_z_biggest = Math.Round(Z - Y, default_precision) >= 0 && Math.Round(Z - X, default_precision) >= 0;
+      bool is_x_biggest = Math.Round(X - Y, default_precision) >= 0 && Math.Round(X - Z, default_precision) >= 0;
+      // bool is_y_biggest = Math.Round(Y - Z, default_precision) >= 0 && Math.Round(Y - X, default_precision) >= 0;
+
+      if (is_z_biggest) {
+        return new Vector3D(-Y, X, 0);
+      }
+
+      if (is_x_biggest) {
+        return new Vector3D(0, -Z, Y);
+      }
+
+      // if (is_y_biggest) { }
+      return new Vector3D(Z, 0, -X);
+    }
+
     public double DotProduct(Vector3D other) => ToVector().DotProduct(other.ToVector());
 
     public double DotProduct(Point3D point) => ToVector().DotProduct(point.ToVector());
+
+    public double PerpProduct(Vector3D other) => Perp().DotProduct(other);
 
     /// <summary>
     /// The cross product (aka 3D outer product)

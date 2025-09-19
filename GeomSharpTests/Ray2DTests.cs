@@ -71,53 +71,91 @@ namespace GeomSharpTests {
       Ray2D other;
       Vector2D u_perp = u.Perp();
       UnitVector2D u_perp_norm = u_perp.Normalize();
+      IntersectionResult int_res = null;
+      Point2D int_pt = null;
 
       // case 1: intersect forrreal
       //      in the middle, crossing
       other = new Ray2D(mid + u_perp, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
                     "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
+                    "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+
       //      in the middle, crossing
       other = new Ray2D(mid - u_perp, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
-                    "intersect forrreal (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
+                    "intersect forrreal (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      in the middle no intersection (shooting the other way)
       other = new Ray2D(mid + u_perp, u_perp_norm);
-      Assert.IsFalse(ray.Intersects(other),
-                     "no intersect (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                    "no intersect (+mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      in the middle no intersection (shooting the other way)
       other = new Ray2D(mid - u_perp, -u_perp_norm);
-      Assert.IsFalse(ray.Intersects(other),
-                     "no intersect (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                    "no intersect (-mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      on the first extremity, crossing
       other = new Ray2D(p0 + u_perp, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
                     "intersect forrreal (+p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
+                    "intersect forrreal (+p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+
       other = new Ray2D(p0 - u_perp, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (-p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (-p0)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the middle, going down
       other = new Ray2D(mid, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (to mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (to mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the middle, going up
       other = new Ray2D(mid, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (from mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (from mid)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the the first extremity, going down
       other = new Ray2D(p0, u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (from p0+)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (from p0+)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       //      just one point in the the first extremity, going up
       other = new Ray2D(p0, -u_perp_norm);
-      Assert.IsTrue(ray.Intersects(other),
+      int_res = ray.Intersection(other);
+      Assert.IsTrue(int_res.ValueType != typeof(NullValue),
+                    "intersect forrreal (from p0-)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
+      int_pt = (Point2D)int_res.Value;
+      Assert.IsTrue(ray.Contains(int_pt) && other.Contains(int_pt),
                     "intersect forrreal (from p0-)" + "\nray1=" + ray.ToWkt() + ", ray2=" + other.ToWkt());
 
       // case 2: no intersection (parallel, shift random vector)
@@ -125,15 +163,17 @@ namespace GeomSharpTests {
       Vector2D shift = RandomGenerator.MakeVector2D();
       if (Math.Round(shift.Length(), Constants.NINE_DECIMALS) != 0) {
         other = new Ray2D(p0 + shift, u);
-        Assert.IsFalse(ray.Intersects(other),
-                       "no intersection (parallel, shift upwards random vector)" + "\nray1=" + ray.ToWkt() +
-                           ", ray2=" + other.ToWkt());
+        int_res = ray.Intersection(other);
+        Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                      "no intersection (parallel, shift upwards random vector)" + "\nray1=" + ray.ToWkt() +
+                          ", ray2=" + other.ToWkt());
 
         //      downwards
         other = new Ray2D(p0 - shift, u);
-        Assert.IsFalse(ray.Intersects(other),
-                       "no intersection (parallel, shift downwards random vector)" + "\nray1=" + ray.ToWkt() +
-                           ", ray2=" + other.ToWkt());
+        int_res = ray.Intersection(other);
+        Assert.IsTrue(int_res.ValueType == typeof(NullValue),
+                      "no intersection (parallel, shift downwards random vector)" + "\nray1=" + ray.ToWkt() +
+                          ", ray2=" + other.ToWkt());
       }
     }
 

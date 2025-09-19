@@ -218,13 +218,13 @@ namespace GeomSharp {
 
       // edge 1 intersection
       edge_inter = LineSegment2D.FromPoints(P0, P1).Intersection(other, decimal_precision);
-      if (edge_inter.ValueType != typeof(NullValue)) {
+      if (edge_inter.ValueType == typeof(Point2D)) {
         pi1 = (Point2D)edge_inter.Value;
       }
 
       // edge 2 intersection
       edge_inter = LineSegment2D.FromPoints(P1, P2).Intersection(other, decimal_precision);
-      if (edge_inter.ValueType != typeof(NullValue)) {
+      if (edge_inter.ValueType == typeof(Point2D)) {
         var p = (Point2D)edge_inter.Value;
         if (pi1 is null) {
           pi1 = p;
@@ -238,7 +238,7 @@ namespace GeomSharp {
       // edge 3 intersection
       if (pi2 is null) {
         edge_inter = LineSegment2D.FromPoints(P2, P0).Intersection(other, decimal_precision);
-        if (edge_inter.ValueType != typeof(NullValue)) {
+        if (edge_inter.ValueType == typeof(Point2D)) {
           var p = (Point2D)edge_inter.Value;
           if (pi1 is null) {
             pi1 = p;
@@ -728,8 +728,8 @@ namespace GeomSharp {
     }
 
     public bool IsOnPerimeter(Point2D point, int decimal_precision = Constants.THREE_DECIMALS) =>
-        LineSegment2D.FromPoints(P0, P1, decimal_precision).Contains(point) ||
-        LineSegment2D.FromPoints(P1, P2, decimal_precision).Contains(point) ||
-        LineSegment2D.FromPoints(P2, P0, decimal_precision).Contains(point);
+        LineSegment2D.FromPoints(P0, P1, decimal_precision).Contains(point, decimal_precision) ||
+        LineSegment2D.FromPoints(P1, P2, decimal_precision).Contains(point, decimal_precision) ||
+        LineSegment2D.FromPoints(P2, P0, decimal_precision).Contains(point, decimal_precision);
   }
 }
