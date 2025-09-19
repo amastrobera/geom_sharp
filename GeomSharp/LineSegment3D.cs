@@ -206,7 +206,7 @@ namespace GeomSharp {
       }
 
       var pI = (Point3D)line_inter.Value;
-      if (other.Contains(pI, decimal_precision)) {
+      if (Contains(pI, decimal_precision)) {
         return new IntersectionResult(pI);
       }
 
@@ -233,7 +233,9 @@ namespace GeomSharp {
       }
 
       var pI = (Point3D)int_res.Value;
-
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
+      }
       return new IntersectionResult(pI);
     }
 
@@ -312,7 +314,9 @@ namespace GeomSharp {
       }
 
       var pI = (Point3D)line_inter.Value;
-
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
+      }
       return new IntersectionResult(pI);
     }
     public override bool Overlaps(Ray3D other, int decimal_precision = Constants.THREE_DECIMALS) =>

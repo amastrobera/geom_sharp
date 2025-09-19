@@ -113,6 +113,9 @@ namespace GeomSharp {
       }
 
       var pI = (Point2D)line_inter.Value;
+      if (!Contains(pI, decimal_precision)) {
+        return new IntersectionResult();
+      }
       return new IntersectionResult(pI);
     }
     public override bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -135,6 +138,9 @@ namespace GeomSharp {
       }
 
       var pI = (Point2D)line_intersection.Value;
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
+      }
       return new IntersectionResult(pI);
     }
     public override bool Overlaps(LineSegment2D other, int decimal_precision = Constants.THREE_DECIMALS) {
@@ -221,7 +227,9 @@ namespace GeomSharp {
       }
 
       var pI = (Point2D)line_inter.Value;
-
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
+      }
       return new IntersectionResult(pI);
     }
     public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>

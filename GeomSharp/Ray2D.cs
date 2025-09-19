@@ -114,9 +114,20 @@ namespace GeomSharp {
 
     //  line
     public override bool Intersects(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Intersects(this, decimal_precision);
-    public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
-        other.Intersection(this, decimal_precision);
+        Intersection(other, decimal_precision).ValueType != typeof(NullValue);
+    public override IntersectionResult Intersection(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) {
+      var line_inter = ToLine().Intersection(other, decimal_precision);
+      if (line_inter.ValueType != typeof(Point2D)) {
+        return new IntersectionResult();
+      }
+
+      var pI = (Point2D)line_inter.Value;
+      if (!Contains(pI, decimal_precision)) {
+        return new IntersectionResult();
+      }
+      return new IntersectionResult(pI);
+    }
+
     public override bool Overlaps(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         other.Overlaps(this, decimal_precision);
     public override IntersectionResult Overlap(Line2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
@@ -177,9 +188,11 @@ namespace GeomSharp {
         return new IntersectionResult();
       }
 
-      var Ps = (Point2D)line_int.Value;
-
-      return new IntersectionResult(Ps);
+      var pI = (Point2D)line_int.Value;
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        return new IntersectionResult();
+      }
+      return new IntersectionResult(pI);
     }
     public override bool Overlaps(Ray2D other, int decimal_precision = Constants.THREE_DECIMALS) =>
         Overlap(other, decimal_precision).ValueType != typeof(NullValue);

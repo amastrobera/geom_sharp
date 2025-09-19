@@ -197,6 +197,10 @@ namespace GeomSharp {
       double sI = -n.DotProduct(W) / denom;
       var q = p + sI * U;
 
+      if (!Contains(q)) {
+        throw new Exception("ProjectOnto failed");
+      }
+
       return q;
     }
 
@@ -224,6 +228,9 @@ namespace GeomSharp {
       }
 
       Point3D q = p + sI * U;
+      if (!Contains(q)) {
+        throw new Exception("ProjectOnto failed");
+      }
 
       return q;
     }
@@ -380,6 +387,10 @@ namespace GeomSharp {
       (double d1, double d2) = (-Normal.DotProduct(Origin), -other.Normal.DotProduct(other.Origin));
 
       var pI = Point3D.Zero + (d2 * Normal - d1 * other.Normal).CrossProduct(U) / U.DotProduct(U);
+
+      if (!(Contains(pI, decimal_precision) && other.Contains(pI, decimal_precision))) {
+        throw new Exception("plane.Intersection(plane) failed computation: pI does not belong to planes");
+      }
 
       return new IntersectionResult(Line3D.FromDirection(pI, U.Normalize()));
     }
